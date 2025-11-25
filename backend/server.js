@@ -1,11 +1,13 @@
 // backend/server.js
 const express = require('express');
 const mongoose = require('mongoose');
+const businessRoutes = require('./routes/businessRoutes');
 const cors = require('cors');
 
 const app = express();
 
 app.use(cors());
+app.use('/api/business', businessRoutes);
 app.use(express.json());
 
 mongoose.connect('mongodb+srv://admin:admin12345@cluster0.azdm782.mongodb.net/?appName=Cluster0')
