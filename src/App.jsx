@@ -15,7 +15,7 @@ import { PrivacyPolicy, TermsOfUse, CookiePolicy, KvkkText } from './LegalPages'
 import PricingPage from './PricingPage';
 import BlogPostDetail from './BlogPostDetail';
 import SolutionsPage from './SolutionsPage';
-import StoryPage from './StoryPage'; 
+import StoryPage from './HikayeSayfasi'; 
 import CaseStudiesPage from './CaseStudiesPage';
 import BlogPage from './BlogPage';
 
