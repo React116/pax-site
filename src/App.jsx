@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 
 // --- SAYFA İMPORTLARI ---
+//Düzenleme
 // BU DOSYALARIN src KLASÖRÜNDE OLDUĞUNDAN EMİN OLUN
 import { PrivacyPolicy, TermsOfUse, CookiePolicy, KvkkText } from './LegalPages';
 import PricingPage from './PricingPage';
