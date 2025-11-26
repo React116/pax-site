@@ -17,14 +17,12 @@ import StoryPage from './HikayeSayfasi';
 import CaseStudiesPage from './CaseStudiesPage';
 import BlogPage from './BlogPage';
 import BusinessSettings from './pages/BusinessSettings';
-import DashboardLayout from './layouts/DashboardLayout'; // YENİ
-import DashboardOverview from './pages/DashboardOverview'; // YENİ
-// BusinessSettings zaten vardı
 
-// --- YENİ EKLENEN SAYFALAR ---
+// --- PANEL VE AUTH IMPORTLARI ---
 import Register from './Register';
 import Login from './Login';
-import Dashboard from './Dashboard';
+import DashboardLayout from './layouts/DashboardLayout';   // YENİ: Sidebar'ı tutan kabuk
+import DashboardOverview from './pages/DashboardOverview'; // YENİ: Ana panel görünümü
 import ProtectedRoute from './ProtectedRoute'; 
 import { LanguageProvider, useLanguage } from './LanguageContext';
 
@@ -629,44 +627,40 @@ function App() {
           
           {/* Layout bileşeni Rotaları sarmalar ve Navbar kontrolünü yapar */}
           <Layout>
-           // src/App.jsx içindeki Routes kısmı:
+            <Routes>
+              {/* --- GENEL SAYFALAR --- */}
+              <Route path="/" element={<HomePage />} />
+              <Route path="/basari-hikayeleri" element={<CaseStudiesPage />} />
+              <Route path="/blog" element={<BlogPage />} />
+              <Route path="/blog/:id" element={<BlogPostDetail />} />
+              <Route path="/gizlilik-politikasi" element={<PrivacyPolicy />} />
+              <Route path="/kullanim-kosullari" element={<TermsOfUse />} />
+              <Route path="/cerez-politikasi" element={<CookiePolicy />} />
+              <Route path="/kvkk-gdpr" element={<KvkkText />} />
+              <Route path="/fiyatlar" element={<PricingPage />} />
+              <Route path="/cozumler" element={<SolutionsPage />} />
+              <Route path="/hikayemiz" element={<StoryPage />} />
+              
+              <Route path="/giris-yap" element={<Login />} />
+              <Route path="/kayit-ol" element={<Register />} />
 
-<Routes>
-  {/* --- GENEL SAYFALAR --- */}
-  <Route path="/" element={<HomePage />} />
-  <Route path="/basari-hikayeleri" element={<CaseStudiesPage />} />
-  <Route path="/blog" element={<BlogPage />} />
-  <Route path="/blog/:id" element={<BlogPostDetail />} />
-  <Route path="/gizlilik-politikasi" element={<PrivacyPolicy />} />
-  <Route path="/kullanim-kosullari" element={<TermsOfUse />} />
-  <Route path="/cerez-politikasi" element={<CookiePolicy />} />
-  <Route path="/kvkk-gdpr" element={<KvkkText />} />
-  <Route path="/fiyatlar" element={<PricingPage />} />
-  <Route path="/cozumler" element={<SolutionsPage />} />
-  <Route path="/hikayemiz" element={<StoryPage />} />
-  
-  <Route path="/giris-yap" element={<Login />} />
-  <Route path="/kayit-ol" element={<Register />} />
+              {/* --- PANEL ROTALARI (NESTED) --- */}
+              <Route 
+                path="/panel" 
+                element={
+                  <ProtectedRoute>
+                    <DashboardLayout />
+                  </ProtectedRoute>
+                }
+              >
+                {/* /panel adresine girince Overview açılacak */}
+                <Route index element={<DashboardOverview />} />
+                
+                {/* /panel/settings adresine girince Settings, Layout'un içinde açılacak */}
+                <Route path="settings" element={<BusinessSettings />} />
+              </Route>
 
-  {/* --- PANEL ROTALARI (NESTED) --- */}
-  {/* Ana Panel Yolu: /panel */}
-  <Route 
-    path="/panel" 
-    element={
-      <ProtectedRoute>
-        {/* Layout her zaman görünecek */}
-        <DashboardLayout />
-      </ProtectedRoute>
-    }
-  >
-    {/* /panel adresine girince Overview açılacak */}
-    <Route index element={<DashboardOverview />} />
-    
-    {/* /panel/settings adresine girince Settings, Layout'un içinde açılacak */}
-    <Route path="settings" element={<BusinessSettings />} />
-  </Route>
-
-</Routes>
+            </Routes>
           </Layout>
 
         </div>
