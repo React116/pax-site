@@ -11,21 +11,16 @@ import {
   Plus, Calendar as CalIcon, Search, Filter, 
   ChevronLeft, ChevronRight, Clock, User, 
   MapPin, CheckCircle2, AlertCircle, Zap, 
-  MoreHorizontal, X, LayoutGrid, List
+  MoreHorizontal, X, LayoutGrid, Trash2, Edit2
 } from 'lucide-react';
 
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import 'react-big-calendar/lib/addons/dragAndDrop/styles.css';
 
-// --- AYARLAR & LOCALIZER ---
 const locales = { 'tr': tr };
-const localizer = dateFnsLocalizer({
-  format, parse, startOfWeek, getDay, locales,
-});
-
+const localizer = dateFnsLocalizer({ format, parse, startOfWeek, getDay, locales });
 const DnDCalendar = withDragAndDrop(Calendar);
 
-// --- DERS TİPLERİ & RENK PALETİ (Premium Pastel) ---
 const EVENT_TYPES = {
   private: { label: 'Özel Ders', color: 'bg-purple-100 text-purple-700 border-purple-200' },
   reformer: { label: 'Reformer', color: 'bg-blue-100 text-blue-700 border-blue-200' },
@@ -37,139 +32,227 @@ const EVENT_TYPES = {
 const CalendarPage = () => {
   // --- STATE ---
   const [events, setEvents] = useState([]);
+  const [instructors, setInstructors] = useState([]); // Gerçek eğitmen listesi
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [view, setView] = useState(Views.WEEK);
   const [date, setDate] = useState(new Date());
-  const [showModal, setShowModal] = useState(false);
   
-  // Filtreler
-  const [filterType, setFilterType] = useState('all');
+  // Modal & Form State
+  const [showModal, setShowModal] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [formData, setFormData] = useState({
+     id: null, title: '', start: '', end: '', type: 'private', 
+     instructor: '', room: 'Ana Salon', desc: '', status: 'confirmed'
+  });
 
+  // Filtreler
+  const [filterType, setFilterType] = useState('all'); // all, reformer, yoga...
+  
   const BASE_URL = import.meta.env.VITE_API_URL || "https://pax-backend-9m4q.onrender.com/api";
   const token = localStorage.getItem('token');
 
-  // --- VERİ ÇEKME (MOCK DATA İLE BAŞLANGIÇ) ---
-  // Backend tam hazır olana kadar UI'ı göstermek için sahte veri de ekliyorum.
+  // --- 1. VERİLERİ ÇEK (Etkinlikler + Eğitmenler) ---
   useEffect(() => {
-    fetchEvents();
+    fetchData();
   }, []);
 
-  const fetchEvents = async () => {
+  const fetchData = async () => {
     if (!token) return;
     try {
-      const res = await fetch(`${BASE_URL}/calendar`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (res.ok) {
-        const data = await res.json();
-        const parsedEvents = data.map(ev => ({
+      // Paralel istek: Hem takvimi hem işletme ayarlarını (eğitmenleri) çek
+      const [calRes, profileRes] = await Promise.all([
+        fetch(`${BASE_URL}/calendar`, { headers: { 'Authorization': `Bearer ${token}` } }),
+        fetch(`${BASE_URL}/business-profile`, { headers: { 'Authorization': `Bearer ${token}` } })
+      ]);
+
+      if (calRes.ok) {
+        const data = await calRes.json();
+        const parsed = data.map(ev => ({
           ...ev,
-          id: ev._id,
+          id: ev._id, // BigCalendar 'id' ister
           start: new Date(ev.start),
           end: new Date(ev.end),
-          // Backend'de henüz olmayan alanlar için varsayılanlar (UI testi için)
-          type: ev.color === '#8b5cf6' ? 'private' : 'reformer', 
-          clientName: ev.title.split(' - ')[0] || 'Müşteri',
-          instructor: 'Buse Hoca',
-          room: 'Salon A',
-          status: 'confirmed'
         }));
-        setEvents(parsedEvents);
+        setEvents(parsed);
       }
+
+      if (profileRes.ok) {
+        const profile = await profileRes.json();
+        // Eğitmen listesini state'e at
+        if (profile.instructors && profile.instructors.length > 0) {
+            setInstructors(profile.instructors);
+        } else {
+            // Hiç eğitmen yoksa varsayılan ekle
+            setInstructors([{ name: 'Genel Eğitmen' }]);
+        }
+      }
+    } catch (err) { console.error("Veri hatası:", err); }
+  };
+
+  // --- 2. KAYDETME (Create & Update) ---
+  const handleSave = async (e) => {
+    e.preventDefault();
+    if (!formData.title || !formData.start || !formData.end) return alert("Lütfen zorunlu alanları doldurun.");
+
+    const method = isEditMode ? 'PUT' : 'POST';
+    const url = isEditMode ? `${BASE_URL}/calendar/${formData.id}` : `${BASE_URL}/calendar`;
+
+    try {
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify(formData)
+      });
+
+      if (res.ok) {
+        await fetchData(); // Listeyi yenile
+        setShowModal(false);
+        resetForm();
+      } else { alert("İşlem başarısız."); }
     } catch (err) { console.error(err); }
   };
 
-  // --- DRAG & DROP İŞLEMLERİ ---
-  const onEventDrop = ({ event, start, end }) => {
-    const updatedEvents = events.map(existing => 
-      existing.id === event.id ? { ...existing, start, end } : existing
-    );
-    setEvents(updatedEvents);
-    // Backend Update İsteği Burada Atılacak
-    // updateBackend(event.id, { start, end });
+  // --- 3. SİLME (Delete) ---
+  const handleDelete = async (id) => {
+    if (!window.confirm("Bu randevuyu silmek istediğinize emin misiniz?")) return;
+    try {
+        await fetch(`${BASE_URL}/calendar/${id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        setEvents(events.filter(e => e.id !== id));
+        setSelectedEvent(null);
+    } catch (err) { console.error(err); }
   };
 
-  const onEventResize = ({ event, start, end }) => {
-    const updatedEvents = events.map(existing => 
-      existing.id === event.id ? { ...existing, start, end } : existing
-    );
+  // --- 4. SÜRÜKLE & BIRAK GÜNCELLEMESİ ---
+  const onEventDrop = async ({ event, start, end }) => {
+    // Önce UI'da güncelle (Hız hissi için)
+    const updatedEvents = events.map(e => e.id === event.id ? { ...e, start, end } : e);
     setEvents(updatedEvents);
+
+    // Sonra Backend'e kaydet
+    try {
+      await fetch(`${BASE_URL}/calendar/${event.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ start, end })
+      });
+    } catch (err) { console.error("Drop hatası:", err); fetchData(); /* Hata varsa geri al */ }
   };
 
-  // --- ÖZEL COMPONENTLER ---
-  
-  // 1. Özel Takvim Hücresi (Event Component)
+  // --- YARDIMCILAR ---
+  const resetForm = () => {
+    setFormData({ id: null, title: '', start: '', end: '', type: 'private', instructor: '', room: 'Ana Salon', desc: '', status: 'confirmed' });
+    setIsEditMode(false);
+  };
+
+  const openNewModal = () => {
+    resetForm();
+    // Varsayılan olarak şu anki saati ayarla
+    const now = new Date();
+    const oneHourLater = new Date(now.getTime() + 60*60*1000);
+    // Formata uygun string (YYYY-MM-DDTHH:mm)
+    const toLocalISO = (d) => d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0') + 'T' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+    
+    setFormData(prev => ({ ...prev, start: toLocalISO(now), end: toLocalISO(oneHourLater) }));
+    setShowModal(true);
+  };
+
+  const openEditModal = (event) => {
+    const toLocalISO = (d) => d ? new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().slice(0, 16) : '';
+    setFormData({
+        id: event.id,
+        title: event.title,
+        start: toLocalISO(event.start),
+        end: toLocalISO(event.end),
+        type: event.type || 'private',
+        instructor: event.instructor || '',
+        room: event.room || 'Ana Salon',
+        desc: event.desc || '',
+        status: event.status || 'confirmed'
+    });
+    setIsEditMode(true);
+    setShowModal(true);
+  };
+
+  // --- FİLTRELEME MANTIĞI ---
+  const filteredEvents = useMemo(() => {
+    if (filterType === 'all') return events;
+    return events.filter(e => e.type === filterType);
+  }, [events, filterType]);
+
+
+  // --- COMPONENTLER ---
   const CustomEvent = ({ event }) => {
-    const style = EVENT_TYPES[event.type || 'reformer'];
+    const style = EVENT_TYPES[event.type || 'private'] || EVENT_TYPES.private;
     return (
-      <div className={`h-full w-full px-2 py-1 rounded-md border-l-4 text-xs font-medium leading-tight shadow-sm transition-all hover:brightness-95 ${style.color} ${style.border}`}>
+      <div className={`h-full w-full px-2 py-0.5 rounded-md border-l-4 text-[10px] leading-tight shadow-sm overflow-hidden ${style.color} ${style.border}`}>
         <div className="font-bold truncate">{event.title}</div>
-        <div className="text-[10px] opacity-80 truncate">{format(event.start, 'HH:mm')} • {event.room}</div>
+        <div className="truncate opacity-80">{event.instructor}</div>
       </div>
     );
   };
 
-  // 2. Özel Toolbar (Header)
-  const CustomToolbar = (toolbar) => {
-    const goToBack = () => { toolbar.onNavigate('PREV'); setDate(toolbar.date); };
-    const goToNext = () => { toolbar.onNavigate('NEXT'); setDate(toolbar.date); };
-    const goToCurrent = () => { toolbar.onNavigate('TODAY'); setDate(new Date()); };
+  const CustomToolbar = (toolbar) => (
+    <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+      <div className="flex items-center gap-4 bg-white p-1.5 rounded-xl border border-slate-200 shadow-sm">
+         <button onClick={() => { toolbar.onNavigate('PREV'); setDate(toolbar.date); }} className="p-2 hover:bg-slate-100 rounded-lg"><ChevronLeft size={18}/></button>
+         <span className="text-sm font-bold text-slate-700 min-w-[140px] text-center select-none cursor-pointer" onClick={() => { toolbar.onNavigate('TODAY'); setDate(new Date()); }}>
+           {format(toolbar.date, 'MMMM yyyy', { locale: tr }).toUpperCase()}
+         </span>
+         <button onClick={() => { toolbar.onNavigate('NEXT'); setDate(toolbar.date); }} className="p-2 hover:bg-slate-100 rounded-lg"><ChevronRight size={18}/></button>
+      </div>
 
-    return (
-      <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-        {/* Sol: Tarih Navigasyonu */}
-        <div className="flex items-center gap-4 bg-white p-1.5 rounded-xl border border-slate-200 shadow-sm">
-           <button onClick={goToBack} className="p-2 hover:bg-slate-100 rounded-lg text-slate-500"><ChevronLeft size={18}/></button>
-           <span className="text-sm font-bold text-slate-700 min-w-[140px] text-center select-none cursor-pointer" onClick={goToCurrent}>
-             {format(toolbar.date, 'MMMM yyyy', { locale: tr }).toUpperCase()}
-           </span>
-           <button onClick={goToNext} className="p-2 hover:bg-slate-100 rounded-lg text-slate-500"><ChevronRight size={18}/></button>
-        </div>
-
-        {/* Orta: Görünüm Değiştirici (Segmented Control) */}
-        <div className="flex bg-slate-100 p-1 rounded-xl">
-           {['month', 'week', 'day'].map((v) => (
-             <button 
-               key={v}
-               onClick={() => { setView(v); toolbar.onView(v); }}
-               className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${view === v ? 'bg-white text-[#001F54] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-             >
-               {v === 'month' ? 'Ay' : v === 'week' ? 'Hafta' : 'Gün'}
-             </button>
-           ))}
-        </div>
-
-        {/* Sağ: Aksiyonlar */}
-        <div className="flex gap-2">
-           <button className="p-2.5 bg-white border border-slate-200 rounded-xl text-slate-500 hover:text-[#001F54] shadow-sm"><Filter size={18}/></button>
-           <button onClick={() => setShowModal(true)} className="flex items-center gap-2 bg-[#001F54] text-white px-4 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-blue-900/20 hover:bg-[#0f172a] transition-transform active:scale-95">
-             <Plus size={18} /> <span className="hidden md:inline">Yeni Randevu</span>
+      <div className="flex bg-slate-100 p-1 rounded-xl">
+         {['month', 'week', 'day'].map((v) => (
+           <button key={v} onClick={() => { setView(v); toolbar.onView(v); }} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${view === v ? 'bg-white text-[#001F54] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
+             {v === 'month' ? 'Ay' : v === 'week' ? 'Hafta' : 'Gün'}
            </button>
-        </div>
+         ))}
       </div>
-    );
-  };
 
-  // --- RENDER ---
+      <div className="flex gap-2 items-center">
+         {/* Filtre Dropdown */}
+         <div className="relative group">
+            <button className="flex items-center gap-2 p-2.5 bg-white border border-slate-200 rounded-xl text-slate-500 hover:text-[#001F54] shadow-sm text-xs font-bold">
+                <Filter size={16}/> {filterType === 'all' ? 'Tümü' : EVENT_TYPES[filterType]?.label}
+            </button>
+            <div className="absolute right-0 top-full mt-2 w-40 bg-white border border-slate-100 rounded-xl shadow-xl hidden group-hover:block z-50 overflow-hidden">
+                <button onClick={() => setFilterType('all')} className="w-full text-left px-4 py-2 text-xs hover:bg-slate-50 font-bold">Tümü</button>
+                {Object.keys(EVENT_TYPES).map(type => (
+                    <button key={type} onClick={() => setFilterType(type)} className="w-full text-left px-4 py-2 text-xs hover:bg-slate-50">{EVENT_TYPES[type].label}</button>
+                ))}
+            </div>
+         </div>
+
+         <button onClick={openNewModal} className="flex items-center gap-2 bg-[#001F54] text-white px-4 py-2.5 rounded-xl text-sm font-bold shadow-lg hover:bg-[#0f172a] active:scale-95 transition-all">
+           <Plus size={18} /> <span className="hidden md:inline">Yeni Randevu</span>
+         </button>
+      </div>
+    </div>
+  );
+
   return (
     <div className="h-[calc(100vh-40px)] flex gap-6 overflow-hidden">
       
-      {/* SOL: TAKVİM ALANI */}
+      {/* SOL: TAKVİM */}
       <div className="flex-1 flex flex-col h-full">
-        {/* Üst Bilgi Barı (AI Insight) */}
+        {/* AI Insight */}
         <motion.div initial={{opacity:0, y:-10}} animate={{opacity:1, y:0}} className="mb-4 bg-gradient-to-r from-indigo-50 to-blue-50 p-3 rounded-xl border border-blue-100 flex items-center justify-between px-4">
            <div className="flex items-center gap-2 text-sm text-[#001F54]">
              <Zap size={16} className="text-amber-500 fill-amber-500" /> 
-             <span className="font-bold">AI Analizi:</span> 
-             <span className="opacity-80">Bu hafta doluluk oranınız %78. Salı 14:00-16:00 arası boşluk var, kampanya çıkılabilir.</span>
+             <span className="font-bold">AI Asistanı:</span> 
+             <span className="opacity-80">
+                {events.length === 0 ? "Henüz randevu yok. Yeni kayıt ekleyerek başlayın." : `Bu hafta ${events.length} randevunuz var. Doluluk oranı %${Math.min(events.length * 2, 100)}.`}
+             </span>
            </div>
-           <button className="text-xs font-bold text-blue-600 hover:underline">Detaylar</button>
         </motion.div>
 
         <div className="flex-1 bg-white rounded-3xl border border-slate-200 shadow-sm p-6 overflow-hidden flex flex-col">
           <DnDCalendar
             localizer={localizer}
-            events={events}
+            events={filteredEvents}
             startAccessor="start"
             endAccessor="end"
             view={view}
@@ -179,12 +262,9 @@ const CalendarPage = () => {
             selectable
             resizable
             onEventDrop={onEventDrop}
-            onEventResize={onEventResize}
+            onEventResize={onEventDrop} // Resize da aynı mantık (PUT)
             onSelectEvent={(event) => setSelectedEvent(event)}
-            components={{
-              toolbar: CustomToolbar,
-              event: CustomEvent
-            }}
+            components={{ toolbar: CustomToolbar, event: CustomEvent }}
             culture='tr'
             messages={{ next: "İleri", previous: "Geri", today: "Bugün", month: "Ay", week: "Hafta", day: "Gün" }}
             className="modern-calendar"
@@ -192,14 +272,12 @@ const CalendarPage = () => {
         </div>
       </div>
 
-      {/* SAĞ: AKILLI PANEL (Smart Panel) */}
+      {/* SAĞ: DETAY PANELİ */}
       <div className="w-80 hidden xl:flex flex-col gap-4 h-full overflow-y-auto pb-4">
-        
-        {/* 1. SEÇİLİ ETKİNLİK DETAYI (Veya Boş Durum) */}
         <AnimatePresence mode="wait">
         {selectedEvent ? (
           <motion.div 
-            key="event-detail"
+            key={selectedEvent.id}
             initial={{opacity: 0, x: 20}} animate={{opacity: 1, x: 0}} exit={{opacity: 0, x: 20}}
             className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm"
           >
@@ -213,7 +291,7 @@ const CalendarPage = () => {
             <h2 className="text-xl font-bold text-[#0f172a] mb-1 font-serif">{selectedEvent.title}</h2>
             <div className="text-sm text-slate-500 mb-6 flex items-center gap-2">
               <span className={`w-2 h-2 rounded-full ${selectedEvent.status === 'confirmed' ? 'bg-green-500' : 'bg-amber-500'}`}></span>
-              {selectedEvent.status === 'confirmed' ? 'Onaylandı' : 'Bekliyor'}
+              {selectedEvent.status === 'confirmed' ? 'Onaylandı' : 'Beklemede'}
             </div>
 
             <div className="space-y-4">
@@ -221,111 +299,107 @@ const CalendarPage = () => {
                <InfoRow icon={User} label="Eğitmen" value={selectedEvent.instructor || 'Atanmadı'} />
                <InfoRow icon={MapPin} label="Salon" value={selectedEvent.room || 'Ana Salon'} />
                
-               <div className="pt-4 border-t border-slate-100">
-                 <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Müşteri Notları</div>
-                 <p className="text-sm text-slate-600 bg-slate-50 p-3 rounded-xl">
-                   Bel fıtığı geçmişi var, zorlayıcı hareketlerden kaçınılmalı.
-                 </p>
-               </div>
+               {selectedEvent.desc && (
+                <div className="pt-4 border-t border-slate-100">
+                    <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Notlar</div>
+                    <p className="text-sm text-slate-600 bg-slate-50 p-3 rounded-xl">{selectedEvent.desc}</p>
+                </div>
+               )}
             </div>
 
             <div className="grid grid-cols-2 gap-3 mt-6">
-               <button className="py-2 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50">Düzenle</button>
-               <button className="py-2 rounded-xl bg-red-50 text-red-600 font-bold text-xs hover:bg-red-100">İptal Et</button>
+               <button onClick={() => openEditModal(selectedEvent)} className="flex items-center justify-center gap-2 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-bold text-xs hover:bg-slate-50 transition-colors">
+                  <Edit2 size={14}/> Düzenle
+               </button>
+               <button onClick={() => handleDelete(selectedEvent.id)} className="flex items-center justify-center gap-2 py-2.5 rounded-xl bg-red-50 text-red-600 font-bold text-xs hover:bg-red-100 transition-colors">
+                  <Trash2 size={14}/> İptal Et
+               </button>
             </div>
           </motion.div>
         ) : (
-          <motion.div 
-             key="empty-state"
-             initial={{opacity: 0}} animate={{opacity: 1}}
-             className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm text-center py-12"
-          >
-             <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
-               <LayoutGrid className="text-slate-400" />
-             </div>
+          <motion.div initial={{opacity: 0}} animate={{opacity: 1}} className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm text-center py-12">
+             <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4"><LayoutGrid className="text-slate-400" /></div>
              <h3 className="font-bold text-slate-700">Etkinlik Seçilmedi</h3>
              <p className="text-xs text-slate-500 mt-2">Detayları görmek için takvimden bir randevuya tıklayın.</p>
           </motion.div>
         )}
         </AnimatePresence>
-
-        {/* 2. EĞİTMEN DURUMU (Küçük Liste) */}
-        <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm flex-1">
-           <h3 className="font-bold text-[#0f172a] mb-4 flex items-center gap-2 text-sm">
-             <User size={16} /> Eğitmen Durumu
-           </h3>
-           <div className="space-y-3">
-              <InstructorStatus name="Buse Hoca" status="busy" task="Ders: Reformer" />
-              <InstructorStatus name="Ahmet Hoca" status="available" task="Müsait" />
-              <InstructorStatus name="Selin Hoca" status="break" task="Mola" />
-           </div>
-        </div>
-
       </div>
 
-      {/* MODAL (Basitleştirilmiş) */}
+      {/* --- MODAL (EKLEME & DÜZENLEME) --- */}
       {showModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm">
-           <motion.div initial={{scale:0.95, opacity:0}} animate={{scale:1, opacity:1}} className="bg-white p-6 rounded-3xl shadow-2xl w-full max-w-md">
-              <div className="flex justify-between mb-4">
-                 <h3 className="font-bold text-lg text-[#001F54]">Hızlı Randevu</h3>
-                 <button onClick={() => setShowModal(false)}><X size={20} className="text-slate-400"/></button>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+           <motion.div initial={{scale:0.95, opacity:0}} animate={{scale:1, opacity:1}} className="bg-white p-0 rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
+              <div className="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                 <h3 className="font-bold text-lg text-[#001F54]">{isEditMode ? 'Randevuyu Düzenle' : 'Yeni Randevu Oluştur'}</h3>
+                 <button onClick={() => setShowModal(false)}><X size={20} className="text-slate-400 hover:text-red-500"/></button>
               </div>
-              <p className="text-sm text-slate-500 mb-4">Detaylı form buraya gelecek. Şimdilik demo.</p>
-              <button onClick={() => setShowModal(false)} className="w-full bg-[#001F54] text-white py-3 rounded-xl font-bold">Tamam</button>
+              
+              <form onSubmit={handleSave} className="p-6 space-y-4 overflow-y-auto">
+                 <div>
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-1 block">Müşteri Adı</label>
+                    <input required type="text" placeholder="Örn: Ayşe Yılmaz" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} className="w-full border p-3 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium"/>
+                 </div>
+                 
+                 <div className="grid grid-cols-2 gap-4">
+                    <div>
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-1 block">Hizmet Tipi</label>
+                        <select value={formData.type} onChange={e => setFormData({...formData, type: e.target.value})} className="w-full border p-3 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white">
+                            {Object.keys(EVENT_TYPES).map(key => <option key={key} value={key}>{EVENT_TYPES[key].label}</option>)}
+                        </select>
+                    </div>
+                    <div>
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-1 block">Eğitmen</label>
+                        <select value={formData.instructor} onChange={e => setFormData({...formData, instructor: e.target.value})} className="w-full border p-3 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white">
+                            <option value="">Seçiniz</option>
+                            {instructors.map((inst, i) => <option key={i} value={inst.name}>{inst.name}</option>)}
+                        </select>
+                    </div>
+                 </div>
+
+                 <div className="grid grid-cols-2 gap-4">
+                    <div>
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-1 block">Başlangıç</label>
+                        <input required type="datetime-local" value={formData.start} onChange={e => setFormData({...formData, start: e.target.value})} className="w-full border p-2.5 rounded-xl text-sm"/>
+                    </div>
+                    <div>
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-1 block">Bitiş</label>
+                        <input required type="datetime-local" value={formData.end} onChange={e => setFormData({...formData, end: e.target.value})} className="w-full border p-2.5 rounded-xl text-sm"/>
+                    </div>
+                 </div>
+
+                 <div>
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-1 block">Notlar</label>
+                    <textarea placeholder="Sağlık durumu, özel istekler..." value={formData.desc} onChange={e => setFormData({...formData, desc: e.target.value})} className="w-full border p-3 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 text-sm h-20 resize-none"></textarea>
+                 </div>
+
+                 <div className="pt-2">
+                    <button type="submit" className="w-full bg-[#001F54] text-white py-3.5 rounded-xl font-bold hover:bg-[#0f172a] shadow-lg transition-all">
+                        {isEditMode ? 'Değişiklikleri Kaydet' : 'Randevuyu Oluştur'}
+                    </button>
+                 </div>
+              </form>
            </motion.div>
         </div>
       )}
-      
-      {/* CSS OVERRIDES (Apple Style Calendar) */}
+
+      {/* CSS */}
       <style>{`
-        .modern-calendar .rbc-header {
-          padding: 12px 0;
-          font-size: 11px;
-          font-weight: 700;
-          color: #64748b;
-          text-transform: uppercase;
-          border-bottom: 1px solid #f1f5f9;
-        }
+        .modern-calendar .rbc-header { padding: 12px 0; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; border-bottom: 1px solid #f1f5f9; }
         .modern-calendar .rbc-day-bg { border-left: 1px solid #f8fafc; }
         .modern-calendar .rbc-off-range-bg { background: #f8fafc; }
         .modern-calendar .rbc-today { background: #eff6ff; }
         .modern-calendar .rbc-time-content { border-top: 1px solid #f1f5f9; }
-        .modern-calendar .rbc-time-view .rbc-row { min-height: 20px; }
-        .rbc-event { 
-            background: transparent !important; 
-            padding: 0 !important; 
-            border: none !important;
-            outline: none !important;
-        }
-        .rbc-event:focus { outline: none; }
+        .rbc-event { background: transparent !important; padding: 0 !important; border: none !important; outline: none !important; }
       `}</style>
-
     </div>
   );
 };
 
-// --- YARDIMCI BİLEŞENLER ---
-
 const InfoRow = ({ icon: Icon, label, value }) => (
   <div className="flex items-center gap-3">
-     <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 shrink-0">
-       <Icon size={14} />
-     </div>
-     <div>
-       <div className="text-[10px] font-bold text-slate-400 uppercase">{label}</div>
-       <div className="text-sm font-bold text-slate-700">{value}</div>
-     </div>
-  </div>
-);
-
-const InstructorStatus = ({ name, status, task }) => (
-  <div className="flex items-center justify-between p-2 hover:bg-slate-50 rounded-xl transition-colors cursor-pointer">
-     <div className="flex items-center gap-3">
-        <div className={`w-2 h-2 rounded-full ${status === 'busy' ? 'bg-red-500' : status === 'available' ? 'bg-green-500' : 'bg-amber-400'}`}></div>
-        <div className="text-sm font-bold text-slate-700">{name}</div>
-     </div>
-     <div className="text-xs text-slate-500">{task}</div>
+     <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 shrink-0"><Icon size={14} /></div>
+     <div><div className="text-[10px] font-bold text-slate-400 uppercase">{label}</div><div className="text-sm font-bold text-slate-700">{value}</div></div>
   </div>
 );
 

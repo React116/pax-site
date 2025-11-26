@@ -7,6 +7,7 @@ const businessRoutes = require('./routes/businessRoutes');
 
 const app = express();
 
+// --- AYARLAR ---
 app.use(cors({
     origin: '*', 
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
@@ -14,27 +15,33 @@ app.use(cors({
 }));
 app.use(express.json()); 
 
+// --- VERİTABANI BAĞLANTISI ---
 const MONGO_URI = 'mongodb+srv://admin:admin12345@cluster0.azdm782.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
 
 mongoose.connect(MONGO_URI)
   .then(() => console.log('✅ Veritabanına Bağlandı!'))
   .catch(err => console.error('❌ Veritabanı Hatası:', err));
 
-// --- YENİ EKLENEN MODEL: TAKVİM ETKİNLİĞİ ---
+// --- GÜNCELLENMİŞ TAKVİM MODELİ (Frontend ile Uyumlu) ---
 const CalendarEventSchema = new mongoose.Schema({
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    title: { type: String, required: true },
+    title: { type: String, required: true }, // Müşteri Adı
     start: { type: Date, required: true },
     end: { type: Date, required: true },
-    desc: { type: String, default: '' },
-    color: { type: String, default: '#3b82f6' } // Varsayılan mavi
+    type: { type: String, default: 'private' }, // private, reformer, group...
+    instructor: { type: String, default: '' },
+    room: { type: String, default: 'Ana Salon' },
+    status: { type: String, default: 'confirmed' }, // confirmed, pending, cancelled
+    desc: { type: String, default: '' }, // Müşteri notları
+    color: { type: String, default: '#3b82f6' }
 });
+
 const CalendarEvent = mongoose.model('CalendarEvent', CalendarEventSchema);
 
-// --- AUTH MIDDLEWARE (Kullanıcıyı Tanıma) ---
+// --- AUTH MIDDLEWARE ---
 const authenticateToken = (req, res, next) => {
     const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1]; // "Bearer <token>"
+    const token = authHeader && authHeader.split(' ')[1];
 
     if (!token) return res.status(401).json({ message: "Token yok, yetkisiz erişim." });
 
@@ -45,11 +52,10 @@ const authenticateToken = (req, res, next) => {
     });
 };
 
-// --- ROTALAR ---
+// --- ANA ROTA ---
+app.get('/', (req, res) => res.send('Backend Çalışıyor v3 (Calendar Updated)'));
 
-app.get('/', (req, res) => res.send('Backend Çalışıyor v2'));
-
-// AUTH Rotaları (Aynen kalsın)
+// --- AUTH ROTALARI ---
 app.post('/api/auth/register', async (req, res) => {
     try {
         const { name, email, password, company, phone } = req.body;
@@ -70,48 +76,56 @@ app.post('/api/auth/login', async (req, res) => {
     } catch(e) { res.status(500).json({error: e.message}); }
 });
 
-// --- YENİ TAKVİM ROTALARI (API ENDPOINTS) ---
+// --- TAKVİM ROTALARI (CRUD) ---
 
 // 1. Etkinlikleri Getir
 app.get('/api/calendar', authenticateToken, async (req, res) => {
     try {
-        // Sadece giriş yapan kullanıcının etkinliklerini bul
         const events = await CalendarEvent.find({ userId: req.user.id });
         res.json(events);
-    } catch (error) {
-        res.status(500).json({ message: "Takvim verisi çekilemedi." });
-    }
+    } catch (error) { res.status(500).json({ error: "Veri çekilemedi" }); }
 });
 
 // 2. Yeni Etkinlik Ekle
 app.post('/api/calendar', authenticateToken, async (req, res) => {
     try {
-        const { title, start, end, desc, color } = req.body;
+        // Frontend'den gelen tüm veriyi (instructor, type vs.) alıyoruz
         const newEvent = await CalendarEvent.create({
             userId: req.user.id,
-            title,
-            start,
-            end,
-            desc,
-            color
+            ...req.body 
         });
         res.status(201).json(newEvent);
-    } catch (error) {
-        res.status(500).json({ message: "Etkinlik eklenemedi." });
+    } catch (error) { 
+        console.error("Ekleme Hatası:", error);
+        res.status(500).json({ error: "Eklenemedi" }); 
     }
 });
 
-// 3. Etkinlik Sil
+// 3. Etkinlik Güncelle (Sürükle-Bırak ve Düzenleme için KRİTİK)
+app.put('/api/calendar/:id', authenticateToken, async (req, res) => {
+    try {
+        const updatedEvent = await CalendarEvent.findOneAndUpdate(
+            { _id: req.params.id, userId: req.user.id }, // Sadece kendi etkinliğini güncelleyebilir
+            { $set: req.body },
+            { new: true } // Güncellenmiş veriyi döndür
+        );
+        res.json(updatedEvent);
+    } catch (error) { 
+        console.error("Güncelleme Hatası:", error);
+        res.status(500).json({ error: "Güncellenemedi" }); 
+    }
+});
+
+// 4. Etkinlik Sil
 app.delete('/api/calendar/:id', authenticateToken, async (req, res) => {
     try {
         await CalendarEvent.findOneAndDelete({ _id: req.params.id, userId: req.user.id });
         res.json({ message: "Silindi" });
-    } catch (error) {
-        res.status(500).json({ message: "Silinemedi." });
-    }
+    } catch (error) { res.status(500).json({ error: "Silinemedi" }); }
 });
 
+// --- DİĞER ROTALAR ---
 app.use('/api/business-profile', businessRoutes);
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀 Server ${PORT} portunda güncellendi!`));
+app.listen(PORT, () => console.log(`🚀 Server ${PORT} portunda yayında (Full Calendar Destekli)!`));
