@@ -43,36 +43,36 @@ const BusinessSettings = () => {
     cuma: 'Cuma', cmt: 'Cumartesi', paz: 'Pazar'
   };
 
-  // --- VERİ ÇEKME ---
-  useEffect(() => {
-    fetchProfile();
-  }, []);
-
   const fetchProfile = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:5000/api/business-profile', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (res.ok) {
-        const data = await res.json();
-        
-        // Gelen veriyi state'e yaz
-        setFormData(prev => ({ ...prev, ...data }));
+  try {
+    const token = localStorage.getItem('token'); // Token'ı kutudan al
+    const apiUrl = import.meta.env.VITE_API_URL; // Adresi .env'den al
 
-        // Eğer veritabanında kayıtlı saat varsa onu parse et, yoksa varsayılan kalsın
-        if (data.workingHours && data.workingHours !== '{}') {
-            try {
-                setSchedule(JSON.parse(data.workingHours));
-            } catch (e) {
-                console.log("Saat verisi parse edilemedi, varsayılan kullanılıyor.");
-            }
-        }
-      }
-    } catch (error) {
-      console.error("Veri çekilemedi", error);
+    if (!token) {
+      console.error("Token bulunamadı, giriş yapılmamış.");
+      return;
     }
-  };
+
+    const res = await fetch(`${apiUrl}/business-profile`, {
+      headers: { 'Authorization': `Bearer ${token}` } // Token'ı header'a ekle
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      setFormData(prev => ({ ...prev, ...data }));
+
+      if (data.workingHours && data.workingHours !== '{}') {
+          try {
+              setSchedule(JSON.parse(data.workingHours));
+          } catch (e) {
+              console.log("Saat verisi parse hatası.");
+          }
+      }
+    }
+  } catch (error) {
+    console.error("Veri çekilemedi", error);
+  }
+};
 
   // --- GENEL DEĞİŞİKLİK YÖNETİMİ ---
   const handleChange = (e) => {
@@ -119,38 +119,38 @@ const BusinessSettings = () => {
      const n = [...formData.faq]; n[i][f] = v; setFormData(p => ({ ...p, faq: n }));
   };
 
-  // --- KAYDETME ---
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setMessage(null);
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setLoading(true);
+  setMessage(null);
 
-    // Saat verisinin güncel olduğundan emin ol
-    const finalData = { ...formData, workingHours: JSON.stringify(schedule) };
+  const finalData = { ...formData, workingHours: JSON.stringify(schedule) };
 
-    try {
-      const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:5000/api/business-profile', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(finalData)
-      });
+  try {
+    const token = localStorage.getItem('token');
+    const apiUrl = import.meta.env.VITE_API_URL;
 
-      if (res.ok) {
-        setMessage({ type: 'success', text: '✅ Bilgiler başarıyla kaydedildi!' });
-        setTimeout(() => setMessage(null), 3000);
-      } else {
-        throw new Error('Kaydetme hatası');
-      }
-    } catch (error) {
-      setMessage({ type: 'error', text: '❌ Kaydedilemedi. Sunucu hatası.' });
-    } finally {
-      setLoading(false);
+    const res = await fetch(`${apiUrl}/business-profile`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}` // Token olmadan kayıt yapmaz
+      },
+      body: JSON.stringify(finalData)
+    });
+
+    if (res.ok) {
+      setMessage({ type: 'success', text: '✅ Bilgiler başarıyla kaydedildi!' });
+      setTimeout(() => setMessage(null), 3000);
+    } else {
+      throw new Error('Kaydetme hatası');
     }
-  };
+  } catch (error) {
+    setMessage({ type: 'error', text: '❌ Kaydedilemedi. Sunucu hatası.' });
+  } finally {
+    setLoading(false);
+  }
+};
 
   const TabButton = ({ id, label, icon: Icon }) => (
     <button type="button" onClick={() => setActiveTab(id)} className={`flex items-center gap-2 px-4 py-3 text-sm font-bold border-b-2 transition-colors ${activeTab === id ? 'border-[#001F54] text-[#001F54] bg-blue-50' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>

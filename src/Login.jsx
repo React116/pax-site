@@ -10,33 +10,40 @@ const Login = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const response = await fetch('https://pax-backend-9m4q.onrender.com/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      });
+  // src/Login.jsx içindeki handleSubmit fonksiyonu:
 
-      const data = await response.json();
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  try {
+    const apiUrl = import.meta.env.VITE_API_URL;
 
-      if (response.ok) {
-        // Kullanıcı bilgilerini tarayıcı hafızasına (LocalStorage) kaydediyoruz
-        // Böylece panelde ismini gösterebileceğiz.
-        localStorage.setItem("userName", data.user.name);
-        localStorage.setItem("userCompany", data.user.company);
+    const response = await fetch(`${apiUrl}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formData)
+    });
 
-        alert("✅ Giriş Başarılı!");
-        navigate('/panel'); // Panele yönlendir
-      } else {
-        alert("❌ Hata: " + data.message);
-      }
-    } catch (error) {
-      console.error(error);
-      alert("Sunucuya bağlanılamadı.");
+    const data = await response.json();
+
+    if (response.ok) {
+      // 1. TOKEN'I KAYDET (Bu anahtarın)
+      localStorage.setItem("token", data.token);
+      
+      // 2. Kullanıcı bilgilerini kaydet
+      localStorage.setItem("userName", data.user.name);
+      if(data.user.company) localStorage.setItem("userCompany", data.user.company);
+
+      alert("✅ Giriş Başarılı!");
+      navigate('/panel'); 
+    } else {
+      alert("❌ Hata: " + (data.message || "Giriş başarısız"));
     }
-  };
+  } catch (error) {
+    console.error(error);
+    alert("Sunucuya bağlanılamadı.");
+  }
+};
+
 
   return (
     <div className="min-h-screen pt-32 pb-20 bg-slate-50 flex items-center justify-center px-6">
