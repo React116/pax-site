@@ -1,119 +1,159 @@
-// src/pages/DashboardOverview.jsx
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Bot, Power, Settings, ChevronRight, BarChart3, Activity } from 'lucide-react';
+import { Link } from 'react-router-dom'; // Sayfa yönlendirmesi için gerekli
+import { Activity, Users, CreditCard, ChevronRight, Bot, Power, Settings } from 'lucide-react';
 
 const DashboardOverview = () => {
-  const [userName, setUserName] = useState('');
-  const [isBotActive, setIsBotActive] = useState(false);
-  const [loadingBot, setLoadingBot] = useState(false);
+  const [businessName, setBusinessName] = useState('');
+  const [isActive, setIsActive] = useState(false); // Botun açık/kapalı durumu
+  const [loading, setLoading] = useState(false);
 
-  // BURAYA KENDİ RENDER URL'Nİ YAZ
-  const API_URL = "https://senin-backend-urlin.onrender.com/api"; 
-  const token = localStorage.getItem('token');
-
+  // Sayfa açıldığında mevcut durumu çek
   useEffect(() => {
-    const user = localStorage.getItem('userName');
-    if (user) setUserName(user);
-    fetchBotStatus();
+    const fetchProfile = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/business-profile`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setBusinessName(data.businessName || 'İşletme');
+          // Backend'den gelen aktiflik durumunu kaydet
+          setIsActive(data.isActive || false);
+        }
+      } catch (error) {
+        console.error("Profil yüklenirken hata:", error);
+      }
+    };
+
+    fetchProfile();
   }, []);
 
-  const fetchBotStatus = async () => {
-    if(!token) return;
-    try {
-      const res = await fetch(`${API_URL}/business`, { headers: { 'x-auth-token': token } });
-      const data = await res.json();
-      if(data.profile && data.profile.aiConfig) {
-        setIsBotActive(data.profile.aiConfig.isActive);
-      }
-    } catch(err) { console.error(err); }
-  };
-
-  const toggleBot = async () => {
-    setLoadingBot(true);
-    const newState = !isBotActive;
+  // AI Asistan Açma/Kapama Fonksiyonu
+  const toggleBotStatus = async () => {
+    setLoading(true);
     
-    try {
-      // 1. Önce mevcut veriyi çek
-      const res = await fetch(`${API_URL}/business`, { headers: { 'x-auth-token': token } });
-      const data = await res.json();
-      
-      // 2. Sadece aktiflik durumunu değiştir
-      const updatedProfile = {
-        ...data.profile,
-        aiConfig: { ...data.profile.aiConfig, isActive: newState }
-      };
+    // 1. Önce görsel olarak durumu hemen değiştir (Kullanıcı beklemesin)
+    const newStatus = !isActive;
+    setIsActive(newStatus);
 
-      // 3. Güncellenmiş veriyi geri gönder
-      await fetch(`${API_URL}/business`, {
+    try {
+      const token = localStorage.getItem('token');
+      // Backend'e durumu güncellemesi için istek at
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/business-profile`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'x-auth-token': token },
-        body: JSON.stringify(updatedProfile)
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ isActive: newStatus })
       });
 
-      // 4. Ekranda güncelle
-      setIsBotActive(newState);
-    } catch(err) {
-      console.error("Bot durumu değiştirilemedi", err);
-      alert("Bot durumu değiştirilemedi, lütfen tekrar deneyin.");
+      if (!response.ok) {
+        throw new Error('Güncelleme başarısız');
+      }
+      
+      // Başarılı olursa konsola bilgi ver
+      console.log(`Bot durumu başarıyla güncellendi: ${newStatus ? 'AKTİF' : 'PASİF'}`);
+
+    } catch (error) {
+      console.error("Bot durumu değiştirilemedi:", error);
+      alert("Bağlantı hatası! Değişiklik kaydedilemedi.");
+      // Hata olursa eski haline geri döndür
+      setIsActive(!newStatus);
     } finally {
-      setLoadingBot(false);
+      setLoading(false);
     }
   };
 
-  const container = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.1 } } };
-  const item = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } };
-
   return (
-    <div className="max-w-6xl mx-auto pb-20">
-      <header className="mb-10">
-        <motion.h1 initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="text-4xl font-bold text-[#0f172a] mb-2 font-serif">Hoşgeldin, {userName} 👋</motion.h1>
-        <p className="text-slate-500 text-lg">İşletmenizin anlık durumu ve kontrol paneli.</p>
-      </header>
+    <div className="space-y-8">
+      {/* BAŞLIK KISMI */}
+      <div>
+        <h1 className="text-3xl font-serif font-bold text-[#001F54]">
+          Hoşgeldin, {businessName} 👋
+        </h1>
+        <p className="text-slate-500 mt-2">
+          İşletmenizin anlık durumu ve kontrol paneli.
+        </p>
+      </div>
 
-      <motion.div variants={container} initial="hidden" animate="show" className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {/* KARTLAR GRID YAPISI */}
+      <div className="grid md:grid-cols-3 gap-6">
         
-        {/* BOT KARTI */}
-        <motion.div variants={item} className="col-span-1 md:col-span-2 lg:col-span-1">
-          <div className="h-full bg-white rounded-3xl p-6 shadow-xl shadow-slate-200/50 border border-slate-100 flex flex-col justify-between relative overflow-hidden">
-             <div className={`absolute inset-0 transition-opacity duration-500 ${isBotActive ? 'opacity-100' : 'opacity-0'}`}>
-              <div className="absolute top-0 right-0 w-64 h-64 bg-green-400/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+        {/* 1. KART: AI ASİSTAN KONTROLÜ */}
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 relative overflow-hidden group hover:shadow-md transition-all">
+          <div className="flex justify-between items-start mb-4">
+            <div className={`p-3 rounded-xl ${isActive ? 'bg-green-100 text-green-600' : 'bg-slate-100 text-slate-500'}`}>
+              <Bot size={24} />
             </div>
-            <div>
-              <div className="flex justify-between items-start mb-6">
-                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300 ${isBotActive ? 'bg-green-500 text-white shadow-lg shadow-green-500/30' : 'bg-slate-100 text-slate-400'}`}><Bot size={32} /></div>
-                <div className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border transition-colors ${isBotActive ? 'bg-green-50 text-green-600 border-green-200' : 'bg-slate-50 text-slate-400 border-slate-200'}`}>{isBotActive ? 'Canlı' : 'Pasif'}</div>
-              </div>
-              <h3 className="text-xl font-bold text-slate-800 mb-1">AI Asistan Kontrolü</h3>
-              <p className="text-slate-500 text-sm mb-6">Botunuz şu an {isBotActive ? 'yanıt veriyor.' : 'devre dışı.'}</p>
-            </div>
-            <button onClick={toggleBot} disabled={loadingBot} className={`w-full py-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all duration-300 shadow-lg ${isBotActive ? 'bg-white text-red-500 border border-red-100 hover:bg-red-50' : 'bg-[#001F54] text-white hover:bg-[#0f172a]'}`}>
-              <Power size={18} /> {loadingBot ? 'İşleniyor...' : (isBotActive ? 'Asistanı Durdur' : 'Asistanı Aktifleştir')}
-            </button>
+            <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${isActive ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}>
+              {isActive ? 'AKTİF' : 'PASİF'}
+            </span>
           </div>
-        </motion.div>
+          
+          <h3 className="text-lg font-bold text-[#0f172a] mb-1">AI Asistan Kontrolü</h3>
+          <p className="text-sm text-slate-500 mb-6">
+            {isActive 
+              ? "Botunuz şu an çalışıyor ve müşterileri yanıtlıyor." 
+              : "Botunuz şu an devre dışı."}
+          </p>
 
-        {/* AYARLAR KARTI */}
-        <motion.div variants={item} className="col-span-1">
-          <Link to="/panel/settings" className="block h-full bg-gradient-to-br from-blue-600 to-[#001F54] text-white rounded-3xl p-6 shadow-xl relative overflow-hidden group hover:scale-[1.02] transition-transform">
-            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20"><Settings size={120} /></div>
-            <div className="flex flex-col h-full justify-between relative z-10">
-              <div><div className="w-12 h-12 bg-white/10 backdrop-blur-sm rounded-xl flex items-center justify-center mb-4"><Settings size={24} className="text-white" /></div><h3 className="text-xl font-bold mb-2">Ayarlar & Yapılandırma</h3><p className="text-blue-100 text-sm">Hizmet listesi ve bot karakterini düzenleyin.</p></div>
-              <div className="mt-6 flex items-center gap-2 font-bold text-sm bg-white/10 w-fit px-4 py-2 rounded-lg group-hover:bg-white group-hover:text-blue-900 transition-colors">Düzenle <ChevronRight size={16} /></div>
-            </div>
-          </Link>
-        </motion.div>
+          <button 
+            onClick={toggleBotStatus}
+            disabled={loading}
+            className={`w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all ${
+              isActive 
+                ? 'bg-red-50 text-red-600 hover:bg-red-100 border border-red-100' 
+                : 'bg-[#001F54] text-white hover:bg-[#0f172a] shadow-lg shadow-blue-900/20'
+            }`}
+          >
+            <Power size={18} />
+            {loading ? 'İşleniyor...' : (isActive ? 'Asistanı Durdur' : 'Asistanı Aktifleştir')}
+          </button>
+        </div>
 
-        {/* ANALİZ KARTI */}
-        <motion.div variants={item} className="col-span-1">
-          <div className="h-full bg-white rounded-3xl p-6 shadow-sm border border-slate-100 relative overflow-hidden opacity-70 cursor-not-allowed">
-            <div className="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center text-purple-600 mb-4"><Activity size={24} /></div>
-            <h3 className="text-xl font-bold text-slate-800 mb-2">Canlı Analizler</h3>
-            <span className="inline-block bg-slate-100 text-slate-500 text-[10px] font-bold px-2 py-1 rounded border border-slate-200 uppercase">Çok Yakında</span>
+        {/* 2. KART: AYARLAR & YAPILANDIRMA (DÜZENLEME YAPILDI) */}
+        <div className="bg-[#1e3a8a] p-6 rounded-2xl shadow-lg text-white relative overflow-hidden group">
+          <div className="absolute top-0 right-0 p-4 opacity-10 transform translate-x-4 -translate-y-4 group-hover:scale-110 transition-transform">
+            <Settings size={120} />
           </div>
-        </motion.div>
-      </motion.div>
+          
+          <div className="relative z-10">
+            <div className="p-3 bg-white/10 w-fit rounded-xl mb-4 backdrop-blur-sm">
+              <Settings size={24} className="text-blue-200" />
+            </div>
+            
+            <h3 className="text-lg font-bold mb-1">Ayarlar & Yapılandırma</h3>
+            <p className="text-blue-200 text-sm mb-6">
+              Hizmet listesi ve bot karakterini düzenleyin.
+            </p>
+
+            {/* BURASI DÜZELTİLDİ: ARTIK BUTON BİR LINK */}
+            <Link 
+              to="/panel/settings" 
+              className="inline-flex items-center gap-2 bg-white/20 hover:bg-white/30 backdrop-blur-md px-4 py-2 rounded-lg text-sm font-bold transition-all"
+            >
+              Düzenle <ChevronRight size={16} />
+            </Link>
+          </div>
+        </div>
+
+        {/* 3. KART: CANLI ANALİZLER (Placeholder) */}
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 relative hover:shadow-md transition-all">
+          <div className="p-3 bg-purple-50 text-purple-600 w-fit rounded-xl mb-4">
+            <Activity size={24} />
+          </div>
+          <h3 className="text-lg font-bold text-[#0f172a] mb-1">Canlı Analizler</h3>
+          <div className="inline-block px-2 py-1 bg-slate-100 text-slate-500 text-[10px] font-bold rounded uppercase mt-2">
+            Çok Yakında
+          </div>
+        </div>
+
+      </div>
     </div>
   );
 };
