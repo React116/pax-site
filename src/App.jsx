@@ -17,6 +17,7 @@ import StoryPage from './HikayeSayfasi';
 import CaseStudiesPage from './CaseStudiesPage';
 import BlogPage from './BlogPage';
 import BusinessSettings from './pages/BusinessSettings';
+import CalendarPage from './pages/CalendarPage';
 
 // --- PANEL VE AUTH IMPORTLARI ---
 import Register from './Register';
@@ -645,13 +646,21 @@ function App() {
               <Route path="/kayit-ol" element={<Register />} />
 
               {/* --- PANEL ROTALARI (NESTED) --- */}
+              <Route path="/panel" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
+   <Route index element={<DashboardOverview />} />
+   <Route path="settings" element={<BusinessSettings />} />
+   {/* BU SATIRI EKLE: */}
+   <Route path="calendar" element={<CalendarPage />} />
+</Route>
               <Route 
                 path="/panel" 
                 element={
                   <ProtectedRoute>
                     <DashboardLayout />
                   </ProtectedRoute>
+                  
                 }
+                
               >
                 {/* /panel adresine girince Overview açılacak */}
                 <Route index element={<DashboardOverview />} />
