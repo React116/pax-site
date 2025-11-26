@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { Calendar, dateFnsLocalizer, Views } from 'react-big-calendar';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { Calendar, dateFnsLocalizer, Views, Navigate } from 'react-big-calendar';
 import withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop';
 import format from 'date-fns/format';
 import parse from 'date-fns/parse';
@@ -32,26 +32,28 @@ const EVENT_TYPES = {
 const CalendarPage = () => {
   // --- STATE ---
   const [events, setEvents] = useState([]);
-  const [instructors, setInstructors] = useState([]); // Gerçek eğitmen listesi
+  const [instructors, setInstructors] = useState([]);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [view, setView] = useState(Views.WEEK);
   const [date, setDate] = useState(new Date());
   
-  // Modal & Form State
+  // UI States
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
+  
+  // Form State
   const [formData, setFormData] = useState({
      id: null, title: '', start: '', end: '', type: 'private', 
      instructor: '', room: 'Ana Salon', desc: '', status: 'confirmed'
   });
 
-  // Filtreler
-  const [filterType, setFilterType] = useState('all'); // all, reformer, yoga...
+  const [filterType, setFilterType] = useState('all');
   
   const BASE_URL = import.meta.env.VITE_API_URL || "https://pax-backend-9m4q.onrender.com/api";
   const token = localStorage.getItem('token');
 
-  // --- 1. VERİLERİ ÇEK (Etkinlikler + Eğitmenler) ---
+  // --- 1. VERİLERİ ÇEK ---
   useEffect(() => {
     fetchData();
   }, []);
@@ -59,7 +61,6 @@ const CalendarPage = () => {
   const fetchData = async () => {
     if (!token) return;
     try {
-      // Paralel istek: Hem takvimi hem işletme ayarlarını (eğitmenleri) çek
       const [calRes, profileRes] = await Promise.all([
         fetch(`${BASE_URL}/calendar`, { headers: { 'Authorization': `Bearer ${token}` } }),
         fetch(`${BASE_URL}/business-profile`, { headers: { 'Authorization': `Bearer ${token}` } })
@@ -69,7 +70,7 @@ const CalendarPage = () => {
         const data = await calRes.json();
         const parsed = data.map(ev => ({
           ...ev,
-          id: ev._id, // BigCalendar 'id' ister
+          id: ev._id, 
           start: new Date(ev.start),
           end: new Date(ev.end),
         }));
@@ -78,21 +79,52 @@ const CalendarPage = () => {
 
       if (profileRes.ok) {
         const profile = await profileRes.json();
-        // Eğitmen listesini state'e at
         if (profile.instructors && profile.instructors.length > 0) {
             setInstructors(profile.instructors);
         } else {
-            // Hiç eğitmen yoksa varsayılan ekle
             setInstructors([{ name: 'Genel Eğitmen' }]);
         }
       }
     } catch (err) { console.error("Veri hatası:", err); }
   };
 
-  // --- 2. KAYDETME (Create & Update) ---
+  // --- 2. NAVİGASYON FONKSİYONU (Düzeltildi) ---
+  const handleNavigate = useCallback((newDate) => {
+    setDate(newDate);
+  }, []);
+
+  const handleViewChange = useCallback((newView) => {
+    setView(newView);
+  }, []);
+
+  // --- 3. SÜRÜKLE & BIRAK (Düzeltildi: Sidebar Sync) ---
+  const onEventDrop = async ({ event, start, end }) => {
+    // 1. Yeni obje oluştur
+    const updatedEvent = { ...event, start, end };
+
+    // 2. Listeyi güncelle
+    const updatedList = events.map(e => e.id === event.id ? updatedEvent : e);
+    setEvents(updatedList);
+
+    // 3. EĞER BU ETKİNLİK SAĞDA AÇIKSA, ONU DA GÜNCELLE (Kritik Düzeltme)
+    if (selectedEvent && selectedEvent.id === event.id) {
+        setSelectedEvent(updatedEvent);
+    }
+
+    // 4. Backend'e kaydet
+    try {
+      await fetch(`${BASE_URL}/calendar/${event.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ start, end })
+      });
+    } catch (err) { console.error("Drop hatası:", err); fetchData(); }
+  };
+
+  // --- 4. KAYDETME ---
   const handleSave = async (e) => {
     e.preventDefault();
-    if (!formData.title || !formData.start || !formData.end) return alert("Lütfen zorunlu alanları doldurun.");
+    if (!formData.title || !formData.start || !formData.end) return alert("Zorunlu alanları doldurun.");
 
     const method = isEditMode ? 'PUT' : 'POST';
     const url = isEditMode ? `${BASE_URL}/calendar/${formData.id}` : `${BASE_URL}/calendar`;
@@ -105,16 +137,16 @@ const CalendarPage = () => {
       });
 
       if (res.ok) {
-        await fetchData(); // Listeyi yenile
+        await fetchData();
         setShowModal(false);
         resetForm();
       } else { alert("İşlem başarısız."); }
     } catch (err) { console.error(err); }
   };
 
-  // --- 3. SİLME (Delete) ---
+  // --- 5. SİLME ---
   const handleDelete = async (id) => {
-    if (!window.confirm("Bu randevuyu silmek istediğinize emin misiniz?")) return;
+    if (!window.confirm("Silmek istediğinize emin misiniz?")) return;
     try {
         await fetch(`${BASE_URL}/calendar/${id}`, {
             method: 'DELETE',
@@ -125,22 +157,6 @@ const CalendarPage = () => {
     } catch (err) { console.error(err); }
   };
 
-  // --- 4. SÜRÜKLE & BIRAK GÜNCELLEMESİ ---
-  const onEventDrop = async ({ event, start, end }) => {
-    // Önce UI'da güncelle (Hız hissi için)
-    const updatedEvents = events.map(e => e.id === event.id ? { ...e, start, end } : e);
-    setEvents(updatedEvents);
-
-    // Sonra Backend'e kaydet
-    try {
-      await fetch(`${BASE_URL}/calendar/${event.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ start, end })
-      });
-    } catch (err) { console.error("Drop hatası:", err); fetchData(); /* Hata varsa geri al */ }
-  };
-
   // --- YARDIMCILAR ---
   const resetForm = () => {
     setFormData({ id: null, title: '', start: '', end: '', type: 'private', instructor: '', room: 'Ana Salon', desc: '', status: 'confirmed' });
@@ -149,11 +165,16 @@ const CalendarPage = () => {
 
   const openNewModal = () => {
     resetForm();
-    // Varsayılan olarak şu anki saati ayarla
     const now = new Date();
+    // Saati yuvarla (örn: 14:23 -> 14:30)
+    now.setMinutes(now.getMinutes() > 30 ? 60 : 30);
+    now.setSeconds(0);
     const oneHourLater = new Date(now.getTime() + 60*60*1000);
-    // Formata uygun string (YYYY-MM-DDTHH:mm)
-    const toLocalISO = (d) => d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0') + 'T' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+    
+    const toLocalISO = (d) => {
+       const offset = d.getTimezoneOffset() * 60000;
+       return new Date(d.getTime() - offset).toISOString().slice(0, 16);
+    };
     
     setFormData(prev => ({ ...prev, start: toLocalISO(now), end: toLocalISO(oneHourLater) }));
     setShowModal(true);
@@ -162,83 +183,109 @@ const CalendarPage = () => {
   const openEditModal = (event) => {
     const toLocalISO = (d) => d ? new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().slice(0, 16) : '';
     setFormData({
-        id: event.id,
-        title: event.title,
-        start: toLocalISO(event.start),
-        end: toLocalISO(event.end),
-        type: event.type || 'private',
-        instructor: event.instructor || '',
-        room: event.room || 'Ana Salon',
-        desc: event.desc || '',
-        status: event.status || 'confirmed'
+        id: event.id, title: event.title, start: toLocalISO(event.start), end: toLocalISO(event.end),
+        type: event.type || 'private', instructor: event.instructor || '', room: event.room || 'Ana Salon',
+        desc: event.desc || '', status: event.status || 'confirmed'
     });
     setIsEditMode(true);
     setShowModal(true);
   };
 
-  // --- FİLTRELEME MANTIĞI ---
   const filteredEvents = useMemo(() => {
     if (filterType === 'all') return events;
     return events.filter(e => e.type === filterType);
   }, [events, filterType]);
 
+  // --- CUSTOM TOOLBAR (Düzeltildi: Navigasyon ve Filtre) ---
+  const CustomToolbar = (toolbar) => {
+    const goToBack = () => { 
+        // BigCalendar'ın kendi fonksiyonunu çağırıp state'i güncelliyoruz
+        toolbar.onNavigate(Navigate.PREVIOUS); 
+    };
+    const goToNext = () => { 
+        toolbar.onNavigate(Navigate.NEXT); 
+    };
+    const goToCurrent = () => { 
+        toolbar.onNavigate(Navigate.TODAY); 
+    };
 
-  // --- COMPONENTLER ---
+    const label = () => {
+        const date = toolbar.date;
+        return (
+            <span className="text-sm font-bold text-slate-700 min-w-[140px] text-center select-none cursor-pointer" onClick={goToCurrent}>
+              {format(date, view === 'day' ? 'd MMMM yyyy' : 'MMMM yyyy', { locale: tr }).toUpperCase()}
+            </span>
+        );
+    };
+
+    return (
+      <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+        {/* Sol: Tarih Navigasyonu */}
+        <div className="flex items-center gap-4 bg-white p-1.5 rounded-xl border border-slate-200 shadow-sm">
+           <button onClick={goToBack} className="p-2 hover:bg-slate-100 rounded-lg text-slate-500 transition-colors"><ChevronLeft size={18}/></button>
+           {label()}
+           <button onClick={goToNext} className="p-2 hover:bg-slate-100 rounded-lg text-slate-500 transition-colors"><ChevronRight size={18}/></button>
+        </div>
+
+        {/* Orta: Görünüm Değiştirici */}
+        <div className="flex bg-slate-100 p-1 rounded-xl">
+           {['month', 'week', 'day'].map((v) => (
+             <button key={v} onClick={() => toolbar.onView(v)} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${toolbar.view === v ? 'bg-white text-[#001F54] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
+               {v === 'month' ? 'Ay' : v === 'week' ? 'Hafta' : 'Gün'}
+             </button>
+           ))}
+        </div>
+
+        {/* Sağ: Filtre ve Ekle */}
+        <div className="flex gap-2 items-center relative z-20">
+            {/* Filtre Dropdown (Düzeltildi: Hover yerine Click) */}
+            <div className="relative">
+                <button 
+                    onClick={() => setIsFilterOpen(!isFilterOpen)} 
+                    className={`flex items-center gap-2 p-2.5 border rounded-xl text-xs font-bold shadow-sm transition-all ${isFilterOpen ? 'bg-slate-50 border-slate-300 text-[#001F54]' : 'bg-white border-slate-200 text-slate-500'}`}
+                >
+                    <Filter size={16}/> {filterType === 'all' ? 'Filtrele' : EVENT_TYPES[filterType]?.label}
+                </button>
+                
+                {isFilterOpen && (
+                    <>
+                    <div className="fixed inset-0 z-10" onClick={() => setIsFilterOpen(false)}></div>
+                    <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-slate-100 rounded-xl shadow-xl z-20 overflow-hidden animate-fade-in-up">
+                        <button onClick={() => { setFilterType('all'); setIsFilterOpen(false); }} className="w-full text-left px-4 py-3 text-xs hover:bg-slate-50 font-bold border-b border-slate-50">Tümünü Göster</button>
+                        {Object.keys(EVENT_TYPES).map(type => (
+                            <button key={type} onClick={() => { setFilterType(type); setIsFilterOpen(false); }} className="w-full text-left px-4 py-2.5 text-xs hover:bg-slate-50 flex items-center gap-2">
+                                <span className={`w-2 h-2 rounded-full ${EVENT_TYPES[type].color.split(' ')[0].replace('text', 'bg').replace('border', 'bg')}`}></span>
+                                {EVENT_TYPES[type].label}
+                            </button>
+                        ))}
+                    </div>
+                    </>
+                )}
+            </div>
+
+            <button onClick={openNewModal} className="flex items-center gap-2 bg-[#001F54] text-white px-4 py-2.5 rounded-xl text-sm font-bold shadow-lg hover:bg-[#0f172a] active:scale-95 transition-all">
+                <Plus size={18} /> <span className="hidden md:inline">Yeni Randevu</span>
+            </button>
+        </div>
+      </div>
+    );
+  };
+
   const CustomEvent = ({ event }) => {
     const style = EVENT_TYPES[event.type || 'private'] || EVENT_TYPES.private;
     return (
-      <div className={`h-full w-full px-2 py-0.5 rounded-md border-l-4 text-[10px] leading-tight shadow-sm overflow-hidden ${style.color} ${style.border}`}>
+      <div className={`h-full w-full px-2 py-0.5 rounded-md border-l-4 text-[10px] leading-tight shadow-sm overflow-hidden transition-all hover:brightness-95 ${style.color} ${style.border}`}>
         <div className="font-bold truncate">{event.title}</div>
         <div className="truncate opacity-80">{event.instructor}</div>
       </div>
     );
   };
 
-  const CustomToolbar = (toolbar) => (
-    <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-      <div className="flex items-center gap-4 bg-white p-1.5 rounded-xl border border-slate-200 shadow-sm">
-         <button onClick={() => { toolbar.onNavigate('PREV'); setDate(toolbar.date); }} className="p-2 hover:bg-slate-100 rounded-lg"><ChevronLeft size={18}/></button>
-         <span className="text-sm font-bold text-slate-700 min-w-[140px] text-center select-none cursor-pointer" onClick={() => { toolbar.onNavigate('TODAY'); setDate(new Date()); }}>
-           {format(toolbar.date, 'MMMM yyyy', { locale: tr }).toUpperCase()}
-         </span>
-         <button onClick={() => { toolbar.onNavigate('NEXT'); setDate(toolbar.date); }} className="p-2 hover:bg-slate-100 rounded-lg"><ChevronRight size={18}/></button>
-      </div>
-
-      <div className="flex bg-slate-100 p-1 rounded-xl">
-         {['month', 'week', 'day'].map((v) => (
-           <button key={v} onClick={() => { setView(v); toolbar.onView(v); }} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${view === v ? 'bg-white text-[#001F54] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
-             {v === 'month' ? 'Ay' : v === 'week' ? 'Hafta' : 'Gün'}
-           </button>
-         ))}
-      </div>
-
-      <div className="flex gap-2 items-center">
-         {/* Filtre Dropdown */}
-         <div className="relative group">
-            <button className="flex items-center gap-2 p-2.5 bg-white border border-slate-200 rounded-xl text-slate-500 hover:text-[#001F54] shadow-sm text-xs font-bold">
-                <Filter size={16}/> {filterType === 'all' ? 'Tümü' : EVENT_TYPES[filterType]?.label}
-            </button>
-            <div className="absolute right-0 top-full mt-2 w-40 bg-white border border-slate-100 rounded-xl shadow-xl hidden group-hover:block z-50 overflow-hidden">
-                <button onClick={() => setFilterType('all')} className="w-full text-left px-4 py-2 text-xs hover:bg-slate-50 font-bold">Tümü</button>
-                {Object.keys(EVENT_TYPES).map(type => (
-                    <button key={type} onClick={() => setFilterType(type)} className="w-full text-left px-4 py-2 text-xs hover:bg-slate-50">{EVENT_TYPES[type].label}</button>
-                ))}
-            </div>
-         </div>
-
-         <button onClick={openNewModal} className="flex items-center gap-2 bg-[#001F54] text-white px-4 py-2.5 rounded-xl text-sm font-bold shadow-lg hover:bg-[#0f172a] active:scale-95 transition-all">
-           <Plus size={18} /> <span className="hidden md:inline">Yeni Randevu</span>
-         </button>
-      </div>
-    </div>
-  );
-
   return (
     <div className="h-[calc(100vh-40px)] flex gap-6 overflow-hidden">
       
       {/* SOL: TAKVİM */}
-      <div className="flex-1 flex flex-col h-full">
-        {/* AI Insight */}
+      <div className="flex-1 flex flex-col h-full relative z-0">
         <motion.div initial={{opacity:0, y:-10}} animate={{opacity:1, y:0}} className="mb-4 bg-gradient-to-r from-indigo-50 to-blue-50 p-3 rounded-xl border border-blue-100 flex items-center justify-between px-4">
            <div className="flex items-center gap-2 text-sm text-[#001F54]">
              <Zap size={16} className="text-amber-500 fill-amber-500" /> 
@@ -257,12 +304,12 @@ const CalendarPage = () => {
             endAccessor="end"
             view={view}
             date={date}
-            onNavigate={setDate}
-            onView={setView}
+            onNavigate={handleNavigate} // Navigasyon state'e bağlandı
+            onView={handleViewChange}   // Görünüm state'e bağlandı
             selectable
             resizable
             onEventDrop={onEventDrop}
-            onEventResize={onEventDrop} // Resize da aynı mantık (PUT)
+            onEventResize={onEventDrop}
             onSelectEvent={(event) => setSelectedEvent(event)}
             components={{ toolbar: CustomToolbar, event: CustomEvent }}
             culture='tr'
@@ -326,7 +373,7 @@ const CalendarPage = () => {
         </AnimatePresence>
       </div>
 
-      {/* --- MODAL (EKLEME & DÜZENLEME) --- */}
+      {/* --- MODAL --- */}
       {showModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
            <motion.div initial={{scale:0.95, opacity:0}} animate={{scale:1, opacity:1}} className="bg-white p-0 rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
@@ -383,7 +430,7 @@ const CalendarPage = () => {
         </div>
       )}
 
-      {/* CSS */}
+      {/* CSS Overrides */}
       <style>{`
         .modern-calendar .rbc-header { padding: 12px 0; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; border-bottom: 1px solid #f1f5f9; }
         .modern-calendar .rbc-day-bg { border-left: 1px solid #f8fafc; }
@@ -391,6 +438,7 @@ const CalendarPage = () => {
         .modern-calendar .rbc-today { background: #eff6ff; }
         .modern-calendar .rbc-time-content { border-top: 1px solid #f1f5f9; }
         .rbc-event { background: transparent !important; padding: 0 !important; border: none !important; outline: none !important; }
+        .rbc-time-slot { min-height: 20px; }
       `}</style>
     </div>
   );
