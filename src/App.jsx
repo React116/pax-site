@@ -5,9 +5,8 @@ import {
   ArrowRight, Menu, X, Code2, BrainCircuit, LineChart, 
   MapPin, Phone, Mail, CheckCircle2, MessageSquare, 
   Linkedin, Instagram, Youtube, Send, Twitter, ShieldCheck, Lock, Check, Star,
-  TrendingUp, Activity, Server, ChevronDown, BookOpen, Globe, User // User İKONU BURAYA EKLENDİ
+  TrendingUp, Activity, Server, ChevronDown, BookOpen, Globe, User, Settings // <-- BURAYA "Settings" EKLENDİ
 } from 'lucide-react';
-
 // --- SAYFA İMPORTLARI ---
 //Düzenleme
 // BU DOSYALARIN src KLASÖRÜNDE OLDUĞUNDAN EMİN OLUN
@@ -18,6 +17,7 @@ import SolutionsPage from './SolutionsPage';
 import StoryPage from './HikayeSayfasi'; 
 import CaseStudiesPage from './CaseStudiesPage';
 import BlogPage from './BlogPage';
+import BusinessSettings from './pages/BusinessSettings';
 
 // --- YENİ EKLENEN SAYFALAR ---
 import Register from './Register';
@@ -132,26 +132,28 @@ const Navbar = () => {
 
           {/* GİRİŞ KONTROLÜ VE BUTONLAR */}
           {isLoggedIn ? (
-            <Link to="/panel" className="bg-green-500 text-white px-5 py-2 rounded-full font-bold text-sm hover:bg-green-600 transition-all flex items-center gap-2 shadow-md">
-               <User size={18} /> Panelim
-            </Link>
+            <div className="flex items-center gap-4">
+              {/* YENİ EKLENEN AYARLAR BUTONU */}
+              <Link 
+                to="/settings" 
+                className="text-slate-500 hover:text-[#001F54] font-bold text-sm flex items-center gap-1 transition-colors"
+                title="İşletme Ayarları"
+              >
+                 <Settings size={20} />
+                 <span className="hidden xl:inline">Ayarlar</span>
+              </Link>
+  
+              {/* PANEL BUTONU */}
+              <Link to="/panel" className="bg-green-500 text-white px-5 py-2 rounded-full font-bold text-sm hover:bg-green-600 transition-all flex items-center gap-2 shadow-md">
+                 <User size={18} /> Panelim
+              </Link>
+            </div>
           ) : (
             <div className="flex items-center gap-3">
                <Link to="/giris-yap" className="text-[#001F54] font-bold hover:text-blue-600">Giriş Yap</Link>
                <Link to="/kayit-ol" className="bg-[#001F54] text-white px-5 py-2.5 rounded-full font-bold text-sm shadow-lg hover:bg-[#0f172a]">Kayıt Ol</Link>
             </div>
           )}
-
-        </div>
-        
-        <div className="flex items-center gap-4 md:hidden">
-          <button onClick={() => toggleLanguage(language === 'tr' ? 'en' : 'tr')} className="flex items-center gap-1 font-bold text-sm text-[#001F54] border border-slate-200 px-2 py-1 rounded-md">
-            <Globe size={16}/> {language.toUpperCase()}
-          </button>
-          <button className="text-[#001F54]" onClick={() => setIsOpen(!isOpen)}>
-            {isOpen ? <X size={28} /> : <Menu size={28} />}
-          </button>
-        </div>
       </div>
 
       {/* MOBİL MENÜ */}
@@ -159,16 +161,23 @@ const Navbar = () => {
         <div className="md:hidden absolute w-full bg-white border-b border-slate-100 p-6 flex flex-col gap-6 shadow-2xl top-24 max-h-[80vh] overflow-y-auto">
           
           <div className="pb-4 border-b border-slate-50">
+            <div className="pb-4 border-b border-slate-50">
              {isLoggedIn ? (
-                <Link to="/panel" onClick={() => setIsOpen(false)} className="w-full bg-green-500 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2">
-                   <User size={20} /> Panele Git
-                </Link>
+                <div className="space-y-3">
+                  <Link to="/panel" onClick={() => setIsOpen(false)} className="w-full bg-green-500 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2">
+                     <User size={20} /> Panele Git
+                  </Link>
+                  <Link to="/settings" onClick={() => setIsOpen(false)} className="w-full bg-slate-100 text-slate-700 py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-slate-200">
+                     <Settings size={20} /> Ayarlar
+                  </Link>
+                </div>
              ) : (
                 <div className="grid grid-cols-2 gap-4">
                   <Link to="/giris-yap" onClick={() => setIsOpen(false)} className="text-center py-3 border border-slate-200 rounded-xl font-bold text-[#001F54]">Giriş Yap</Link>
                   <Link to="/kayit-ol" onClick={() => setIsOpen(false)} className="text-center py-3 bg-[#001F54] text-white rounded-xl font-bold">Kayıt Ol</Link>
                 </div>
              )}
+          </div>
           </div>
 
           <Link to="/basari-hikayeleri" onClick={() => setIsOpen(false)} className="text-lg font-bold text-orange-600 flex items-center gap-2"><TrendingUp size={20}/> {t.nav.successStories}</Link>
@@ -623,6 +632,8 @@ function App() {
               <Route path="/fiyatlar" element={<PricingPage />} />
               <Route path="/cozumler" element={<SolutionsPage />} />
               <Route path="/hikayemiz" element={<StoryPage />} />
+              {/* ... Diğer rotalar ... */}
+              <Route path="/settings" element={<ProtectedRoute><BusinessSettings /></ProtectedRoute>} />
               
               {/* YENİ ROTALAR (GİRİŞ - KAYIT - PANEL) */}
               <Route path="/giris-yap" element={<Login />} />
