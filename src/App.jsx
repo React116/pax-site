@@ -52,19 +52,17 @@ const staggerContainer = {
   visible: { opacity: 1, transition: { staggerChildren: 0.2 } }
 };
 
-// --- NAVBAR (MENÜ) ---
+// --- NAVBAR (MENÜ - TEMİZ HALİ) ---
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { language, toggleLanguage, t } = useLanguage();
   
-  // YENİ EKLEME: Sayfa değişimini takip et
+  // Sayfa değişimini ve giriş durumunu takip et
   const location = useLocation(); 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  // Her sayfa değiştiğinde (location değiştiğinde) burası çalışır
   useEffect(() => {
-    const user = localStorage.getItem("userName"); // veya token kontrolü
-    // Eğer isim varsa isLoggedIn true olur, yoksa false olur
+    const user = localStorage.getItem("userName");
     setIsLoggedIn(!!user); 
   }, [location]); 
   
@@ -99,7 +97,7 @@ const Navbar = () => {
             <TrendingUp size={16} /> {t.nav.successStories}
           </Link>
 
-          {/* DROPDOWN MENU */}
+          {/* HAKKIMIZDA DROPDOWN */}
           <div className="relative group">
             <button className="flex items-center gap-1 hover:text-[#001F54] transition-colors py-8 outline-none">
               {t.nav.about} <ChevronDown size={14} className="group-hover:rotate-180 transition-transform duration-300" />
@@ -129,9 +127,8 @@ const Navbar = () => {
             <button onClick={() => toggleLanguage('en')} className={`px-3 h-full rounded-full text-xs font-bold transition-all ${language === 'en' ? 'bg-white text-[#001F54] shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>EN</button>
           </div>
 
-          {/* GİRİŞ KONTROLÜ VE BUTONLAR */}
+          {/* GİRİŞ KONTROLÜ - SADECE PANEL BUTONU */}
           {isLoggedIn ? (
-            // Sadece Panel Butonu Kaldı
             <Link to="/panel" className="bg-green-500 text-white px-5 py-2 rounded-full font-bold text-sm hover:bg-green-600 transition-all flex items-center gap-2 shadow-md">
                <User size={18} /> Panelim
             </Link>
@@ -141,33 +138,10 @@ const Navbar = () => {
                <Link to="/kayit-ol" className="bg-[#001F54] text-white px-5 py-2.5 rounded-full font-bold text-sm shadow-lg hover:bg-[#0f172a]">Kayıt Ol</Link>
             </div>
           )}
-          {isLoggedIn ? (
-            <div className="flex items-center gap-4">
-              {/* AYARLAR BUTONU */}
-              <Link 
-                to="/settings" 
-                className="text-slate-500 hover:text-[#001F54] font-bold text-sm flex items-center gap-1 transition-colors"
-                title="İşletme Ayarları"
-              >
-                 <Settings size={20} />
-                 <span className="hidden xl:inline">Ayarlar</span>
-              </Link>
-  
-              {/* PANEL BUTONU */}
-              <Link to="/panel" className="bg-green-500 text-white px-5 py-2 rounded-full font-bold text-sm hover:bg-green-600 transition-all flex items-center gap-2 shadow-md">
-                 <User size={18} /> Panelim
-              </Link>
-            </div>
-          ) : (
-            <div className="flex items-center gap-3">
-               <Link to="/giris-yap" className="text-[#001F54] font-bold hover:text-blue-600">Giriş Yap</Link>
-               <Link to="/kayit-ol" className="bg-[#001F54] text-white px-5 py-2.5 rounded-full font-bold text-sm shadow-lg hover:bg-[#0f172a]">Kayıt Ol</Link>
-            </div>
-          )}
 
         </div>
         
-        {/* MOBİL HAMBURGER MENÜ */}
+        {/* MOBİL HAMBURGER BUTONU */}
         <div className="flex items-center gap-4 md:hidden">
           <button onClick={() => toggleLanguage(language === 'tr' ? 'en' : 'tr')} className="flex items-center gap-1 font-bold text-sm text-[#001F54] border border-slate-200 px-2 py-1 rounded-md">
             <Globe size={16}/> {language.toUpperCase()}
@@ -182,9 +156,8 @@ const Navbar = () => {
       {isOpen && (
         <div className="md:hidden absolute w-full bg-white border-b border-slate-100 p-6 flex flex-col gap-6 shadow-2xl top-24 max-h-[80vh] overflow-y-auto">
           
-       <div className="pb-4 border-b border-slate-50">
+          <div className="pb-4 border-b border-slate-50">
              {isLoggedIn ? (
-                // Mobilde de sadece Panele Git butonu kaldı
                 <Link to="/panel" onClick={() => setIsOpen(false)} className="w-full bg-green-500 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2">
                    <User size={20} /> Panele Git
                 </Link>
