@@ -5,11 +5,10 @@ import {
   ArrowRight, Menu, X, Code2, BrainCircuit, LineChart, 
   MapPin, Phone, Mail, CheckCircle2, MessageSquare, 
   Linkedin, Instagram, Youtube, Send, Twitter, ShieldCheck, Lock, Check, Star,
-  TrendingUp, Activity, Server, ChevronDown, BookOpen, Globe, User, Settings // <-- BURAYA "Settings" EKLENDİ
+  TrendingUp, Activity, Server, ChevronDown, BookOpen, Globe, User, Settings 
 } from 'lucide-react';
+
 // --- SAYFA İMPORTLARI ---
-//Düzenleme
-// BU DOSYALARIN src KLASÖRÜNDE OLDUĞUNDAN EMİN OLUN
 import { PrivacyPolicy, TermsOfUse, CookiePolicy, KvkkText } from './LegalPages';
 import PricingPage from './PricingPage';
 import BlogPostDetail from './BlogPostDetail';
@@ -23,7 +22,7 @@ import BusinessSettings from './pages/BusinessSettings';
 import Register from './Register';
 import Login from './Login';
 import Dashboard from './Dashboard';
-import ProtectedRoute from './ProtectedRoute'; // KORUMA KALKANI
+import ProtectedRoute from './ProtectedRoute'; 
 import { LanguageProvider, useLanguage } from './LanguageContext';
 
 // --- SAYFA KAYDIRMA YARDIMCISI ---
@@ -602,14 +601,37 @@ const WhatsAppButton = () => (
   </a>
 );
 
+// --- YENİ EKLENEN LAYOUT BİLEŞENİ ---
+const Layout = ({ children }) => {
+  const location = useLocation();
+  // Bu rotalarda Navbar, Footer ve WhatsApp butonu GİZLENECEK
+  const isDashboard = location.pathname.startsWith('/panel') || location.pathname.startsWith('/settings');
+
+  return (
+    <>
+      {/* Eğer Dashboard değilse Navbar'ı göster */}
+      {!isDashboard && <Navbar />}
+      
+      {children}
+      
+      {/* Eğer Dashboard değilse Footer'ı göster */}
+      {!isDashboard && <Footer />}
+      
+      {/* Eğer Dashboard değilse WhatsApp butonunu göster */}
+      {!isDashboard && <WhatsAppButton />}
+    </>
+  );
+};
+
 function App() {
   return (
     <LanguageProvider>
       <Router>
         <div className="antialiased selection:bg-blue-100 selection:text-[#001F54]">
           <ScrollToTop />
-          <Navbar />
-          <main>
+          
+          {/* Layout bileşeni Rotaları sarmalar ve Navbar kontrolünü yapar */}
+          <Layout>
             <Routes>
               <Route path="/" element={<HomePage />} />
               <Route path="/basari-hikayeleri" element={<CaseStudiesPage />} />
@@ -622,26 +644,17 @@ function App() {
               <Route path="/fiyatlar" element={<PricingPage />} />
               <Route path="/cozumler" element={<SolutionsPage />} />
               <Route path="/hikayemiz" element={<StoryPage />} />
-              {/* ... Diğer rotalar ... */}
-              <Route path="/settings" element={<ProtectedRoute><BusinessSettings /></ProtectedRoute>} />
               
-              {/* YENİ ROTALAR (GİRİŞ - KAYIT - PANEL) */}
+              {/* Giriş & Kayıt */}
               <Route path="/giris-yap" element={<Login />} />
               <Route path="/kayit-ol" element={<Register />} />
               
-              {/* KORUMALI PANEL ROTASI */}
-              <Route 
-                path="/panel" 
-                element={
-                  <ProtectedRoute>
-                    <Dashboard />
-                  </ProtectedRoute>
-                } 
-              />
+              {/* PANEL ROTALARI */}
+              <Route path="/panel" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+              <Route path="/settings" element={<ProtectedRoute><BusinessSettings /></ProtectedRoute>} />
             </Routes>
-          </main>
-          <Footer />
-          <WhatsAppButton />
+          </Layout>
+
         </div>
       </Router>
     </LanguageProvider>
