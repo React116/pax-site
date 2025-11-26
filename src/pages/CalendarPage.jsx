@@ -30,7 +30,7 @@ const CalendarPage = () => {
   const [newEvent, setNewEvent] = useState({ title: '', start: '', end: '', desc: '' });
   
   // BURAYA KENDİ RENDER URL'Nİ YAZ
-  const API_URL = "https://senin-backend-urlin.onrender.com/api";
+  const API_URL = `${import.meta.env.VITE_API_URL}/calendar`;
   const token = localStorage.getItem('token');
 
   useEffect(() => {

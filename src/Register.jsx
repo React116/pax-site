@@ -37,29 +37,34 @@ const Register = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      // 127.0.0.1 kullanıyoruz (localhost hatasını önlemek için)
-      const response = await fetch('http://127.0.0.1:5000/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      });
+ // src/Register.jsx içindeki handleSubmit fonksiyonu:
 
-      const data = await response.json();
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  try {
+    // Merkezi adresi alıyoruz
+    const apiUrl = import.meta.env.VITE_API_URL;
 
-      if (response.ok) {
-        alert("✅ Kayıt Başarılı! Hoş geldin.");
-        navigate('/');
-      } else {
-        alert("❌ Hata: " + data.message);
-      }
-    } catch (error) {
-      console.error("Bağlantı Hatası:", error);
-      alert("Sunucuyla iletişim kurulamadı.");
+    // Backend'de auth rotasını /auth/register olarak ayarladığımızı varsayıyorum
+    const response = await fetch(`${apiUrl}/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formData)
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      alert("✅ Kayıt Başarılı! Giriş yapabilirsiniz.");
+      navigate('/giris-yap'); // Kayıttan sonra giriş sayfasına atmalı
+    } else {
+      alert("❌ Hata: " + (data.message || "Kayıt başarısız"));
     }
-  };
+  } catch (error) {
+    console.error("Bağlantı Hatası:", error);
+    alert("Sunucuyla iletişim kurulamadı. Lütfen internet bağlantınızı kontrol edin.");
+  }
+};
 
   return (
     <div className="min-h-screen pt-32 pb-20 bg-slate-50 flex items-center justify-center px-6">
