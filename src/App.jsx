@@ -53,7 +53,6 @@ const staggerContainer = {
 };
 
 // --- NAVBAR (MENÜ) ---
-// --- NAVBAR (MENÜ) - GÜNCELLENMİŞ HALİ ---
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { language, toggleLanguage, t } = useLanguage();
@@ -64,10 +63,10 @@ const Navbar = () => {
 
   // Her sayfa değiştiğinde (location değiştiğinde) burası çalışır
   useEffect(() => {
-    const user = localStorage.getItem("userName");
+    const user = localStorage.getItem("userName"); // veya token kontrolü
     // Eğer isim varsa isLoggedIn true olur, yoksa false olur
     setIsLoggedIn(!!user); 
-  }, [location]); // location değiştikçe tetikle
+  }, [location]); 
   
   const scrollToContact = () => {
     if (window.location.pathname === '/') {
@@ -133,7 +132,7 @@ const Navbar = () => {
           {/* GİRİŞ KONTROLÜ VE BUTONLAR */}
           {isLoggedIn ? (
             <div className="flex items-center gap-4">
-              {/* YENİ EKLENEN AYARLAR BUTONU */}
+              {/* AYARLAR BUTONU */}
               <Link 
                 to="/settings" 
                 className="text-slate-500 hover:text-[#001F54] font-bold text-sm flex items-center gap-1 transition-colors"
@@ -154,14 +153,25 @@ const Navbar = () => {
                <Link to="/kayit-ol" className="bg-[#001F54] text-white px-5 py-2.5 rounded-full font-bold text-sm shadow-lg hover:bg-[#0f172a]">Kayıt Ol</Link>
             </div>
           )}
+
+        </div>
+        
+        {/* MOBİL HAMBURGER MENÜ */}
+        <div className="flex items-center gap-4 md:hidden">
+          <button onClick={() => toggleLanguage(language === 'tr' ? 'en' : 'tr')} className="flex items-center gap-1 font-bold text-sm text-[#001F54] border border-slate-200 px-2 py-1 rounded-md">
+            <Globe size={16}/> {language.toUpperCase()}
+          </button>
+          <button className="text-[#001F54]" onClick={() => setIsOpen(!isOpen)}>
+            {isOpen ? <X size={28} /> : <Menu size={28} />}
+          </button>
+        </div>
       </div>
 
-      {/* MOBİL MENÜ */}
+      {/* MOBİL MENÜ İÇERİĞİ */}
       {isOpen && (
         <div className="md:hidden absolute w-full bg-white border-b border-slate-100 p-6 flex flex-col gap-6 shadow-2xl top-24 max-h-[80vh] overflow-y-auto">
           
           <div className="pb-4 border-b border-slate-50">
-            <div className="pb-4 border-b border-slate-50">
              {isLoggedIn ? (
                 <div className="space-y-3">
                   <Link to="/panel" onClick={() => setIsOpen(false)} className="w-full bg-green-500 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2">
@@ -177,7 +187,6 @@ const Navbar = () => {
                   <Link to="/kayit-ol" onClick={() => setIsOpen(false)} className="text-center py-3 bg-[#001F54] text-white rounded-xl font-bold">Kayıt Ol</Link>
                 </div>
              )}
-          </div>
           </div>
 
           <Link to="/basari-hikayeleri" onClick={() => setIsOpen(false)} className="text-lg font-bold text-orange-600 flex items-center gap-2"><TrendingUp size={20}/> {t.nav.successStories}</Link>
@@ -196,7 +205,8 @@ const Navbar = () => {
 };
 
 
-// --- FOOTER ---
+/////// --- FOOTER ---
+
 const Footer = () => {
   const { t } = useLanguage();
   return (
