@@ -1,49 +1,44 @@
 const BusinessProfile = require('../models/BusinessProfile');
 
-// Profil Getir (Eğer yoksa boş bir tane oluşturup döner)
-exports.getProfile = async (req, res) => {
+// Mevcut getProfile fonksiyonun muhtemelen burada duruyor, ona dokunma.
+// Sadece updateProfile fonksiyonunu bu şekilde güncelle:
+
+const updateProfile = async (req, res) => {
   try {
+    // 1. Frontend'den gelen verileri al (isActive'i buraya ekledik)
+    const { businessName, industry, isActive } = req.body;
+
+    // 2. Kullanıcının profilini veritabanında bul
     let profile = await BusinessProfile.findOne({ userId: req.user.id });
 
     if (!profile) {
-      // Profil yoksa varsayılan boş bir profil oluştur
-      profile = new BusinessProfile({ userId: req.user.id });
-      await profile.save();
+      return res.status(404).json({ msg: 'İşletme profili bulunamadı.' });
     }
 
-    res.status(200).json({ success: true, data: profile });
+    // 3. Gelen veriler varsa güncelle
+    if (businessName) profile.businessName = businessName;
+    if (industry) profile.industry = industry;
+    
+    // isActive özel bir durum (Boolean olduğu için)
+    // Eğer frontend isActive bilgisini gönderdiyse (true veya false), güncelle
+    if (typeof isActive !== 'undefined') {
+      profile.isActive = isActive;
+    }
+
+    // 4. Kaydet
+    await profile.save();
+
+    // 5. Güncel hali geri gönder
+    res.json(profile);
+
   } catch (error) {
-    console.error('Profil Getirme Hatası:', error);
-    res.status(500).json({ success: false, message: 'Sunucu hatası' });
+    console.error(error);
+    res.status(500).send('Server Hatası: Profil güncellenemedi.');
   }
 };
 
-// Profil Güncelle (Upsert mantığı: varsa güncelle, yoksa oluştur)
-exports.updateProfile = async (req, res) => {
-  try {
-    const { businessName, industry, phone, address, aiConfig, services, workingHours, integration } = req.body;
-
-    // Alanları güncelle
-    const profile = await BusinessProfile.findOneAndUpdate(
-      { userId: req.user.id },
-      {
-        $set: {
-          businessName,
-          industry,
-          phone,
-          address,
-          aiConfig,
-          services,
-          workingHours,
-          integration
-        }
-      },
-      { new: true, upsert: true, setDefaultsOnInsert: true } // Güncel halini döndür, yoksa oluştur
-    );
-
-    res.status(200).json({ success: true, data: profile, message: 'Ayarlar başarıyla kaydedildi.' });
-  } catch (error) {
-    console.error('Profil Güncelleme Hatası:', error);
-    res.status(500).json({ success: false, message: 'Kaydetme sırasında hata oluştu.' });
-  }
+// getProfile ve updateProfile'ı dışarı aktar (Zaten dosyanın sonunda vardır)
+module.exports = {
+  getProfile: require('./businessController').getProfile, // (Mevcut getProfile'ın importu bozulmasın diye burayı böyle yazdım, sen sadece updateProfile'ı değiştirsen yeter)
+  updateProfile
 };
