@@ -1,13 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   Save, MapPin, HelpCircle, CreditCard, Trash2, Plus, 
-  LayoutGrid, CheckCircle2, AlertCircle, Edit2, Lock, X 
+  LayoutGrid, CheckCircle2, AlertCircle, Edit2, Lock, X, Briefcase 
 } from 'lucide-react';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
+
+// Config dosyasını içe aktarıyoruz. Eğer yol hatası varsa burası patlar.
+// Dosyanın src/utils/businessConfig.js olduğundan emin ol.
 import { BUSINESS_TYPES } from '../utils/businessConfig';
 
-/* --- YARDIMCI BİLEŞEN: KİLİTLENEBİLİR INPUT --- */
+/* --- BİLEŞEN 1: KİLİTLENEBİLİR INPUT --- */
 const LockableInput = ({ label, value, onChange, name, placeholder, type = "text", className = "" }) => {
   const [isLocked, setIsLocked] = useState(true);
   const inputRef = useRef(null);
@@ -25,7 +28,7 @@ const LockableInput = ({ label, value, onChange, name, placeholder, type = "text
           ref={inputRef}
           type={type}
           name={name}
-          value={value}
+          value={value || ''} // undefined gelirse patlamasın diye || ''
           onChange={onChange}
           placeholder={placeholder}
           readOnly={isLocked}
@@ -49,7 +52,7 @@ const LockableInput = ({ label, value, onChange, name, placeholder, type = "text
   );
 };
 
-/* --- YARDIMCI BİLEŞEN: KİLİTLENEBİLİR TEXTAREA --- */
+/* --- BİLEŞEN 2: KİLİTLENEBİLİR TEXTAREA --- */
 const LockableTextarea = ({ label, value, onChange, name, placeholder, height = "h-24" }) => {
   const [isLocked, setIsLocked] = useState(true);
   const inputRef = useRef(null);
@@ -61,7 +64,7 @@ const LockableTextarea = ({ label, value, onChange, name, placeholder, height = 
         <textarea
           ref={inputRef}
           name={name}
-          value={value}
+          value={value || ''}
           onChange={onChange}
           placeholder={placeholder}
           readOnly={isLocked}
@@ -85,19 +88,22 @@ const LockableTextarea = ({ label, value, onChange, name, placeholder, height = 
   );
 };
 
-/* --- YENİ BİLEŞEN: KİLİTLENEBİLİR TAG INPUT (ÖNERİLİ) --- */
+/* --- BİLEŞEN 3: KİLİTLENEBİLİR TAG INPUT (GÜVENLİ VERSİYON) --- */
 const LockableTagInput = ({ label, value, onChange, suggestions = [] }) => {
   const [isLocked, setIsLocked] = useState(true);
   const [inputValue, setInputValue] = useState("");
   
-  // Gelen value string ("a,b,c") veya array (["a","b"]) olabilir. Hepsini array yapalım.
-  const tags = Array.isArray(value) ? value : (value ? value.split(',').map(s => s.trim()).filter(s => s) : []);
+  // Güvenlik Kontrolü: Gelen değer null/undefined ise boş array yap.
+  // String gelirse ("a,b") array'e çevir. Array gelirse olduğu gibi al.
+  const tags = Array.isArray(value) 
+    ? value 
+    : (typeof value === 'string' && value.length > 0 ? value.split(',').map(s => s.trim()) : []);
 
   const addTag = (tagToAdd) => {
     if (!tagToAdd) return;
     if (!tags.includes(tagToAdd)) {
       const newTags = [...tags, tagToAdd];
-      onChange(newTags); // Parent'a array gönder
+      onChange(newTags);
     }
     setInputValue("");
   };
@@ -118,13 +124,12 @@ const LockableTagInput = ({ label, value, onChange, suggestions = [] }) => {
     <div className="relative group">
       {label && <label className="label">{label}</label>}
       
-      <div className={`relative w-full p-3.5 rounded-xl border transition-all duration-300 min-h-[60px] ${
+      <div className={`relative w-full p-3.5 rounded-xl border transition-all duration-300 min-h-[60px] flex flex-col justify-center ${
           isLocked 
             ? 'bg-slate-100 border-transparent' 
             : 'bg-white border-blue-500 ring-4 ring-blue-50/50 shadow-sm'
         }`}>
         
-        {/* Seçili Etiketler */}
         <div className="flex flex-wrap gap-2 pr-8">
            {tags.length === 0 && isLocked && <span className="text-slate-400 text-sm italic">Henüz seçim yapılmamış.</span>}
            {tags.map((tag, idx) => (
@@ -133,24 +138,22 @@ const LockableTagInput = ({ label, value, onChange, suggestions = [] }) => {
              }`}>
                {tag}
                {!isLocked && (
-                 <button type="button" onClick={() => removeTag(tag)} className="hover:text-red-500"><X size={14}/></button>
+                 <button type="button" onClick={() => removeTag(tag)} className="hover:text-red-500 flex items-center"><X size={14}/></button>
                )}
              </span>
            ))}
            
-           {/* Input Alanı (Sadece kilit açıkken) */}
            {!isLocked && (
              <input 
                value={inputValue}
                onChange={(e) => setInputValue(e.target.value)}
                onKeyDown={handleKeyDown}
-               className="flex-1 bg-transparent outline-none min-w-[150px] text-sm"
+               className="flex-1 bg-transparent outline-none min-w-[150px] text-sm py-1"
                placeholder="Yeni eklemek için yazıp Enter'a basın..."
              />
            )}
         </div>
 
-        {/* Kilit Butonu */}
         <button
           type="button"
           onClick={() => setIsLocked(!isLocked)}
@@ -162,7 +165,6 @@ const LockableTagInput = ({ label, value, onChange, suggestions = [] }) => {
         </button>
       </div>
 
-      {/* Önerilenler Listesi (Sadece kilit açıkken göster) */}
       {!isLocked && suggestions.length > 0 && (
         <div className="mt-3 p-4 bg-slate-50 border border-slate-200 rounded-xl animate-fade-in-up">
            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Hızlı Ekleme Önerileri</div>
@@ -190,7 +192,7 @@ const LockableTagInput = ({ label, value, onChange, suggestions = [] }) => {
   );
 };
 
-/* --- YARDIMCI BİLEŞEN: PERSONEL/ÜRÜN KARTI --- */
+/* --- BİLEŞEN 4: PERSONEL KARTI --- */
 const StaffItemCard = ({ item, index, onUpdate, onRemove }) => {
   const [isEditing, setIsEditing] = useState(false);
   useEffect(() => { if (!item.name) setIsEditing(true); }, []);
@@ -274,26 +276,37 @@ const BusinessSettings = () => {
   const fetchProfile = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/business-profile`, { headers: { 'Authorization': `Bearer ${token}` } });
+      // API URL kontrolü: .env boşsa varsayılanı kullan
+      const apiUrl = import.meta.env.VITE_API_URL || "https://pax-backend-9m4q.onrender.com/api";
+      
+      const res = await fetch(`${apiUrl}/business-profile`, { headers: { 'Authorization': `Bearer ${token}` } });
+      
       if (res.ok) {
         const data = await res.json();
-        const type = data.businessType || 'pilates';
-        setSelectedType(type);
-        if (data.workingHours && data.workingHours !== '{}') try { setSchedule(JSON.parse(data.workingHours)); } catch(e) {}
         
-        // Veri normalizasyonu
+        // GÜVENLİK ÖNLEMİ: Eğer veritabanından gelen businessType, bizim config dosyasında yoksa
+        // varsayılan olarak 'pilates' yap. Yoksa site çöker.
+        const typeFromDb = data.businessType || 'pilates';
+        const safeType = BUSINESS_TYPES[typeFromDb] ? typeFromDb : 'pilates';
+        
+        setSelectedType(safeType);
+
+        if (data.workingHours && data.workingHours !== '{}') try { setSchedule(JSON.parse(data.workingHours)); } catch(e) {}
+
         let finalServiceDetails = data.serviceDetails || {};
+        // Eski veri yapısı varsa (classTypes string ise) onu serviceDetails içine taşı
         if (Object.keys(finalServiceDetails).length === 0) {
-           if(data.classTypes) finalServiceDetails.classTypes = Array.isArray(data.classTypes) ? data.classTypes : data.classTypes.split(','); 
+             if(data.classTypes) finalServiceDetails.classTypes = Array.isArray(data.classTypes) ? data.classTypes : data.classTypes.split(','); 
         }
 
         setFormData(prev => ({ 
             ...prev, ...data, 
+            businessType: safeType, // Safe type kullan
             staffOrItems: (data.staffOrItems?.length > 0) ? data.staffOrItems : (data.instructors?.map(i => ({ name: i.name, title: i.specialty, desc: i.bio })) || []),
             serviceDetails: finalServiceDetails 
         }));
       }
-    } catch (err) { console.error(err); }
+    } catch (err) { console.error("Veri çekme hatası:", err); }
   };
 
   const handleChange = (e) => {
@@ -321,7 +334,8 @@ const BusinessSettings = () => {
     const finalData = { ...formData, workingHours: JSON.stringify(schedule) };
     try {
         const token = localStorage.getItem('token');
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/business-profile`, {
+        const apiUrl = import.meta.env.VITE_API_URL || "https://pax-backend-9m4q.onrender.com/api";
+        const res = await fetch(`${apiUrl}/business-profile`, {
             method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(finalData)
         });
         if (res.ok) setMessage({ type: 'success', text: '✅ Değişiklikler başarıyla kaydedildi!' });
@@ -331,7 +345,10 @@ const BusinessSettings = () => {
   };
 
   const handleTypeSelect = (key) => { setSelectedType(key); setFormData(p => ({...p, businessType: key})); };
-  const currentConfig = BUSINESS_TYPES[selectedType];
+  
+  // GÜVENLİK ÖNLEMİ: Config bulunamazsa varsayılan pilates kullan (Çökme önleyici)
+  const currentConfig = BUSINESS_TYPES[selectedType] || BUSINESS_TYPES['pilates'];
+  const CurrentIcon = currentConfig.icon || Briefcase;
 
   return (
     <div className="pb-20 max-w-5xl mx-auto font-sans">
@@ -341,13 +358,13 @@ const BusinessSettings = () => {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-8">
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 relative overflow-hidden">
             <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2"><LayoutGrid size={18} className="text-blue-600"/> İşletme Türü</h3>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
                 {Object.keys(BUSINESS_TYPES).map(key => {
                     const TypeIcon = BUSINESS_TYPES[key].icon;
                     return (
-                        <button key={key} type="button" onClick={() => handleTypeSelect(key)} className={`p-3 rounded-xl border flex flex-col items-center gap-2 transition-all relative ${selectedType === key ? 'bg-blue-600 border-blue-600 text-white shadow-lg scale-105 z-10' : 'bg-slate-50 border-slate-200 text-slate-500 hover:bg-white'}`}>
+                        <button key={key} type="button" onClick={() => handleTypeSelect(key)} className={`p-3 rounded-xl border flex flex-col items-center gap-2 transition-all relative ${selectedType === key ? 'bg-blue-600 border-blue-600 text-white shadow-lg scale-105 z-10' : 'bg-slate-50 border-slate-200 text-slate-500 hover:bg-white opacity-70 hover:opacity-100'}`}>
                             <TypeIcon size={24} /><span className="text-[10px] font-bold text-center leading-tight">{BUSINESS_TYPES[key].label}</span>
                         </button>
                     )
@@ -358,11 +375,12 @@ const BusinessSettings = () => {
         <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden min-h-[500px]">
             <div className="flex overflow-x-auto border-b border-slate-100 scrollbar-hide bg-slate-50/50">
                 <button type="button" onClick={() => setActiveTab('general')} className={`tab-btn ${activeTab === 'general' ? 'active' : ''}`}><MapPin size={16}/> Genel Bilgiler</button>
-                {currentConfig.tabs.includes('services') && <button type="button" onClick={() => setActiveTab('services')} className={`tab-btn ${activeTab === 'services' ? 'active' : ''}`}>{currentConfig.labels.services}</button>}
-                {currentConfig.tabs.includes('staff') && <button type="button" onClick={() => setActiveTab('staff')} className={`tab-btn ${activeTab === 'staff' ? 'active' : ''}`}>{currentConfig.labels.staff}</button>}
-                {currentConfig.tabs.includes('inventory') && <button type="button" onClick={() => setActiveTab('inventory')} className={`tab-btn ${activeTab === 'inventory' ? 'active' : ''}`}>{currentConfig.labels.inventory}</button>}
-                {currentConfig.tabs.includes('menu') && <button type="button" onClick={() => setActiveTab('menu')} className={`tab-btn ${activeTab === 'menu' ? 'active' : ''}`}>{currentConfig.labels.menu}</button>}
-                {currentConfig.tabs.includes('rules') && <button type="button" onClick={() => setActiveTab('rules')} className={`tab-btn ${activeTab === 'rules' ? 'active' : ''}`}>{currentConfig.labels.rules}</button>}
+                {/* Güvenli Erişim: currentConfig.tabs varsa map et, yoksa boş dizi */}
+                {(currentConfig.tabs || []).includes('services') && <button type="button" onClick={() => setActiveTab('services')} className={`tab-btn ${activeTab === 'services' ? 'active' : ''}`}>{currentConfig.labels?.services || 'Hizmetler'}</button>}
+                {(currentConfig.tabs || []).includes('staff') && <button type="button" onClick={() => setActiveTab('staff')} className={`tab-btn ${activeTab === 'staff' ? 'active' : ''}`}>{currentConfig.labels?.staff || 'Personel'}</button>}
+                {(currentConfig.tabs || []).includes('inventory') && <button type="button" onClick={() => setActiveTab('inventory')} className={`tab-btn ${activeTab === 'inventory' ? 'active' : ''}`}>{currentConfig.labels?.inventory || 'Envanter'}</button>}
+                {(currentConfig.tabs || []).includes('menu') && <button type="button" onClick={() => setActiveTab('menu')} className={`tab-btn ${activeTab === 'menu' ? 'active' : ''}`}>{currentConfig.labels?.menu || 'Menü'}</button>}
+                {(currentConfig.tabs || []).includes('rules') && <button type="button" onClick={() => setActiveTab('rules')} className={`tab-btn ${activeTab === 'rules' ? 'active' : ''}`}>{currentConfig.labels?.rules || 'Kurallar'}</button>}
                 <button type="button" onClick={() => setActiveTab('ai')} className={`tab-btn ${activeTab === 'ai' ? 'active' : ''}`}><HelpCircle size={16}/> AI & SSS</button>
                 <button type="button" onClick={() => setActiveTab('payment')} className={`tab-btn ${activeTab === 'payment' ? 'active' : ''}`}><CreditCard size={16}/> Ödeme</button>
             </div>
@@ -382,14 +400,12 @@ const BusinessSettings = () => {
 
                 {(['services', 'inventory', 'menu', 'rules'].includes(activeTab)) && (
                     <div className="space-y-6 animate-fade-in-up">
-                        <div className="bg-blue-50 p-4 rounded-xl text-sm text-blue-800 mb-6 border border-blue-100 flex items-center gap-3"><div className="p-2 bg-white rounded-lg text-blue-600"><currentConfig.icon size={20}/></div><p><strong>{currentConfig.label}</strong> için özel alanlar.</p></div>
+                        <div className="bg-blue-50 p-4 rounded-xl text-sm text-blue-800 mb-6 border border-blue-100 flex items-center gap-3"><div className="p-2 bg-white rounded-lg text-blue-600"><CurrentIcon size={20}/></div><p><strong>{currentConfig.label}</strong> için özel alanlar.</p></div>
                         {(currentConfig.fields[activeTab] || []).map((field, idx) => {
-                            // Eğer field bir obje ise (yani özel ayarı varsa - TagInput gibi)
                             const isObject = typeof field === 'object';
                             const key = isObject ? field.key : field;
                             const label = isObject ? field.label : key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
                             
-                            // Tag Input mu?
                             if (isObject && field.type === 'tags') {
                                 return (
                                     <LockableTagInput 
@@ -402,7 +418,6 @@ const BusinessSettings = () => {
                                 );
                             }
                             
-                            // Normal Textarea
                             return (
                                 <LockableTextarea
                                     key={key}
@@ -420,7 +435,7 @@ const BusinessSettings = () => {
                 {(['staff', 'inventory'].includes(activeTab)) && (
                     <div className="space-y-6 animate-fade-in-up">
                         <div className="grid md:grid-cols-2 gap-6">{formData.staffOrItems.map((item, index) => (<StaffItemCard key={index} index={index} item={item} onUpdate={updateItem} onRemove={removeItem} />))}</div>
-                        <button type="button" onClick={addItem} className="dashed-btn py-6 hover:shadow-md"><div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 mb-2 group-hover:scale-110 transition-transform"><Plus size={24}/></div><span className="text-blue-800 font-bold">{currentConfig.labels.newItemBtn || 'Yeni Ekle'}</span></button>
+                        <button type="button" onClick={addItem} className="dashed-btn py-6 hover:shadow-md"><div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 mb-2 group-hover:scale-110 transition-transform"><Plus size={24}/></div><span className="text-blue-800 font-bold">{currentConfig.labels?.newItemBtn || 'Yeni Ekle'}</span></button>
                     </div>
                 )}
 
