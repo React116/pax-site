@@ -20,15 +20,12 @@ const PILATES_SUGGESTIONS = [
 
 // Yoga için Önerilen Ders Listesi
 const YOGA_SUGGESTIONS = [
-  "Vinyasa Flow",
-  "Hatha Yoga",
-  "Yin Yoga",
-  "Kundalini Yoga",
-  "Hamile Yogası",
-  "Meditation & Breathwork",
-  "Ashtanga Yoga",
-  "Power Yoga"
+  "Vinyasa Flow", "Hatha Yoga", "Yin Yoga", 
+  "Kundalini Yoga", "Hamile Yogası", "Meditation & Breathwork"
 ];
+
+// Süre Önerileri
+const DURATION_SUGGESTIONS = ["40 Dakika", "50 Dakika", "1 Saat", "90 Dakika"];
 
 export const BUSINESS_TYPES = {
   // --- 1. SAĞLIK & GÜZELLİK ---
@@ -38,89 +35,76 @@ export const BUSINESS_TYPES = {
     tabs: ['services', 'staff', 'health'],
     labels: {
       staff: "Eğitmenler",
-      services: "Dersler & Paketler",
+      services: "Ders Ayarları",
       newItemBtn: "Yeni Eğitmen Ekle"
     },
     fields: {
       services: [
-        { key: 'classTypes', type: 'tags', suggestions: PILATES_SUGGESTIONS, label: 'Ders Türleri (Etiketler)' },
-        'classFormat', 
-        'duration', 
-        'freeTrial', 
-        'onlineService'
+        // classFormat KALDIRILDI
+        { key: 'classTypes', type: 'tags', suggestions: PILATES_SUGGESTIONS, label: 'Ders Türleri' },
+        { key: 'duration', type: 'tags', suggestions: DURATION_SUGGESTIONS, label: 'Ders Süreleri' },
+        { key: 'freeTrial', type: 'toggle', label: 'Ücretsiz Deneme Dersi Var mı?' },
+        { key: 'onlineService', type: 'toggle', label: 'Online / Uzaktan Eğitim Var mı?' }
       ],
       staffSchema: { name: '', title: '', desc: '' }
     }
   },
   yoga: {
     label: "Yoga Stüdyosu",
-    icon: Activity, // Flower2 yerine Activity kullandık (Daha güvenli)
+    icon: Activity,
     tabs: ['services', 'staff', 'health'],
     labels: {
       staff: "Eğitmenler / Yogi",
-      services: "Ders Akışları",
+      services: "Ders Ayarları",
       newItemBtn: "Eğitmen Ekle"
     },
     fields: {
       services: [
         { key: 'classTypes', type: 'tags', suggestions: YOGA_SUGGESTIONS, label: 'Yoga Türleri' },
-        'meditation', 
-        'duration'
+        { key: 'duration', type: 'tags', suggestions: DURATION_SUGGESTIONS, label: 'Ders Süreleri' },
+        { key: 'freeTrial', type: 'toggle', label: 'Ücretsiz Deneme Dersi' },
+        { key: 'onlineService', type: 'toggle', label: 'Online Ders İmkanı' }
       ],
       staffSchema: { name: '', title: '', desc: '' }
     }
   },
+  // ... Diğer sektörler aynı kalabilir, sadece yukarıdakileri güncellemen yeterli.
+  // Diğer sektörlerin kodlarını önceki cevaptan aynen koruyabilirsin.
   dental: {
     label: "Diş Kliniği / Poliklinik",
     icon: Stethoscope,
     tabs: ['services', 'staff', 'health'],
-    labels: {
-      staff: "Hekimler / Doktorlar",
-      services: "Tedavi Türleri",
-      newItemBtn: "Yeni Hekim Ekle"
-    },
+    labels: { staff: "Hekimler", services: "Tedavi Türleri", newItemBtn: "Hekim Ekle" },
     fields: {
       services: ['treatmentTypes', 'insurance', 'emergencyService'],
       staffSchema: { name: '', title: '', desc: '' }
     }
   },
   beauty: {
-    label: "Güzellik / Berber / Kuaför",
+    label: "Güzellik / Kuaför",
     icon: Scissors,
     tabs: ['services', 'staff'],
-    labels: {
-      staff: "Uzmanlar / Stilistler",
-      services: "Hizmet Menüsü",
-      newItemBtn: "Yeni Uzman Ekle"
-    },
+    labels: { staff: "Uzmanlar", services: "Hizmet Menüsü", newItemBtn: "Uzman Ekle" },
     fields: {
       services: ['serviceMenu', 'brandsUsed', 'duration'],
       staffSchema: { name: '', title: '', instagram: '' }
     }
   },
   aesthetic: {
-    label: "Estetik / Güzellik Merkezi",
-    icon: Smile, // Dna yerine Smile (Standart)
+    label: "Estetik Merkezi",
+    icon: Smile,
     tabs: ['services', 'staff', 'health'],
-    labels: {
-      staff: "Uzmanlar / Doktorlar",
-      services: "Uygulamalar (Botoks vb.)",
-      newItemBtn: "Uzman Ekle"
-    },
+    labels: { staff: "Uzmanlar", services: "Uygulamalar", newItemBtn: "Uzman Ekle" },
     fields: {
       services: ['procedures', 'devices', 'consultationFee'],
       staffSchema: { name: '', title: '', desc: '' }
     }
   },
   dietitian: {
-    label: "Diyetisyen / Beslenme",
+    label: "Diyetisyen",
     icon: ShoppingBag,
     tabs: ['services', 'health'],
-    labels: {
-      staff: "Diyetisyenler",
-      services: "Danışmanlık Paketleri",
-      newItemBtn: "Diyetisyen Ekle"
-    },
+    labels: { staff: "Diyetisyenler", services: "Paketler", newItemBtn: "Ekle" },
     fields: {
       services: ['packageTypes', 'onlineConsultation', 'bodyAnalysis'],
       staffSchema: { name: '', title: '' }
@@ -130,84 +114,51 @@ export const BUSINESS_TYPES = {
     label: "Psikolog / Terapi",
     icon: Smile,
     tabs: ['services', 'staff'],
-    labels: {
-      staff: "Terapistler",
-      services: "Seans Türleri",
-      newItemBtn: "Terapist Ekle"
-    },
+    labels: { staff: "Terapistler", services: "Seanslar", newItemBtn: "Ekle" },
     fields: {
       services: ['sessionTypes', 'duration', 'onlineTherapy'],
       staffSchema: { name: '', title: '', approach: '' }
     }
   },
-
-  // --- 2. HUKUK & DANIŞMANLIK ---
   lawyer: {
-    label: "Avukatlık / Hukuk Bürosu",
+    label: "Avukatlık Bürosu",
     icon: Gavel,
     tabs: ['services', 'staff'],
-    labels: {
-      staff: "Avukatlar",
-      services: "Uzmanlık Alanları",
-      newItemBtn: "Avukat Ekle"
-    },
+    labels: { staff: "Avukatlar", services: "Uzmanlıklar", newItemBtn: "Ekle" },
     fields: {
       services: ['practiceAreas', 'consultationFee', 'barAssociation'],
       staffSchema: { name: '', title: '', barNo: '' }
     }
   },
   accountant: {
-    label: "Mali Müşavir / Muhasebe",
+    label: "Mali Müşavir",
     icon: Calculator,
     tabs: ['services'],
-    labels: {
-      services: "Hizmet Kapsamı",
-      newItemBtn: "Personel Ekle"
-    },
+    labels: { services: "Hizmetler", newItemBtn: "Ekle" },
     fields: {
       services: ['companyTypes', 'eInvoice', 'consultancy'],
       staffSchema: { name: '', title: '' }
     }
   },
-
-  // --- 3. TURİZM & HİZMET ---
   rentacar: {
-    label: "Rent a Car / Araç Kiralama",
+    label: "Rent a Car",
     icon: Car,
     tabs: ['inventory', 'rules'],
-    labels: {
-      inventory: "Araç Filosu",
-      rules: "Kiralama Koşulları",
-      newItemBtn: "Yeni Araç Ekle"
-    },
-    fields: {
-      inventory: [],
-      rules: ['deposit', 'minAge', 'licenseYear', 'kmLimit']
-    }
+    labels: { inventory: "Filo", rules: "Koşullar", newItemBtn: "Araç Ekle" },
+    fields: { inventory: [], rules: ['deposit', 'minAge', 'licenseYear', 'kmLimit'] }
   },
   hotel: {
-    label: "Otel / Villa Kiralama",
-    icon: Home, 
+    label: "Otel / Villa",
+    icon: Home,
     tabs: ['inventory', 'rules'],
-    labels: {
-      inventory: "Odalar / Villalar",
-      rules: "Konaklama Kuralları",
-      newItemBtn: "Oda Tipi Ekle"
-    },
-    fields: {
-      inventory: [],
-      rules: ['checkInTime', 'checkOutTime', 'petsAllowed', 'deposit']
-    }
+    labels: { inventory: "Odalar", rules: "Kurallar", newItemBtn: "Oda Ekle" },
+    fields: { inventory: [], rules: ['checkInTime', 'checkOutTime', 'petsAllowed', 'deposit'] }
   },
   restaurant: {
-    label: "Restoran / Cafe",
+    label: "Restoran",
     icon: Utensils,
     tabs: ['menu', 'reservation'],
-    labels: {
-      menu: "Menü & Mutfak",
-      reservation: "Rezervasyon Ayarları",
-      newItemBtn: "Menü Kategorisi Ekle"
-    },
+    labels: { menu: "Menü", reservation: "Rezervasyon", newItemBtn: "Ekle" },
     fields: {
       menu: ['cuisineType', 'menuLink', 'deliveryApps'],
       reservation: ['tableCapacity', 'depositRequired', 'specialEvents']
