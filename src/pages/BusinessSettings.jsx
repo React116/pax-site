@@ -9,7 +9,7 @@ import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
 import { BUSINESS_TYPES } from '../utils/businessConfig';
 
-/* --- BİLEŞENLER (STANDART) --- */
+/* --- BİLEŞENLER --- */
 const LockableInput = ({ label, value, onChange, onSave, name, placeholder, type = "text", className = "", icon: Icon, iconColor = "text-slate-400" }) => {
   const [isLocked, setIsLocked] = useState(true);
   const inputRef = useRef(null);
@@ -170,7 +170,7 @@ const BusinessSettings = () => {
   const [schedule, setSchedule] = useState({ pzt: { open: true }, sali: { open: true }, cars: { open: true }, pers: { open: true }, cuma: { open: true }, cmt: { open: true }, paz: { open: false } });
   const daysMap = { pzt: 'Pazartesi', sali: 'Salı', cars: 'Çarşamba', pers: 'Perşembe', cuma: 'Cuma', cmt: 'Cumartesi', paz: 'Pazar' };
 
-  // --- İLK VERİYİ ÇEK ---
+  // --- İLK VERİYİ ÇEK VE PARSE ET ---
   useEffect(() => { fetchProfile(); }, []);
 
   const fetchProfile = async () => {
@@ -189,41 +189,35 @@ const BusinessSettings = () => {
              try { setSchedule(JSON.parse(data.workingHours)); } catch(e) { console.error("Schedule Parse Error", e); }
         }
 
-        // String olarak gelen verileri parse et (Eğer string ise)
-        let finalServiceDetails = data.serviceDetails || {};
-        if (typeof finalServiceDetails === 'string') { try { finalServiceDetails = JSON.parse(finalServiceDetails); } catch(e) {} }
-        
-        let finalSocialMedia = data.socialMedia || {};
-        if (typeof finalSocialMedia === 'string') { try { finalSocialMedia = JSON.parse(finalSocialMedia); } catch(e) {} }
+        // Güvenli Parse: Eğer veri string gelirse parse et, obje gelirse olduğu gibi kullan
+        const safeParse = (val, defaultVal) => {
+            if (typeof val === 'string') {
+                try { return JSON.parse(val); } catch(e) { return defaultVal; }
+            }
+            return val || defaultVal;
+        };
 
-        let finalPaymentMethods = data.paymentMethods || {};
-        if (typeof finalPaymentMethods === 'string') { try { finalPaymentMethods = JSON.parse(finalPaymentMethods); } catch(e) {} }
+        const finalServiceDetails = safeParse(data.serviceDetails, {});
+        // Eski veri yapısından (classTypes) gelen veriyi kurtar
+        if (Object.keys(finalServiceDetails).length === 0 && data.classTypes) {
+             finalServiceDetails.classTypes = Array.isArray(data.classTypes) ? data.classTypes : data.classTypes.split(','); 
+        }
 
-        let finalFaq = data.faq || [];
-        if (typeof finalFaq === 'string') { try { finalFaq = JSON.parse(finalFaq); } catch(e) {} }
-
-        let finalCampaigns = data.campaigns || [];
-        if (typeof finalCampaigns === 'string') { try { finalCampaigns = JSON.parse(finalCampaigns); } catch(e) {} }
-
-        let finalStaff = data.staffOrItems || [];
-        if (typeof finalStaff === 'string') { try { finalStaff = JSON.parse(finalStaff); } catch(e) {} }
-        
-        // Veriyi state'e yerleştir
         setFormData(prev => ({ 
             ...prev, ...data, 
             businessType: safeType,
-            staffOrItems: finalStaff,
+            staffOrItems: safeParse(data.staffOrItems, []),
             serviceDetails: finalServiceDetails,
-            campaigns: finalCampaigns,
-            socialMedia: finalSocialMedia,
-            paymentMethods: finalPaymentMethods,
-            faq: finalFaq
+            campaigns: safeParse(data.campaigns, []),
+            socialMedia: safeParse(data.socialMedia, { website: '', instagram: '', youtube: '', linkedin: '', tiktok: '' }),
+            paymentMethods: safeParse(data.paymentMethods, { creditCard: false, transfer: false, pos: false, cash: false }),
+            faq: safeParse(data.faq, [])
         }));
       }
     } catch (err) { console.error("Fetch Error:", err); }
   };
 
-  // --- %100 ÇÖZÜM: HER ŞEYİ STRING'E ÇEVİRİP GÖNDERME ---
+  // --- SORUNSUZ KAYDETME FONKSİYONU ---
   const triggerSave = async () => {
     setSaveStatus('saving');
     setErrorMessage('');
@@ -235,27 +229,23 @@ const BusinessSettings = () => {
         return;
     }
 
-    // GÖNDERİLECEK VERİYİ HAZIRLA (KOPYASINI AL)
-    const payload = { ...formData };
+    // --- PAYLOAD HAZIRLIĞI ---
+    // HATA: "Cast to string failed" -> Demek ki workingHours STRING olmalı.
+    // HATA: "Cast to embedded failed" -> Demek ki socialMedia, serviceDetails vb. OBJE olmalı.
     
-    // 1. İşletme türü ve Çalışma Saatleri
-    payload.businessType = selectedType;
-    payload.workingHours = JSON.stringify(schedule);
+    // ÇÖZÜM: Sadece workingHours'u string yap, gerisini OBJE olarak bırak.
+    
+    const payload = { 
+        ...formData,
+        businessType: selectedType,
+        workingHours: JSON.stringify(schedule) // SADECE BU STRING OLMALI
+    };
 
-    // 2. TÜM KARMAŞIK OBJELERİ STRING'E ÇEVİR (BACKEND BUNU BEKLİYOR!)
-    // "Cast to string failed" hatası, backend bu alanları TEXT olarak beklediği için çıkıyor.
-    // Bu yüzden hepsini JSON.stringify ile paketliyoruz.
-    
-    if (typeof payload.serviceDetails === 'object') payload.serviceDetails = JSON.stringify(payload.serviceDetails);
-    if (typeof payload.socialMedia === 'object') payload.socialMedia = JSON.stringify(payload.socialMedia);
-    if (typeof payload.paymentMethods === 'object') payload.paymentMethods = JSON.stringify(payload.paymentMethods);
-    
-    // Dizileri de (Array) string'e çevir
-    if (Array.isArray(payload.staffOrItems)) payload.staffOrItems = JSON.stringify(payload.staffOrItems);
-    if (Array.isArray(payload.faq)) payload.faq = JSON.stringify(payload.faq);
-    if (Array.isArray(payload.campaigns)) payload.campaigns = JSON.stringify(payload.campaigns);
+    // Diğer alanları (socialMedia, serviceDetails vb.) MANUEL OLARAK String'e ÇEVİRME.
+    // fetch içindeki JSON.stringify(payload) zaten tüm gövdeyi JSON formatına sokar.
+    // Backend "embedded" bekliyorsa, JSON içindeki "nesne" yapısını ister, "string içinde nesne" değil.
 
-    console.log("Sunucuya Gönderilen PAKET:", payload);
+    console.log("Sunucuya Gönderilen TEMİZ Veri:", payload);
 
     try {
         const apiUrl = import.meta.env.VITE_API_URL || "https://pax-backend-9m4q.onrender.com/api";
@@ -265,7 +255,7 @@ const BusinessSettings = () => {
                 'Content-Type': 'application/json', 
                 'Authorization': `Bearer ${token}` 
             }, 
-            body: JSON.stringify(payload) 
+            body: JSON.stringify(payload) // Tüm gövdeyi JSON yapıyoruz, içindekiler obje kalıyor.
         });
         
         if (res.ok) {
