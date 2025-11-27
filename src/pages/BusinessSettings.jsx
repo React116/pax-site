@@ -3,37 +3,27 @@ import {
   MapPin, HelpCircle, CreditCard, Trash2, Plus, 
   LayoutGrid, CheckCircle2, Edit2, Lock, X, 
   Briefcase, Percent, Globe, Youtube, Linkedin, Video, Instagram,
-  Loader2, Cloud, CloudOff, Save
+  Loader2, Cloud, CloudOff, Save, AlertTriangle
 } from 'lucide-react';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
 import { BUSINESS_TYPES } from '../utils/businessConfig';
 
-/* --- 1. KİLİTLENEBİLİR INPUT (KAYDET TETİKLEYİCİLİ) --- */
+/* --- AYNI KALAN BİLEŞENLER --- */
 const LockableInput = ({ label, value, onChange, onSave, name, placeholder, type = "text", className = "", icon: Icon, iconColor = "text-slate-400" }) => {
   const [isLocked, setIsLocked] = useState(true);
   const inputRef = useRef(null);
-
   const handleToggleLock = () => {
-    if (!isLocked) {
-      // Kilitleniyor (Düzenleme bitti) -> KAYDET
-      if (onSave) onSave();
-    } else {
-      // Kilit açılıyor -> Focuslan
-      setTimeout(() => inputRef.current?.focus(), 100);
-    }
+    if (!isLocked && onSave) onSave();
+    else setTimeout(() => inputRef.current?.focus(), 100);
     setIsLocked(!isLocked);
   };
-
   return (
     <div className={`relative group ${className}`}>
       {label && <label className="label">{label}</label>}
       <div className="relative">
         {Icon && <div className={`absolute left-4 top-3.5 z-10 ${iconColor}`}><Icon size={20} /></div>}
-        <input 
-          ref={inputRef} type={type} name={name} value={value || ''} onChange={onChange} placeholder={placeholder} readOnly={isLocked} 
-          className={`w-full p-3.5 ${Icon ? 'pl-12' : 'pl-4'} pr-12 rounded-xl transition-all duration-300 font-medium ${isLocked ? 'bg-slate-100 text-slate-500 border-transparent cursor-default' : 'bg-white text-slate-800 border-blue-500 ring-4 ring-blue-50/50 shadow-sm'} border`} 
-        />
+        <input ref={inputRef} type={type} name={name} value={value || ''} onChange={onChange} placeholder={placeholder} readOnly={isLocked} className={`w-full p-3.5 ${Icon ? 'pl-12' : 'pl-4'} pr-12 rounded-xl transition-all duration-300 font-medium ${isLocked ? 'bg-slate-100 text-slate-500 border-transparent cursor-default' : 'bg-white text-slate-800 border-blue-500 ring-4 ring-blue-50/50 shadow-sm'} border`} />
         <button type="button" onClick={handleToggleLock} className={`absolute right-3 top-3 p-1 rounded-lg transition-colors ${isLocked ? 'text-slate-400 hover:text-blue-600 hover:bg-white' : 'text-green-600 bg-green-50 hover:bg-green-100'}`}>
           {isLocked ? <Edit2 size={16} /> : <CheckCircle2 size={18} />}
         </button>
@@ -42,15 +32,9 @@ const LockableInput = ({ label, value, onChange, onSave, name, placeholder, type
   );
 };
 
-/* --- 2. KİLİTLENEBİLİR TELEFON (KAYDET TETİKLEYİCİLİ) --- */
 const LockablePhoneInput = ({ label, value, onChange, onSave }) => {
   const [isLocked, setIsLocked] = useState(true);
-
-  const handleToggleLock = () => {
-    if (!isLocked && onSave) onSave();
-    setIsLocked(!isLocked);
-  };
-
+  const handleToggleLock = () => { if (!isLocked && onSave) onSave(); setIsLocked(!isLocked); };
   return (
     <div className="relative group">
       {label && <label className="label">{label}</label>}
@@ -66,43 +50,24 @@ const LockablePhoneInput = ({ label, value, onChange, onSave }) => {
   );
 };
 
-/* --- 3. KİLİTLENEBİLİR TEXTAREA (KAYDET TETİKLEYİCİLİ) --- */
 const LockableTextarea = ({ label, value, onChange, onSave, name, placeholder, height = "h-24" }) => {
   const [isLocked, setIsLocked] = useState(true);
-
-  const handleToggleLock = () => {
-    if (!isLocked && onSave) onSave();
-    setIsLocked(!isLocked);
-  };
-
+  const handleToggleLock = () => { if (!isLocked && onSave) onSave(); setIsLocked(!isLocked); };
   return (
     <div className="relative group">
       {label && <label className="label">{label}</label>}
-      <div className="relative">
-        <textarea name={name} value={value || ''} onChange={onChange} placeholder={placeholder} readOnly={isLocked} className={`w-full p-3.5 pr-12 rounded-xl transition-all duration-300 font-medium resize-none ${height} ${isLocked ? 'bg-slate-100 text-slate-500 border-transparent cursor-default' : 'bg-white text-slate-800 border-blue-500 ring-4 ring-blue-50/50 shadow-sm'} border`} />
-        <button type="button" onClick={handleToggleLock} className={`absolute right-3 top-3 p-1 rounded-lg transition-colors ${isLocked ? 'text-slate-400 hover:text-blue-600 hover:bg-white' : 'text-green-600 bg-green-50 hover:bg-green-100'}`}>
-          {isLocked ? <Edit2 size={16} /> : <CheckCircle2 size={18} />}
-        </button>
-      </div>
+      <div className="relative"><textarea name={name} value={value || ''} onChange={onChange} placeholder={placeholder} readOnly={isLocked} className={`w-full p-3.5 pr-12 rounded-xl transition-all duration-300 font-medium resize-none ${height} ${isLocked ? 'bg-slate-100 text-slate-500 border-transparent cursor-default' : 'bg-white text-slate-800 border-blue-500 ring-4 ring-blue-50/50 shadow-sm'} border`} /><button type="button" onClick={handleToggleLock} className={`absolute right-3 top-3 p-1 rounded-lg transition-colors ${isLocked ? 'text-slate-400 hover:text-blue-600 hover:bg-white' : 'text-green-600 bg-green-50 hover:bg-green-100'}`}>{isLocked ? <Edit2 size={16} /> : <CheckCircle2 size={18} />}</button></div>
     </div>
   );
 };
 
-/* --- 4. KİLİTLENEBİLİR TAG INPUT (KAYDET TETİKLEYİCİLİ) --- */
 const LockableTagInput = ({ label, value, onChange, onSave, suggestions = [] }) => {
   const [isLocked, setIsLocked] = useState(true);
   const [inputValue, setInputValue] = useState("");
-  
   const tags = Array.isArray(value) ? value : (typeof value === 'string' && value.length > 0 ? value.split(',').map(s => s.trim()) : []);
-
   const addTag = (tagToAdd) => { if (!tagToAdd) return; if (!tags.includes(tagToAdd)) onChange([...tags, tagToAdd]); setInputValue(""); };
   const removeTag = (tagToRemove) => onChange(tags.filter(t => t !== tagToRemove));
-
-  const handleToggleLock = () => {
-    if (!isLocked && onSave) onSave(); // Kilitlenirken kaydet
-    setIsLocked(!isLocked);
-  };
-
+  const handleToggleLock = () => { if (!isLocked && onSave) onSave(); setIsLocked(!isLocked); };
   return (
     <div className="relative group">
       {label && <label className="label">{label}</label>}
@@ -112,33 +77,17 @@ const LockableTagInput = ({ label, value, onChange, onSave, suggestions = [] }) 
            {tags.map((tag, idx) => (<span key={idx} className={`px-3 py-1 rounded-lg text-sm font-bold flex items-center gap-1 ${isLocked ? 'bg-slate-200 text-slate-600' : 'bg-blue-100 text-blue-700'}`}>{tag}{!isLocked && <button type="button" onClick={() => removeTag(tag)} className="hover:text-red-500 flex items-center"><X size={14}/></button>}</span>))}
            {!isLocked && <input value={inputValue} onChange={(e) => setInputValue(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addTag(inputValue.trim()))} className="flex-1 bg-transparent outline-none min-w-[150px] text-sm py-1" placeholder="Ekle..." />}
         </div>
-        <button type="button" onClick={handleToggleLock} className={`absolute right-3 top-3 p-1 rounded-lg transition-colors ${isLocked ? 'text-slate-400 hover:text-blue-600 hover:bg-white' : 'text-green-600 bg-green-50 hover:bg-green-100'}`}>
-          {isLocked ? <Edit2 size={16} /> : <CheckCircle2 size={18} />}
-        </button>
+        <button type="button" onClick={handleToggleLock} className={`absolute right-3 top-3 p-1 rounded-lg transition-colors ${isLocked ? 'text-slate-400 hover:text-blue-600 hover:bg-white' : 'text-green-600 bg-green-50 hover:bg-green-100'}`}>{isLocked ? <Edit2 size={16} /> : <CheckCircle2 size={18} />}</button>
       </div>
       {!isLocked && suggestions.length > 0 && (<div className="mt-3 p-4 bg-slate-50 border border-slate-200 rounded-xl animate-fade-in-up"><div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Öneriler</div><div className="flex flex-wrap gap-2">{suggestions.map((sug, i) => (<button key={i} type="button" onClick={() => addTag(sug)} disabled={tags.includes(sug)} className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all ${tags.includes(sug) ? 'bg-green-100 text-green-700 border-green-200 opacity-50 cursor-not-allowed' : 'bg-white text-slate-600 border-slate-200 hover:border-blue-400 hover:text-blue-600 hover:shadow-sm'}`}>{tags.includes(sug) && <CheckCircle2 size={12} className="inline mr-1"/>}{sug}</button>))}</div></div>)}
     </div>
   );
 };
 
-/* --- 5. TOGGLE (ANINDA KAYDET) --- */
 const LockableToggle = ({ label, value, onChange, onSave }) => {
   const [isLocked, setIsLocked] = useState(true);
-  
-  const handleToggle = () => { 
-    if (!isLocked) {
-        const newValue = !value;
-        onChange(newValue);
-        // Toggle olduğu için anında kaydetmeyi deneyebiliriz veya kullanıcı kilitlediğinde
-        // Kullanıcı deneyimi için toggle'da değişiklikten hemen sonra kaydetmek daha iyidir, ama kilit mantığına uyalım.
-    }
-  };
-
-  const handleToggleLock = () => {
-    if (!isLocked && onSave) onSave();
-    setIsLocked(!isLocked);
-  };
-
+  const handleToggle = () => { if (!isLocked) { onChange(!value); }};
+  const handleToggleLock = () => { if (!isLocked && onSave) onSave(); setIsLocked(!isLocked); };
   return (
     <div className={`p-4 rounded-xl border transition-all duration-300 flex items-center justify-between group ${isLocked ? 'bg-slate-100 border-transparent' : 'bg-white border-blue-500 ring-4 ring-blue-50/50'}`}>
       <div className="flex items-center gap-4 flex-1 cursor-pointer select-none" onClick={handleToggle}>
@@ -147,31 +96,17 @@ const LockableToggle = ({ label, value, onChange, onSave }) => {
         </div>
         <div><span className="font-bold text-slate-700 text-sm block">{label}</span><span className="text-xs text-slate-400">{value ? 'Aktif' : 'Pasif'}</span></div>
       </div>
-      <button type="button" onClick={handleToggleLock} className={`p-1.5 rounded-lg transition-colors ${isLocked ? 'text-slate-400 hover:text-blue-600' : 'text-green-600 bg-green-50'}`}>
-        {isLocked ? <Edit2 size={16} /> : <CheckCircle2 size={18} />}
-      </button>
+      <button type="button" onClick={handleToggleLock} className={`p-1.5 rounded-lg transition-colors ${isLocked ? 'text-slate-400 hover:text-blue-600' : 'text-green-600 bg-green-50'}`}>{isLocked ? <Edit2 size={16} /> : <CheckCircle2 size={18} />}</button>
     </div>
   );
 };
 
-/* --- 6. KAMPANYA YÖNETİCİSİ (MANUEL KAYIT) --- */
 const CampaignManager = ({ campaigns = [], onChange, onSave }) => {
   const [isLocked, setIsLocked] = useState(true);
   const [newCamp, setNewCamp] = useState({ name: '', discount: '' });
-  
-  const addCampaign = () => { 
-      if (newCamp.name && newCamp.discount) { 
-          onChange([...campaigns, newCamp]); 
-          setNewCamp({ name: '', discount: '' }); 
-      }
-  };
+  const addCampaign = () => { if (newCamp.name && newCamp.discount) { onChange([...campaigns, newCamp]); setNewCamp({ name: '', discount: '' }); }};
   const removeCampaign = (index) => { onChange(campaigns.filter((_, i) => i !== index)); };
-
-  const handleToggleLock = () => {
-    if (!isLocked && onSave) onSave();
-    setIsLocked(!isLocked);
-  };
-
+  const handleToggleLock = () => { if (!isLocked && onSave) onSave(); setIsLocked(!isLocked); };
   return (
     <div className="relative group">
       <label className="label">Aktif Kampanyalar</label>
@@ -181,30 +116,20 @@ const CampaignManager = ({ campaigns = [], onChange, onSave }) => {
            {campaigns.map((camp, idx) => (<div key={idx} className="flex items-center justify-between bg-white p-3 rounded-lg border border-slate-200 shadow-sm"><div className="flex items-center gap-3"><div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-red-600 font-bold text-xs">%{camp.discount}</div><span className="text-sm font-bold text-slate-700">{camp.name}</span></div>{!isLocked && <button type="button" onClick={() => removeCampaign(idx)} className="text-slate-300 hover:text-red-500"><Trash2 size={16}/></button>}</div>))}
         </div>
         {!isLocked && (<div className="mt-4 flex gap-2 items-center pt-4 border-t border-slate-100"><input value={newCamp.name} onChange={e => setNewCamp({...newCamp, name: e.target.value})} placeholder="Kampanya Adı" className="flex-1 border p-2 rounded-lg text-sm outline-none focus:border-blue-500"/><div className="relative w-24"><Percent size={14} className="absolute left-2 top-2.5 text-slate-400"/><input type="number" value={newCamp.discount} onChange={e => setNewCamp({...newCamp, discount: e.target.value})} placeholder="İndirim" className="w-full border p-2 pl-6 rounded-lg text-sm outline-none focus:border-blue-500"/></div><button type="button" onClick={addCampaign} className="bg-[#001F54] text-white p-2 rounded-lg hover:bg-blue-900"><Plus size={18}/></button></div>)}
-        <button type="button" onClick={handleToggleLock} className={`absolute right-3 top-3 p-1 rounded-lg transition-colors ${isLocked ? 'text-slate-400 hover:text-blue-600' : 'text-green-600 bg-green-50'}`}>
-          {isLocked ? <Edit2 size={16} /> : <CheckCircle2 size={18} />}
-        </button>
+        <button type="button" onClick={handleToggleLock} className={`absolute right-3 top-3 p-1 rounded-lg transition-colors ${isLocked ? 'text-slate-400 hover:text-blue-600' : 'text-green-600 bg-green-50'}`}>{isLocked ? <Edit2 size={16} /> : <CheckCircle2 size={18} />}</button>
       </div>
     </div>
   );
 };
 
-/* --- 7. PERSONEL KARTI --- */
 const StaffItemCard = ({ item, index, onUpdate, onRemove, onSave }) => {
   const [isEditing, setIsEditing] = useState(false);
   useEffect(() => { if (!item.name) setIsEditing(true); }, []);
-
-  const handleFinishEdit = () => {
-    setIsEditing(false);
-    if(onSave) onSave();
-  };
-
+  const handleFinishEdit = () => { setIsEditing(false); if(onSave) onSave(); };
   return (
     <div className={`relative transition-all duration-300 rounded-2xl border ${isEditing ? 'bg-white border-blue-200 shadow-xl scale-[1.01] z-10 p-6' : 'bg-slate-50 border-slate-200 hover:border-blue-200 p-6'}`}>
       <div className="absolute top-4 right-4 flex gap-2">
-        <button type="button" onClick={() => { isEditing ? handleFinishEdit() : setIsEditing(true) }} className={`p-2 rounded-lg transition-colors ${isEditing ? 'bg-green-100 text-green-700' : 'bg-white text-slate-400 hover:text-blue-600 shadow-sm'}`}>
-          {isEditing ? <CheckCircle2 size={18}/> : <Edit2 size={16}/>}
-        </button>
+        <button type="button" onClick={() => { isEditing ? handleFinishEdit() : setIsEditing(true) }} className={`p-2 rounded-lg transition-colors ${isEditing ? 'bg-green-100 text-green-700' : 'bg-white text-slate-400 hover:text-blue-600 shadow-sm'}`}>{isEditing ? <CheckCircle2 size={18}/> : <Edit2 size={16}/>}</button>
         <button type="button" onClick={() => { onRemove(index); if(onSave) setTimeout(onSave, 500); }} className="p-2 rounded-lg bg-white text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors shadow-sm"><Trash2 size={16}/></button>
       </div>
       {isEditing ? (
@@ -230,7 +155,8 @@ const StaffItemCard = ({ item, index, onUpdate, onRemove, onSave }) => {
 
 /* --- ANA COMPONENT --- */
 const BusinessSettings = () => {
-  const [saveStatus, setSaveStatus] = useState('idle'); // idle, saving, success, error
+  const [saveStatus, setSaveStatus] = useState('idle'); 
+  const [errorMessage, setErrorMessage] = useState('');
   const [lastSaved, setLastSaved] = useState(null);
   
   const [activeTab, setActiveTab] = useState('general');
@@ -293,23 +219,29 @@ const BusinessSettings = () => {
     } catch (err) { console.error("Fetch Error:", err); }
   };
 
-  // --- KAYDETME FONKSİYONU (TRIGGER İLE ÇALIŞIR) ---
+  // --- GÜÇLENDİRİLMİŞ KAYDETME FONKSİYONU ---
   const triggerSave = async () => {
     setSaveStatus('saving');
-    
+    setErrorMessage('');
+
+    const token = localStorage.getItem('token');
+    if (!token) {
+        setSaveStatus('error');
+        setErrorMessage('Giriş yapılmamış (Token yok).');
+        return;
+    }
+
     // Veriyi hazırla
     const finalData = { 
         ...formData, 
-        businessType: selectedType, // Tipin doğru gittiğinden emin ol
-        workingHours: JSON.stringify(schedule) // Backend string bekliyor
+        businessType: selectedType, 
+        workingHours: JSON.stringify(schedule) 
     };
 
-    console.log("Saving Data to Backend:", finalData); // DEBUG İÇİN
+    console.log("Sunucuya giden veri:", finalData);
 
     try {
-        const token = localStorage.getItem('token');
         const apiUrl = import.meta.env.VITE_API_URL || "https://pax-backend-9m4q.onrender.com/api";
-        
         const res = await fetch(`${apiUrl}/business-profile`, { 
             method: 'PUT', 
             headers: { 
@@ -324,12 +256,20 @@ const BusinessSettings = () => {
             setLastSaved(new Date());
             setTimeout(() => setSaveStatus('idle'), 3000);
         } else {
-            const errorText = await res.text();
-            console.error("Backend Error Response:", errorText);
-            throw new Error('Save failed');
+            // Hata mesajını yakala
+            let errorText = await res.text();
+            try { 
+                const errorJson = JSON.parse(errorText);
+                errorText = errorJson.message || errorText;
+            } catch(e) {}
+            
+            console.error("Backend Error:", res.status, errorText);
+            setErrorMessage(`Hata: ${res.status} - ${errorText.substring(0, 30)}...`);
+            setSaveStatus('error');
         }
     } catch (e) {
-        console.error("Save Network Error:", e);
+        console.error("Network Error:", e);
+        setErrorMessage('Sunucuya ulaşılamadı.');
         setSaveStatus('error');
     }
   };
@@ -353,13 +293,10 @@ const BusinessSettings = () => {
   const handleScheduleChange = (day, field, value) => {
       setSchedule(prev => ({ ...prev, [day]: { ...prev[day], [field]: value } }));
   };
-  // Saat değiştiğinde kilit olmadığı için manuel tetikleme butonu ekleyebiliriz veya kullanıcı başka bir yeri kilitlediğinde kaydolur.
-  // Kullanıcı deneyimi için çalışma saatlerinin olduğu bloğa bir "Kaydet" butonu eklemek mantıklı olabilir.
 
   const handleTypeSelect = (key) => { 
       setSelectedType(key); 
       setFormData(p => ({...p, businessType: key}));
-      // Tür değişince anında kaydet
       setTimeout(triggerSave, 500);
   };
 
@@ -374,8 +311,8 @@ const BusinessSettings = () => {
            <p className="text-slate-500 text-sm mt-1">Sektörünüzü seçin ve bilgilerinizi yönetin.</p>
         </div>
         
-        {/* KAYIT DURUM GÖSTERGESİ */}
-        <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-full border border-slate-100 shadow-sm">
+        {/* KAYIT DURUM GÖSTERGESİ (DETAYLI) */}
+        <div className={`flex items-center gap-3 px-4 py-2 rounded-full border shadow-sm transition-all ${saveStatus === 'error' ? 'bg-red-50 border-red-200' : 'bg-white border-slate-100'}`}>
            {saveStatus === 'saving' && (
               <>
                 <Loader2 size={16} className="animate-spin text-blue-600" />
@@ -390,9 +327,9 @@ const BusinessSettings = () => {
            )}
            {saveStatus === 'error' && (
               <>
-                <CloudOff size={16} className="text-red-500" />
-                <span className="text-xs font-bold text-red-600">Kaydedilemedi</span>
-                <button onClick={triggerSave} className="ml-2 text-[10px] underline text-red-700">Tekrar Dene</button>
+                <AlertTriangle size={16} className="text-red-600" />
+                <span className="text-xs font-bold text-red-600">{errorMessage || 'Kaydedilemedi!'}</span>
+                <button onClick={triggerSave} className="ml-2 text-[10px] underline text-red-700 font-bold hover:text-red-900">Tekrar Dene</button>
               </>
            )}
            {saveStatus === 'idle' && lastSaved && (
