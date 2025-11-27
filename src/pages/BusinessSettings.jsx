@@ -429,3 +429,39 @@ const BusinessSettings = () => {
                                     value={formData.serviceDetails?.[key] || ''}
                                     onChange={(e) => handleServiceDetailChange(key, e.target.value)}
                                     placeholder={`${label} detayları...`}
+                                    height="h-32"
+                                />
+                            );
+                        })}
+                    </div>
+                )}
+
+                {(['staff', 'inventory'].includes(activeTab)) && (
+                    <div className="space-y-6 animate-fade-in-up">
+                        <div className="grid md:grid-cols-2 gap-6">{formData.staffOrItems.map((item, index) => (<StaffItemCard key={index} index={index} item={item} onUpdate={updateItem} onRemove={removeItem} />))}</div>
+                        <button type="button" onClick={addItem} className="dashed-btn py-6 hover:shadow-md"><div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 mb-2 group-hover:scale-110 transition-transform"><Plus size={24}/></div><span className="text-blue-800 font-bold">{currentConfig.labels?.newItemBtn || 'Yeni Ekle'}</span></button>
+                    </div>
+                )}
+
+                {activeTab === 'ai' && (<div className="space-y-6 animate-fade-in-up">{formData.faq.map((q, i) => (<div key={i} className="flex gap-4 items-start bg-slate-50 p-4 rounded-xl border border-slate-100 relative"><div className="flex-1 space-y-4"><LockableInput label={`Soru ${i+1}`} value={q.question} onChange={e=>{const n=[...formData.faq];n[i].question=e.target.value;setFormData({...formData,faq:n})}} placeholder="?" /><LockableTextarea label="Cevap" value={q.answer} onChange={e=>{const n=[...formData.faq];n[i].answer=e.target.value;setFormData({...formData,faq:n})}} placeholder="..." height="h-20" /></div><button type="button" onClick={()=>{setFormData({...formData, faq:formData.faq.filter((_,x)=>x!==i)})}} className="text-slate-300 hover:text-red-500 absolute top-4 right-4"><Trash2 size={20}/></button></div>))}<button type="button" onClick={()=>setFormData({...formData, faq:[...formData.faq, {question:'', answer:''}]})} className="dashed-btn"><Plus size={18}/> Soru Ekle</button></div>)}
+                {activeTab === 'payment' && (<div className="animate-fade-in-up space-y-8"><div><label className="label mb-4">Kabul Edilen Ödeme Yöntemleri</label><div className="grid grid-cols-2 md:grid-cols-4 gap-4">{['creditCard', 'transfer', 'pos', 'cash'].map(m => (<label key={m} className={`p-4 border rounded-xl cursor-pointer flex flex-col items-center gap-2 transition-all ${formData.paymentMethods[m] ? 'bg-blue-50 border-blue-500 text-blue-700' : 'bg-white border-slate-200 hover:bg-slate-50'}`}><input type="checkbox" checked={formData.paymentMethods[m]} onChange={e=>setFormData({...formData, paymentMethods: {...formData.paymentMethods, [m]: e.target.checked}})} className="hidden"/><span className="capitalize font-bold text-sm">{m}</span></label>))}</div></div><LockableTextarea label="Kampanyalar & İndirimler" name="campaigns" value={formData.campaigns} onChange={handleChange} placeholder="..." height="h-32"/></div>)}
+            </div>
+        </div>
+        <div className="sticky bottom-6 z-20 flex justify-end"><button type="submit" disabled={loading} className="bg-[#001F54] text-white px-8 py-4 rounded-2xl font-bold hover:bg-[#0f172a] shadow-2xl flex items-center gap-3 transition-transform hover:scale-105 disabled:opacity-50 disabled:scale-100">{loading ? 'Kaydediliyor...' : <><Save size={20}/> Değişiklikleri Kaydet</>}</button></div>
+      </form>
+      <style>{`
+        .label { display: block; font-size: 0.7rem; font-weight: 800; color: #64748b; text-transform: uppercase; margin-bottom: 0.5rem; letter-spacing: 0.05em; }
+        .tab-btn { display: flex; align-items: center; gap: 0.5rem; padding: 1rem 1.5rem; font-size: 0.9rem; font-weight: 600; color: #64748b; border-bottom: 2px solid transparent; white-space: nowrap; transition: all 0.2s; }
+        .tab-btn:hover { color: #1e293b; background: #f1f5f9; }
+        .tab-btn.active { color: #001F54; border-bottom-color: #001F54; background: white; }
+        .dashed-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; padding: 1rem; border: 2px dashed #cbd5e1; border-radius: 0.75rem; color: #64748b; font-weight: 600; transition: all 0.2s; cursor: pointer; background: transparent; }
+        .dashed-btn:hover { border-color: #001F54; color: #001F54; background: #f8fafc; }
+        .scrollbar-hide::-webkit-scrollbar { display: none; } .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in-up { animation: fadeInUp 0.4s ease-out forwards; }
+      `}</style>
+    </div>
+  );
+};
+
+export default BusinessSettings;
