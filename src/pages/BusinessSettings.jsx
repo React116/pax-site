@@ -6,8 +6,8 @@ import {
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
 
-// Config dosyasını içe aktarıyoruz. Eğer yol hatası varsa burası patlar.
-// Dosyanın src/utils/businessConfig.js olduğundan emin ol.
+// Config importunda hata olursa diye try-catch gibi davranacak bir yapı yok ama
+// BUSINESS_TYPES'ın undefined gelme ihtimaline karşı aşağıda kontrol ekledik.
 import { BUSINESS_TYPES } from '../utils/businessConfig';
 
 /* --- BİLEŞEN 1: KİLİTLENEBİLİR INPUT --- */
@@ -28,7 +28,8 @@ const LockableInput = ({ label, value, onChange, name, placeholder, type = "text
           ref={inputRef}
           type={type}
           name={name}
-          value={value || ''} // undefined gelirse patlamasın diye || ''
+          // Çökme Önleyici: value null/undefined ise boş string ver
+          value={value || ''} 
           onChange={onChange}
           placeholder={placeholder}
           readOnly={isLocked}
@@ -64,7 +65,7 @@ const LockableTextarea = ({ label, value, onChange, name, placeholder, height = 
         <textarea
           ref={inputRef}
           name={name}
-          value={value || ''}
+          value={value || ''} // Çökme Önleyici
           onChange={onChange}
           placeholder={placeholder}
           readOnly={isLocked}
@@ -88,13 +89,12 @@ const LockableTextarea = ({ label, value, onChange, name, placeholder, height = 
   );
 };
 
-/* --- BİLEŞEN 3: KİLİTLENEBİLİR TAG INPUT (GÜVENLİ VERSİYON) --- */
+/* --- BİLEŞEN 3: KİLİTLENEBİLİR TAG INPUT --- */
 const LockableTagInput = ({ label, value, onChange, suggestions = [] }) => {
   const [isLocked, setIsLocked] = useState(true);
   const [inputValue, setInputValue] = useState("");
   
-  // Güvenlik Kontrolü: Gelen değer null/undefined ise boş array yap.
-  // String gelirse ("a,b") array'e çevir. Array gelirse olduğu gibi al.
+  // Çökme Önleyici: value bir string veya array değilse boş array yap
   const tags = Array.isArray(value) 
     ? value 
     : (typeof value === 'string' && value.length > 0 ? value.split(',').map(s => s.trim()) : []);
@@ -149,7 +149,7 @@ const LockableTagInput = ({ label, value, onChange, suggestions = [] }) => {
                onChange={(e) => setInputValue(e.target.value)}
                onKeyDown={handleKeyDown}
                className="flex-1 bg-transparent outline-none min-w-[150px] text-sm py-1"
-               placeholder="Yeni eklemek için yazıp Enter'a basın..."
+               placeholder="Ekle..."
              />
            )}
         </div>
@@ -165,9 +165,9 @@ const LockableTagInput = ({ label, value, onChange, suggestions = [] }) => {
         </button>
       </div>
 
-      {!isLocked && suggestions.length > 0 && (
+      {!isLocked && suggestions && suggestions.length > 0 && (
         <div className="mt-3 p-4 bg-slate-50 border border-slate-200 rounded-xl animate-fade-in-up">
-           <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Hızlı Ekleme Önerileri</div>
+           <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Öneriler</div>
            <div className="flex flex-wrap gap-2">
              {suggestions.map((sug, i) => (
                <button 
@@ -225,16 +225,16 @@ const StaffItemCard = ({ item, index, onUpdate, onRemove }) => {
            <div className="grid md:grid-cols-2 gap-4">
               <div>
                   <label className="text-[10px] font-bold text-blue-600 uppercase mb-1 block">İsim / Model</label>
-                  <input value={item.name} onChange={(e) => onUpdate(index, 'name', e.target.value)} className="w-full p-2.5 bg-blue-50/30 border border-blue-200 rounded-lg outline-none focus:border-blue-500" placeholder="Örn: Dr. Ayşe Yılmaz" />
+                  <input value={item.name || ''} onChange={(e) => onUpdate(index, 'name', e.target.value)} className="w-full p-2.5 bg-blue-50/30 border border-blue-200 rounded-lg outline-none focus:border-blue-500" placeholder="Örn: Dr. Ayşe Yılmaz" />
               </div>
               <div>
                   <label className="text-[10px] font-bold text-blue-600 uppercase mb-1 block">Ünvan / Özellik</label>
-                  <input value={item.title} onChange={(e) => onUpdate(index, 'title', e.target.value)} className="w-full p-2.5 bg-blue-50/30 border border-blue-200 rounded-lg outline-none focus:border-blue-500" placeholder="Örn: Ortodontist" />
+                  <input value={item.title || ''} onChange={(e) => onUpdate(index, 'title', e.target.value)} className="w-full p-2.5 bg-blue-50/30 border border-blue-200 rounded-lg outline-none focus:border-blue-500" placeholder="Örn: Ortodontist" />
               </div>
            </div>
            <div>
               <label className="text-[10px] font-bold text-blue-600 uppercase mb-1 block">Açıklama</label>
-              <textarea value={item.desc} onChange={(e) => onUpdate(index, 'desc', e.target.value)} className="w-full p-2.5 bg-blue-50/30 border border-blue-200 rounded-lg outline-none focus:border-blue-500 h-20 resize-none" placeholder="Detaylı bilgi..." />
+              <textarea value={item.desc || ''} onChange={(e) => onUpdate(index, 'desc', e.target.value)} className="w-full p-2.5 bg-blue-50/30 border border-blue-200 rounded-lg outline-none focus:border-blue-500 h-20 resize-none" placeholder="Detaylı bilgi..." />
            </div>
         </div>
       ) : (
@@ -260,6 +260,7 @@ const BusinessSettings = () => {
   const [activeTab, setActiveTab] = useState('general');
   const [selectedType, setSelectedType] = useState('pilates');
 
+  // Form State
   const [formData, setFormData] = useState({
     businessType: 'pilates', businessName: '', branches: '', phone: '', email: '', languages: '',
     socialMedia: { website: '', instagram: '', facebook: '' },
@@ -276,7 +277,7 @@ const BusinessSettings = () => {
   const fetchProfile = async () => {
     try {
       const token = localStorage.getItem('token');
-      // API URL kontrolü: .env boşsa varsayılanı kullan
+      // API URL kontrolü
       const apiUrl = import.meta.env.VITE_API_URL || "https://pax-backend-9m4q.onrender.com/api";
       
       const res = await fetch(`${apiUrl}/business-profile`, { headers: { 'Authorization': `Bearer ${token}` } });
@@ -284,24 +285,22 @@ const BusinessSettings = () => {
       if (res.ok) {
         const data = await res.json();
         
-        // GÜVENLİK ÖNLEMİ: Eğer veritabanından gelen businessType, bizim config dosyasında yoksa
-        // varsayılan olarak 'pilates' yap. Yoksa site çöker.
+        // Çökme Önleyici: Eğer veritabanındaki type bilinmiyorsa 'pilates' yap
         const typeFromDb = data.businessType || 'pilates';
-        const safeType = BUSINESS_TYPES[typeFromDb] ? typeFromDb : 'pilates';
+        const safeType = (BUSINESS_TYPES && BUSINESS_TYPES[typeFromDb]) ? typeFromDb : 'pilates';
         
         setSelectedType(safeType);
 
         if (data.workingHours && data.workingHours !== '{}') try { setSchedule(JSON.parse(data.workingHours)); } catch(e) {}
 
         let finalServiceDetails = data.serviceDetails || {};
-        // Eski veri yapısı varsa (classTypes string ise) onu serviceDetails içine taşı
         if (Object.keys(finalServiceDetails).length === 0) {
              if(data.classTypes) finalServiceDetails.classTypes = Array.isArray(data.classTypes) ? data.classTypes : data.classTypes.split(','); 
         }
 
         setFormData(prev => ({ 
             ...prev, ...data, 
-            businessType: safeType, // Safe type kullan
+            businessType: safeType,
             staffOrItems: (data.staffOrItems?.length > 0) ? data.staffOrItems : (data.instructors?.map(i => ({ name: i.name, title: i.specialty, desc: i.bio })) || []),
             serviceDetails: finalServiceDetails 
         }));
@@ -346,9 +345,12 @@ const BusinessSettings = () => {
 
   const handleTypeSelect = (key) => { setSelectedType(key); setFormData(p => ({...p, businessType: key})); };
   
-  // GÜVENLİK ÖNLEMİ: Config bulunamazsa varsayılan pilates kullan (Çökme önleyici)
-  const currentConfig = BUSINESS_TYPES[selectedType] || BUSINESS_TYPES['pilates'];
-  const CurrentIcon = currentConfig.icon || Briefcase;
+  // ÇÖKME ÖNLEYİCİ ANAHTAR NOKTA:
+  // Eğer BUSINESS_TYPES yüklenemezse veya selectedType hatalıysa varsayılanı kullan
+  const currentConfig = (BUSINESS_TYPES && BUSINESS_TYPES[selectedType]) ? BUSINESS_TYPES[selectedType] : BUSINESS_TYPES['pilates'];
+  
+  // Ikon hatasını önlemek için değişkene ata
+  const ActiveIcon = currentConfig?.icon || Briefcase;
 
   return (
     <div className="pb-20 max-w-5xl mx-auto font-sans">
@@ -361,7 +363,7 @@ const BusinessSettings = () => {
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 relative overflow-hidden">
             <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2"><LayoutGrid size={18} className="text-blue-600"/> İşletme Türü</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
-                {Object.keys(BUSINESS_TYPES).map(key => {
+                {BUSINESS_TYPES && Object.keys(BUSINESS_TYPES).map(key => {
                     const TypeIcon = BUSINESS_TYPES[key].icon;
                     return (
                         <button key={key} type="button" onClick={() => handleTypeSelect(key)} className={`p-3 rounded-xl border flex flex-col items-center gap-2 transition-all relative ${selectedType === key ? 'bg-blue-600 border-blue-600 text-white shadow-lg scale-105 z-10' : 'bg-slate-50 border-slate-200 text-slate-500 hover:bg-white opacity-70 hover:opacity-100'}`}>
@@ -375,7 +377,6 @@ const BusinessSettings = () => {
         <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden min-h-[500px]">
             <div className="flex overflow-x-auto border-b border-slate-100 scrollbar-hide bg-slate-50/50">
                 <button type="button" onClick={() => setActiveTab('general')} className={`tab-btn ${activeTab === 'general' ? 'active' : ''}`}><MapPin size={16}/> Genel Bilgiler</button>
-                {/* Güvenli Erişim: currentConfig.tabs varsa map et, yoksa boş dizi */}
                 {(currentConfig.tabs || []).includes('services') && <button type="button" onClick={() => setActiveTab('services')} className={`tab-btn ${activeTab === 'services' ? 'active' : ''}`}>{currentConfig.labels?.services || 'Hizmetler'}</button>}
                 {(currentConfig.tabs || []).includes('staff') && <button type="button" onClick={() => setActiveTab('staff')} className={`tab-btn ${activeTab === 'staff' ? 'active' : ''}`}>{currentConfig.labels?.staff || 'Personel'}</button>}
                 {(currentConfig.tabs || []).includes('inventory') && <button type="button" onClick={() => setActiveTab('inventory')} className={`tab-btn ${activeTab === 'inventory' ? 'active' : ''}`}>{currentConfig.labels?.inventory || 'Envanter'}</button>}
@@ -400,7 +401,10 @@ const BusinessSettings = () => {
 
                 {(['services', 'inventory', 'menu', 'rules'].includes(activeTab)) && (
                     <div className="space-y-6 animate-fade-in-up">
-                        <div className="bg-blue-50 p-4 rounded-xl text-sm text-blue-800 mb-6 border border-blue-100 flex items-center gap-3"><div className="p-2 bg-white rounded-lg text-blue-600"><CurrentIcon size={20}/></div><p><strong>{currentConfig.label}</strong> için özel alanlar.</p></div>
+                        <div className="bg-blue-50 p-4 rounded-xl text-sm text-blue-800 mb-6 border border-blue-100 flex items-center gap-3">
+                            <div className="p-2 bg-white rounded-lg text-blue-600"><ActiveIcon size={20}/></div>
+                            <p><strong>{currentConfig.label}</strong> için özel alanlar.</p>
+                        </div>
                         {(currentConfig.fields[activeTab] || []).map((field, idx) => {
                             const isObject = typeof field === 'object';
                             const key = isObject ? field.key : field;
@@ -411,7 +415,7 @@ const BusinessSettings = () => {
                                     <LockableTagInput 
                                         key={key}
                                         label={label}
-                                        value={formData.serviceDetails[key]}
+                                        value={formData.serviceDetails?.[key]}
                                         suggestions={field.suggestions}
                                         onChange={(newTags) => handleServiceDetailChange(key, newTags)}
                                     />
@@ -422,43 +426,6 @@ const BusinessSettings = () => {
                                 <LockableTextarea
                                     key={key}
                                     label={label}
-                                    value={formData.serviceDetails[key] || ''}
+                                    value={formData.serviceDetails?.[key] || ''}
                                     onChange={(e) => handleServiceDetailChange(key, e.target.value)}
                                     placeholder={`${label} detayları...`}
-                                    height="h-32"
-                                />
-                            );
-                        })}
-                    </div>
-                )}
-
-                {(['staff', 'inventory'].includes(activeTab)) && (
-                    <div className="space-y-6 animate-fade-in-up">
-                        <div className="grid md:grid-cols-2 gap-6">{formData.staffOrItems.map((item, index) => (<StaffItemCard key={index} index={index} item={item} onUpdate={updateItem} onRemove={removeItem} />))}</div>
-                        <button type="button" onClick={addItem} className="dashed-btn py-6 hover:shadow-md"><div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 mb-2 group-hover:scale-110 transition-transform"><Plus size={24}/></div><span className="text-blue-800 font-bold">{currentConfig.labels?.newItemBtn || 'Yeni Ekle'}</span></button>
-                    </div>
-                )}
-
-                {activeTab === 'ai' && (<div className="space-y-6 animate-fade-in-up">{formData.faq.map((q, i) => (<div key={i} className="flex gap-4 items-start bg-slate-50 p-4 rounded-xl border border-slate-100 relative"><div className="flex-1 space-y-4"><LockableInput label={`Soru ${i+1}`} value={q.question} onChange={e=>{const n=[...formData.faq];n[i].question=e.target.value;setFormData({...formData,faq:n})}} placeholder="?" /><LockableTextarea label="Cevap" value={q.answer} onChange={e=>{const n=[...formData.faq];n[i].answer=e.target.value;setFormData({...formData,faq:n})}} placeholder="..." height="h-20" /></div><button type="button" onClick={()=>{setFormData({...formData, faq:formData.faq.filter((_,x)=>x!==i)})}} className="text-slate-300 hover:text-red-500 absolute top-4 right-4"><Trash2 size={20}/></button></div>))}<button type="button" onClick={()=>setFormData({...formData, faq:[...formData.faq, {question:'', answer:''}]})} className="dashed-btn"><Plus size={18}/> Soru Ekle</button></div>)}
-                {activeTab === 'payment' && (<div className="animate-fade-in-up space-y-8"><div><label className="label mb-4">Kabul Edilen Ödeme Yöntemleri</label><div className="grid grid-cols-2 md:grid-cols-4 gap-4">{['creditCard', 'transfer', 'pos', 'cash'].map(m => (<label key={m} className={`p-4 border rounded-xl cursor-pointer flex flex-col items-center gap-2 transition-all ${formData.paymentMethods[m] ? 'bg-blue-50 border-blue-500 text-blue-700' : 'bg-white border-slate-200 hover:bg-slate-50'}`}><input type="checkbox" checked={formData.paymentMethods[m]} onChange={e=>setFormData({...formData, paymentMethods: {...formData.paymentMethods, [m]: e.target.checked}})} className="hidden"/><span className="capitalize font-bold text-sm">{m}</span></label>))}</div></div><LockableTextarea label="Kampanyalar & İndirimler" name="campaigns" value={formData.campaigns} onChange={handleChange} placeholder="..." height="h-32"/></div>)}
-            </div>
-        </div>
-        <div className="sticky bottom-6 z-20 flex justify-end"><button type="submit" disabled={loading} className="bg-[#001F54] text-white px-8 py-4 rounded-2xl font-bold hover:bg-[#0f172a] shadow-2xl flex items-center gap-3 transition-transform hover:scale-105 disabled:opacity-50 disabled:scale-100">{loading ? 'Kaydediliyor...' : <><Save size={20}/> Değişiklikleri Kaydet</>}</button></div>
-      </form>
-      <style>{`
-        .label { display: block; font-size: 0.7rem; font-weight: 800; color: #64748b; text-transform: uppercase; margin-bottom: 0.5rem; letter-spacing: 0.05em; }
-        .tab-btn { display: flex; align-items: center; gap: 0.5rem; padding: 1rem 1.5rem; font-size: 0.9rem; font-weight: 600; color: #64748b; border-bottom: 2px solid transparent; white-space: nowrap; transition: all 0.2s; }
-        .tab-btn:hover { color: #1e293b; background: #f1f5f9; }
-        .tab-btn.active { color: #001F54; border-bottom-color: #001F54; background: white; }
-        .dashed-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; padding: 1rem; border: 2px dashed #cbd5e1; border-radius: 0.75rem; color: #64748b; font-weight: 600; transition: all 0.2s; cursor: pointer; background: transparent; }
-        .dashed-btn:hover { border-color: #001F54; color: #001F54; background: #f8fafc; }
-        .scrollbar-hide::-webkit-scrollbar { display: none; } .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .animate-fade-in-up { animation: fadeInUp 0.4s ease-out forwards; }
-        
-      `}</style>
-    </div>
-  );
-};
-
-export default BusinessSettings;
