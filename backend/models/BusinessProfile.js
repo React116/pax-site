@@ -3,10 +3,11 @@ const mongoose = require('mongoose');
 const BusinessProfileSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   
-  // --- YENİ ALANLAR ---
+  // --- TEMEL BİLGİLER ---
+  businessType: { type: String, default: 'pilates' }, // Varsayılan pilates
   businessName: { type: String, default: '' },
   branches: { type: String, default: '' },
-  phone: { type: String, default: '' }, // Telefon artık String
+  phone: { type: String, default: '' },
   email: { type: String, default: '' },
   
   socialMedia: {
@@ -15,19 +16,25 @@ const BusinessProfileSchema = new mongoose.Schema({
     facebook: { type: String, default: '' }
   },
   
-  // Saatler JSON string olarak gelecek (Frontend'de öyle ayarladık)
+  // Çalışma saatleri JSON string olarak tutulur
   workingHours: { type: String, default: '{}' }, 
   languages: { type: String, default: '' },
 
-  classTypes: { type: String, default: '' },
-  classFormat: { type: String, default: '' },
-  duration: { type: String, default: '' },
-  pricing: { type: String, default: '' },
+  // --- DİNAMİK ALANLAR (Sektöre göre değişir) ---
   
-  freeTrial: { type: Boolean, default: false },
-  onlineService: { type: Boolean, default: false },
+  // 1. Hizmet Detayları (classTypes, treatmentTypes, menu vb. buraya gelir)
+  serviceDetails: { type: mongoose.Schema.Types.Mixed, default: {} }, 
+  
+  // 2. Liste Verileri (Eğitmenler, Doktorlar, Araçlar, Odalar buraya gelir)
+  staffOrItems: [{
+    name: String, // İsim veya Araç Modeli
+    title: String, // Ünvan veya Plaka
+    desc: String, // Biyografi veya Özellikler
+    image: String,
+    price: String
+  }],
 
-  // Array yapısı
+  // Eski yapı bozulmasın diye tutuyoruz (Migration için)
   instructors: [{
     name: String,
     specialty: String,
@@ -36,20 +43,17 @@ const BusinessProfileSchema = new mongoose.Schema({
     bio: String
   }],
 
-  requiredInfo: { type: String, default: '' },
-  ageLimit: { type: String, default: '' },
+  // --- GENEL AYARLAR ---
+  requiredInfo: { type: String, default: '' }, // Rezervasyonda istenenler
   healthProtocols: { type: String, default: '' },
-  doctorApproval: { type: Boolean, default: false },
-
+  
   faq: [{
     question: String,
     answer: String
   }],
 
   campaigns: { type: String, default: '' },
-  referralDiscount: { type: Boolean, default: false },
-  corporateMemberships: { type: Boolean, default: false },
-
+  
   paymentMethods: {
     creditCard: { type: Boolean, default: false },
     transfer: { type: Boolean, default: false },
@@ -59,6 +63,6 @@ const BusinessProfileSchema = new mongoose.Schema({
 
   isActive: { type: Boolean, default: false }
 
-}, { timestamps: true, strict: false }); // strict: false diyerek esneklik sağlıyoruz
+}, { timestamps: true, strict: false }); // strict:false ile esneklik sağladık
 
 module.exports = mongoose.model('BusinessProfile', BusinessProfileSchema);
