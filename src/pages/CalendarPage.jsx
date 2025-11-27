@@ -8,10 +8,10 @@ import getDay from 'date-fns/getDay';
 import { tr } from 'date-fns/locale';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Plus, Calendar as CalIcon, Search, Filter, 
+  Plus, Calendar as CalIcon, Filter, 
   ChevronLeft, ChevronRight, Clock, User, 
-  MapPin, CheckCircle2, AlertCircle, Zap, 
-  MoreHorizontal, X, LayoutGrid, Trash2, Edit2
+  MapPin, X, LayoutGrid, Trash2, Edit2, 
+  AlertTriangle, ArrowRight, Zap, Check
 } from 'lucide-react';
 
 import 'react-big-calendar/lib/css/react-big-calendar.css';
@@ -42,6 +42,9 @@ const CalendarPage = () => {
   const [showModal, setShowModal] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   
+  // Sürükle Bırak Onay State'i
+  const [dragConfirm, setDragConfirm] = useState(null); // { event, start, end } tutar
+
   // Form State
   const [formData, setFormData] = useState({
      id: null, title: '', start: '', end: '', type: 'private', 
@@ -88,17 +91,20 @@ const CalendarPage = () => {
     } catch (err) { console.error("Veri hatası:", err); }
   };
 
-  // --- 2. NAVİGASYON FONKSİYONU (Düzeltildi) ---
-  const handleNavigate = useCallback((newDate) => {
-    setDate(newDate);
-  }, []);
+  // --- 2. NAVİGASYON ---
+  const handleNavigate = useCallback((newDate) => setDate(newDate), []);
+  const handleViewChange = useCallback((newView) => setView(newView), []);
 
-  const handleViewChange = useCallback((newView) => {
-    setView(newView);
-  }, []);
+  // --- 3. SÜRÜKLE & BIRAK (ONAY MEKANİZMASI) ---
+  const onEventDropRequest = ({ event, start, end }) => {
+    // İşlemi hemen yapma, onay penceresini aç
+    setDragConfirm({ event, start, end });
+  };
 
-  // --- 3. SÜRÜKLE & BIRAK (Düzeltildi: Sidebar Sync) ---
-  const onEventDrop = async ({ event, start, end }) => {
+  const confirmEventDrop = async () => {
+    if (!dragConfirm) return;
+    const { event, start, end } = dragConfirm;
+
     // 1. Yeni obje oluştur
     const updatedEvent = { ...event, start, end };
 
@@ -106,9 +112,11 @@ const CalendarPage = () => {
     const updatedList = events.map(e => e.id === event.id ? updatedEvent : e);
     setEvents(updatedList);
 
-    // 3. EĞER BU ETKİNLİK SAĞDA AÇIKSA, ONU DA GÜNCELLE (Kritik Düzeltme)
+    // 3. SEÇİLİ ETKİNLİĞİ GÜNCELLE (Aylık görünüm sorunu çözümü)
+    // Eğer sağ panelde açık olan etkinlik, şu an taşıdığımız etkinlikse:
     if (selectedEvent && selectedEvent.id === event.id) {
-        setSelectedEvent(updatedEvent);
+        // Yeni referansla state'i zorla güncelle
+        setSelectedEvent({ ...updatedEvent });
     }
 
     // 4. Backend'e kaydet
@@ -119,6 +127,13 @@ const CalendarPage = () => {
         body: JSON.stringify({ start, end })
       });
     } catch (err) { console.error("Drop hatası:", err); fetchData(); }
+
+    // 5. Onay penceresini kapat
+    setDragConfirm(null);
+  };
+
+  const cancelEventDrop = () => {
+    setDragConfirm(null); // Hiçbir şey yapma, sadece kapat
   };
 
   // --- 4. KAYDETME ---
@@ -166,7 +181,6 @@ const CalendarPage = () => {
   const openNewModal = () => {
     resetForm();
     const now = new Date();
-    // Saati yuvarla (örn: 14:23 -> 14:30)
     now.setMinutes(now.getMinutes() > 30 ? 60 : 30);
     now.setSeconds(0);
     const oneHourLater = new Date(now.getTime() + 60*60*1000);
@@ -196,38 +210,26 @@ const CalendarPage = () => {
     return events.filter(e => e.type === filterType);
   }, [events, filterType]);
 
-  // --- CUSTOM TOOLBAR (Düzeltildi: Navigasyon ve Filtre) ---
+  // --- UI COMPONENTS ---
   const CustomToolbar = (toolbar) => {
-    const goToBack = () => { 
-        // BigCalendar'ın kendi fonksiyonunu çağırıp state'i güncelliyoruz
-        toolbar.onNavigate(Navigate.PREVIOUS); 
-    };
-    const goToNext = () => { 
-        toolbar.onNavigate(Navigate.NEXT); 
-    };
-    const goToCurrent = () => { 
-        toolbar.onNavigate(Navigate.TODAY); 
-    };
+    const goToBack = () => toolbar.onNavigate(Navigate.PREVIOUS);
+    const goToNext = () => toolbar.onNavigate(Navigate.NEXT);
+    const goToCurrent = () => toolbar.onNavigate(Navigate.TODAY);
 
-    const label = () => {
-        const date = toolbar.date;
-        return (
-            <span className="text-sm font-bold text-slate-700 min-w-[140px] text-center select-none cursor-pointer" onClick={goToCurrent}>
-              {format(date, view === 'day' ? 'd MMMM yyyy' : 'MMMM yyyy', { locale: tr }).toUpperCase()}
-            </span>
-        );
-    };
+    const label = () => (
+        <span className="text-sm font-bold text-slate-700 min-w-[140px] text-center select-none cursor-pointer" onClick={goToCurrent}>
+          {format(toolbar.date, view === 'day' ? 'd MMMM yyyy' : 'MMMM yyyy', { locale: tr }).toUpperCase()}
+        </span>
+    );
 
     return (
       <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-        {/* Sol: Tarih Navigasyonu */}
         <div className="flex items-center gap-4 bg-white p-1.5 rounded-xl border border-slate-200 shadow-sm">
            <button onClick={goToBack} className="p-2 hover:bg-slate-100 rounded-lg text-slate-500 transition-colors"><ChevronLeft size={18}/></button>
            {label()}
            <button onClick={goToNext} className="p-2 hover:bg-slate-100 rounded-lg text-slate-500 transition-colors"><ChevronRight size={18}/></button>
         </div>
 
-        {/* Orta: Görünüm Değiştirici */}
         <div className="flex bg-slate-100 p-1 rounded-xl">
            {['month', 'week', 'day'].map((v) => (
              <button key={v} onClick={() => toolbar.onView(v)} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${toolbar.view === v ? 'bg-white text-[#001F54] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
@@ -236,17 +238,11 @@ const CalendarPage = () => {
            ))}
         </div>
 
-        {/* Sağ: Filtre ve Ekle */}
         <div className="flex gap-2 items-center relative z-20">
-            {/* Filtre Dropdown (Düzeltildi: Hover yerine Click) */}
             <div className="relative">
-                <button 
-                    onClick={() => setIsFilterOpen(!isFilterOpen)} 
-                    className={`flex items-center gap-2 p-2.5 border rounded-xl text-xs font-bold shadow-sm transition-all ${isFilterOpen ? 'bg-slate-50 border-slate-300 text-[#001F54]' : 'bg-white border-slate-200 text-slate-500'}`}
-                >
+                <button onClick={() => setIsFilterOpen(!isFilterOpen)} className={`flex items-center gap-2 p-2.5 border rounded-xl text-xs font-bold shadow-sm transition-all ${isFilterOpen ? 'bg-slate-50 border-slate-300 text-[#001F54]' : 'bg-white border-slate-200 text-slate-500'}`}>
                     <Filter size={16}/> {filterType === 'all' ? 'Filtrele' : EVENT_TYPES[filterType]?.label}
                 </button>
-                
                 {isFilterOpen && (
                     <>
                     <div className="fixed inset-0 z-10" onClick={() => setIsFilterOpen(false)}></div>
@@ -262,7 +258,6 @@ const CalendarPage = () => {
                     </>
                 )}
             </div>
-
             <button onClick={openNewModal} className="flex items-center gap-2 bg-[#001F54] text-white px-4 py-2.5 rounded-xl text-sm font-bold shadow-lg hover:bg-[#0f172a] active:scale-95 transition-all">
                 <Plus size={18} /> <span className="hidden md:inline">Yeni Randevu</span>
             </button>
@@ -282,7 +277,7 @@ const CalendarPage = () => {
   };
 
   return (
-    <div className="h-[calc(100vh-40px)] flex gap-6 overflow-hidden">
+    <div className="h-[calc(100vh-40px)] flex gap-6 overflow-hidden relative">
       
       {/* SOL: TAKVİM */}
       <div className="flex-1 flex flex-col h-full relative z-0">
@@ -291,7 +286,7 @@ const CalendarPage = () => {
              <Zap size={16} className="text-amber-500 fill-amber-500" /> 
              <span className="font-bold">AI Asistanı:</span> 
              <span className="opacity-80">
-                {events.length === 0 ? "Henüz randevu yok. Yeni kayıt ekleyerek başlayın." : `Bu hafta ${events.length} randevunuz var. Doluluk oranı %${Math.min(events.length * 2, 100)}.`}
+                {events.length === 0 ? "Henüz randevu yok." : `Bu hafta ${events.length} randevunuz var. Doluluk oranı %${Math.min(events.length * 2, 100)}.`}
              </span>
            </div>
         </motion.div>
@@ -304,12 +299,12 @@ const CalendarPage = () => {
             endAccessor="end"
             view={view}
             date={date}
-            onNavigate={handleNavigate} // Navigasyon state'e bağlandı
-            onView={handleViewChange}   // Görünüm state'e bağlandı
+            onNavigate={handleNavigate}
+            onView={handleViewChange}
             selectable
             resizable
-            onEventDrop={onEventDrop}
-            onEventResize={onEventDrop}
+            onEventDrop={onEventDropRequest} // DEĞİŞİKLİK BURADA: Onay iste
+            onEventResize={onEventDropRequest} // Resize için de onay iste
             onSelectEvent={(event) => setSelectedEvent(event)}
             components={{ toolbar: CustomToolbar, event: CustomEvent }}
             culture='tr'
@@ -324,7 +319,7 @@ const CalendarPage = () => {
         <AnimatePresence mode="wait">
         {selectedEvent ? (
           <motion.div 
-            key={selectedEvent.id}
+            key={selectedEvent.id} // Key önemlidir, değişince animasyon tetikler
             initial={{opacity: 0, x: 20}} animate={{opacity: 1, x: 0}} exit={{opacity: 0, x: 20}}
             className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm"
           >
@@ -342,10 +337,9 @@ const CalendarPage = () => {
             </div>
 
             <div className="space-y-4">
-               <InfoRow icon={Clock} label="Zaman" value={`${format(selectedEvent.start, 'HH:mm')} - ${format(selectedEvent.end, 'HH:mm')}`} />
+               <InfoRow icon={Clock} label="Zaman" value={`${format(new Date(selectedEvent.start), 'HH:mm')} - ${format(new Date(selectedEvent.end), 'HH:mm')}`} />
                <InfoRow icon={User} label="Eğitmen" value={selectedEvent.instructor || 'Atanmadı'} />
                <InfoRow icon={MapPin} label="Salon" value={selectedEvent.room || 'Ana Salon'} />
-               
                {selectedEvent.desc && (
                 <div className="pt-4 border-t border-slate-100">
                     <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Notlar</div>
@@ -373,7 +367,32 @@ const CalendarPage = () => {
         </AnimatePresence>
       </div>
 
-      {/* --- MODAL --- */}
+      {/* --- MODAL: ONAY PENCERESİ (CONFIRMATION) --- */}
+      {dragConfirm && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+            <motion.div initial={{scale: 0.9, opacity:0}} animate={{scale:1, opacity:1}} className="bg-white rounded-3xl shadow-2xl p-6 max-w-sm w-full border border-slate-200 text-center">
+                <div className="w-16 h-16 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-4 text-amber-500">
+                    <AlertTriangle size={32} />
+                </div>
+                <h3 className="text-xl font-bold text-[#0f172a] mb-2">Zaman Değişikliği</h3>
+                <p className="text-sm text-slate-500 mb-6">
+                    <span className="font-bold text-slate-800">{dragConfirm.event.title}</span> randevusunu şu zamana taşımak üzeresiniz: <br/>
+                    <span className="font-bold text-[#001F54] mt-2 block bg-blue-50 py-1 rounded">
+                        {format(dragConfirm.start, 'd MMMM HH:mm', { locale: tr })} - {format(dragConfirm.end, 'HH:mm')}
+                    </span>
+                    <br/>Bu işlemi onaylıyor musunuz?
+                </p>
+                <div className="grid grid-cols-2 gap-3">
+                    <button onClick={cancelEventDrop} className="py-3 rounded-xl border border-slate-200 font-bold text-slate-600 hover:bg-slate-50">İptal</button>
+                    <button onClick={confirmEventDrop} className="py-3 rounded-xl bg-[#001F54] text-white font-bold hover:bg-[#0f172a] flex items-center justify-center gap-2">
+                        <Check size={18}/> Onayla
+                    </button>
+                </div>
+            </motion.div>
+        </div>
+      )}
+
+      {/* --- MODAL: YENİ/DÜZENLE --- */}
       {showModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
            <motion.div initial={{scale:0.95, opacity:0}} animate={{scale:1, opacity:1}} className="bg-white p-0 rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
@@ -430,7 +449,7 @@ const CalendarPage = () => {
         </div>
       )}
 
-      {/* CSS Overrides */}
+      {/* CSS */}
       <style>{`
         .modern-calendar .rbc-header { padding: 12px 0; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; border-bottom: 1px solid #f1f5f9; }
         .modern-calendar .rbc-day-bg { border-left: 1px solid #f8fafc; }
@@ -438,7 +457,6 @@ const CalendarPage = () => {
         .modern-calendar .rbc-today { background: #eff6ff; }
         .modern-calendar .rbc-time-content { border-top: 1px solid #f1f5f9; }
         .rbc-event { background: transparent !important; padding: 0 !important; border: none !important; outline: none !important; }
-        .rbc-time-slot { min-height: 20px; }
       `}</style>
     </div>
   );
