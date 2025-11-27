@@ -189,7 +189,6 @@ const BusinessSettings = () => {
              try { setSchedule(JSON.parse(data.workingHours)); } catch(e) { console.error("Schedule Parse Error", e); }
         }
 
-        // Güvenli Parse: Eğer veri string gelirse parse et, obje gelirse olduğu gibi kullan
         const safeParse = (val, defaultVal) => {
             if (typeof val === 'string') {
                 try { return JSON.parse(val); } catch(e) { return defaultVal; }
@@ -198,7 +197,6 @@ const BusinessSettings = () => {
         };
 
         const finalServiceDetails = safeParse(data.serviceDetails, {});
-        // Eski veri yapısından (classTypes) gelen veriyi kurtar
         if (Object.keys(finalServiceDetails).length === 0 && data.classTypes) {
              finalServiceDetails.classTypes = Array.isArray(data.classTypes) ? data.classTypes : data.classTypes.split(','); 
         }
@@ -217,7 +215,7 @@ const BusinessSettings = () => {
     } catch (err) { console.error("Fetch Error:", err); }
   };
 
-  // --- SORUNSUZ KAYDETME FONKSİYONU ---
+  // --- KESİN ÇÖZÜM: HİBRİT PAYLOAD HAZIRLAMA ---
   const triggerSave = async () => {
     setSaveStatus('saving');
     setErrorMessage('');
@@ -229,23 +227,28 @@ const BusinessSettings = () => {
         return;
     }
 
-    // --- PAYLOAD HAZIRLIĞI ---
-    // HATA: "Cast to string failed" -> Demek ki workingHours STRING olmalı.
-    // HATA: "Cast to embedded failed" -> Demek ki socialMedia, serviceDetails vb. OBJE olmalı.
+    // ORİJİNAL VERİYİ KOPYALA
+    const payload = { ...formData };
     
-    // ÇÖZÜM: Sadece workingHours'u string yap, gerisini OBJE olarak bırak.
-    
-    const payload = { 
-        ...formData,
-        businessType: selectedType,
-        workingHours: JSON.stringify(schedule) // SADECE BU STRING OLMALI
-    };
+    // 1. TİPİ DÜZELT
+    payload.businessType = selectedType;
 
-    // Diğer alanları (socialMedia, serviceDetails vb.) MANUEL OLARAK String'e ÇEVİRME.
-    // fetch içindeki JSON.stringify(payload) zaten tüm gövdeyi JSON formatına sokar.
-    // Backend "embedded" bekliyorsa, JSON içindeki "nesne" yapısını ister, "string içinde nesne" değil.
+    // 2. KARIŞIK ALANLARIN FORMATLANMASI (HİBRİT YAPI)
+    // Veritabanı "String" bekleyenlere String, "Obje" bekleyenlere Obje yolla.
 
-    console.log("Sunucuya Gönderilen TEMİZ Veri:", payload);
+    // A) STRING OLARAK GİDECEKLER (Daha önce hata verenler)
+    payload.workingHours = JSON.stringify(schedule);
+    payload.serviceDetails = JSON.stringify(payload.serviceDetails || {});
+    payload.staffOrItems = JSON.stringify(payload.staffOrItems || []);
+    payload.campaigns = JSON.stringify(payload.campaigns || []);
+    payload.faq = JSON.stringify(payload.faq || []);
+
+    // B) OBJE OLARAK KALACAKLAR (Daha önce "Embedded failed" hatası verenler)
+    // socialMedia ve paymentMethods DOKUNULMADAN obje olarak gidiyor.
+    // payload.socialMedia = ... (Zaten Obje)
+    // payload.paymentMethods = ... (Zaten Obje)
+
+    console.log("Sunucuya Gönderilen HİBRİT Veri:", payload);
 
     try {
         const apiUrl = import.meta.env.VITE_API_URL || "https://pax-backend-9m4q.onrender.com/api";
@@ -255,7 +258,7 @@ const BusinessSettings = () => {
                 'Content-Type': 'application/json', 
                 'Authorization': `Bearer ${token}` 
             }, 
-            body: JSON.stringify(payload) // Tüm gövdeyi JSON yapıyoruz, içindekiler obje kalıyor.
+            body: JSON.stringify(payload) 
         });
         
         if (res.ok) {
