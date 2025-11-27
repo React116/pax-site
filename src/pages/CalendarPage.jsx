@@ -8,10 +8,9 @@ import getDay from 'date-fns/getDay';
 import { tr } from 'date-fns/locale';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Plus, Calendar as CalIcon, Filter, 
-  ChevronLeft, ChevronRight, Clock, User, 
+  Plus, Filter, ChevronLeft, ChevronRight, Clock, User, 
   MapPin, X, LayoutGrid, Trash2, Edit2, 
-  AlertTriangle, ArrowRight, Zap, Check
+  AlertTriangle, Check, Zap, CalendarDays
 } from 'lucide-react';
 
 import 'react-big-calendar/lib/css/react-big-calendar.css';
@@ -34,16 +33,14 @@ const CalendarPage = () => {
   const [events, setEvents] = useState([]);
   const [instructors, setInstructors] = useState([]);
   const [selectedEvent, setSelectedEvent] = useState(null);
-  const [view, setView] = useState(Views.WEEK);
+  const [view, setView] = useState(Views.MONTH); // Varsayılan Aylık Görünüm
   const [date, setDate] = useState(new Date());
   
   // UI States
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
-  
-  // Sürükle Bırak Onay State'i
-  const [dragConfirm, setDragConfirm] = useState(null); // { event, start, end } tutar
+  const [dragConfirm, setDragConfirm] = useState(null);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -95,9 +92,10 @@ const CalendarPage = () => {
   const handleNavigate = useCallback((newDate) => setDate(newDate), []);
   const handleViewChange = useCallback((newView) => setView(newView), []);
 
-  // --- 3. SÜRÜKLE & BIRAK (ONAY MEKANİZMASI) ---
+  // --- 3. SÜRÜKLE & BIRAK (DÜZELTİLDİ: AYLIK SENKRONİZASYON) ---
   const onEventDropRequest = ({ event, start, end }) => {
-    // İşlemi hemen yapma, onay penceresini aç
+    // Drop işlemi talep edildiğinde onay modalını aç
+    // Not: Aylık görünümde sadece Tarih değişir, saat korunur.
     setDragConfirm({ event, start, end });
   };
 
@@ -105,18 +103,19 @@ const CalendarPage = () => {
     if (!dragConfirm) return;
     const { event, start, end } = dragConfirm;
 
-    // 1. Yeni obje oluştur
-    const updatedEvent = { ...event, start, end };
+    // 1. Yeni obje oluştur (Yeni tarihleri bas)
+    // Date objesi olduklarından emin oluyoruz
+    const newStart = new Date(start);
+    const newEnd = new Date(end);
+    
+    const updatedEvent = { ...event, start: newStart, end: newEnd };
 
-    // 2. Listeyi güncelle
-    const updatedList = events.map(e => e.id === event.id ? updatedEvent : e);
-    setEvents(updatedList);
+    // 2. Ana Listeyi güncelle
+    setEvents(prevEvents => prevEvents.map(e => e.id === event.id ? updatedEvent : e));
 
-    // 3. SEÇİLİ ETKİNLİĞİ GÜNCELLE (Aylık görünüm sorunu çözümü)
-    // Eğer sağ panelde açık olan etkinlik, şu an taşıdığımız etkinlikse:
+    // 3. SEÇİLİ ETKİNLİĞİ GÜNCELLE (FIX: Aylık görünümde detay panelini güncelle)
     if (selectedEvent && selectedEvent.id === event.id) {
-        // Yeni referansla state'i zorla güncelle
-        setSelectedEvent({ ...updatedEvent });
+        setSelectedEvent(updatedEvent);
     }
 
     // 4. Backend'e kaydet
@@ -124,16 +123,15 @@ const CalendarPage = () => {
       await fetch(`${BASE_URL}/calendar/${event.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ start, end })
+        body: JSON.stringify({ start: newStart, end: newEnd })
       });
     } catch (err) { console.error("Drop hatası:", err); fetchData(); }
 
-    // 5. Onay penceresini kapat
     setDragConfirm(null);
   };
 
   const cancelEventDrop = () => {
-    setDragConfirm(null); // Hiçbir şey yapma, sadece kapat
+    setDragConfirm(null);
   };
 
   // --- 4. KAYDETME ---
@@ -167,7 +165,7 @@ const CalendarPage = () => {
             method: 'DELETE',
             headers: { 'Authorization': `Bearer ${token}` }
         });
-        setEvents(events.filter(e => e.id !== id));
+        setEvents(prev => prev.filter(e => e.id !== id));
         setSelectedEvent(null);
     } catch (err) { console.error(err); }
   };
@@ -276,6 +274,7 @@ const CalendarPage = () => {
     );
   };
 
+  // --- UI RENDER ---
   return (
     <div className="h-[calc(100vh-40px)] flex gap-6 overflow-hidden relative">
       
@@ -303,8 +302,8 @@ const CalendarPage = () => {
             onView={handleViewChange}
             selectable
             resizable
-            onEventDrop={onEventDropRequest} // DEĞİŞİKLİK BURADA: Onay iste
-            onEventResize={onEventDropRequest} // Resize için de onay iste
+            onEventDrop={onEventDropRequest} 
+            onEventResize={onEventDropRequest} 
             onSelectEvent={(event) => setSelectedEvent(event)}
             components={{ toolbar: CustomToolbar, event: CustomEvent }}
             culture='tr'
@@ -319,7 +318,7 @@ const CalendarPage = () => {
         <AnimatePresence mode="wait">
         {selectedEvent ? (
           <motion.div 
-            key={selectedEvent.id} // Key önemlidir, değişince animasyon tetikler
+            key={selectedEvent.id} // Re-render animation
             initial={{opacity: 0, x: 20}} animate={{opacity: 1, x: 0}} exit={{opacity: 0, x: 20}}
             className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm"
           >
@@ -337,7 +336,10 @@ const CalendarPage = () => {
             </div>
 
             <div className="space-y-4">
-               <InfoRow icon={Clock} label="Zaman" value={`${format(new Date(selectedEvent.start), 'HH:mm')} - ${format(new Date(selectedEvent.end), 'HH:mm')}`} />
+               {/* FIX: Artık Gün/Ay/Yıl bilgisini de gösteriyoruz */}
+               <InfoRow icon={CalendarDays} label="Tarih" value={format(new Date(selectedEvent.start), 'd MMMM yyyy', { locale: tr })} />
+               <InfoRow icon={Clock} label="Saat" value={`${format(new Date(selectedEvent.start), 'HH:mm')} - ${format(new Date(selectedEvent.end), 'HH:mm')}`} />
+               
                <InfoRow icon={User} label="Eğitmen" value={selectedEvent.instructor || 'Atanmadı'} />
                <InfoRow icon={MapPin} label="Salon" value={selectedEvent.room || 'Ana Salon'} />
                {selectedEvent.desc && (
