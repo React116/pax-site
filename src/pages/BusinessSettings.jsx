@@ -1,28 +1,40 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   MapPin, HelpCircle, CreditCard, Trash2, Plus, 
   LayoutGrid, CheckCircle2, Edit2, Lock, X, 
   Briefcase, Percent, Globe, Youtube, Linkedin, Video, Instagram,
-  Loader2, Cloud, CloudOff
+  Loader2, Cloud, CloudOff, Save
 } from 'lucide-react';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
 import { BUSINESS_TYPES } from '../utils/businessConfig';
 
-/* --- BİLEŞENLER (Inputlar, Toggle vb.) AYNI KALIYOR --- */
-
-const LockableInput = ({ label, value, onChange, name, placeholder, type = "text", className = "", icon: Icon, iconColor = "text-slate-400" }) => {
+/* --- 1. KİLİTLENEBİLİR INPUT (KAYDET TETİKLEYİCİLİ) --- */
+const LockableInput = ({ label, value, onChange, onSave, name, placeholder, type = "text", className = "", icon: Icon, iconColor = "text-slate-400" }) => {
   const [isLocked, setIsLocked] = useState(true);
   const inputRef = useRef(null);
-  const toggleLock = () => { setIsLocked(!isLocked); if (isLocked) setTimeout(() => inputRef.current?.focus(), 100); };
+
+  const handleToggleLock = () => {
+    if (!isLocked) {
+      // Kilitleniyor (Düzenleme bitti) -> KAYDET
+      if (onSave) onSave();
+    } else {
+      // Kilit açılıyor -> Focuslan
+      setTimeout(() => inputRef.current?.focus(), 100);
+    }
+    setIsLocked(!isLocked);
+  };
 
   return (
     <div className={`relative group ${className}`}>
       {label && <label className="label">{label}</label>}
       <div className="relative">
         {Icon && <div className={`absolute left-4 top-3.5 z-10 ${iconColor}`}><Icon size={20} /></div>}
-        <input ref={inputRef} type={type} name={name} value={value || ''} onChange={onChange} placeholder={placeholder} readOnly={isLocked} className={`w-full p-3.5 ${Icon ? 'pl-12' : 'pl-4'} pr-12 rounded-xl transition-all duration-300 font-medium ${isLocked ? 'bg-slate-100 text-slate-500 border-transparent cursor-default' : 'bg-white text-slate-800 border-blue-500 ring-4 ring-blue-50/50 shadow-sm'} border`} />
-        <button type="button" onClick={toggleLock} className={`absolute right-3 top-3 p-1 rounded-lg transition-colors ${isLocked ? 'text-slate-400 hover:text-blue-600 hover:bg-white' : 'text-blue-600 bg-blue-50 hover:bg-blue-100'}`}>
+        <input 
+          ref={inputRef} type={type} name={name} value={value || ''} onChange={onChange} placeholder={placeholder} readOnly={isLocked} 
+          className={`w-full p-3.5 ${Icon ? 'pl-12' : 'pl-4'} pr-12 rounded-xl transition-all duration-300 font-medium ${isLocked ? 'bg-slate-100 text-slate-500 border-transparent cursor-default' : 'bg-white text-slate-800 border-blue-500 ring-4 ring-blue-50/50 shadow-sm'} border`} 
+        />
+        <button type="button" onClick={handleToggleLock} className={`absolute right-3 top-3 p-1 rounded-lg transition-colors ${isLocked ? 'text-slate-400 hover:text-blue-600 hover:bg-white' : 'text-green-600 bg-green-50 hover:bg-green-100'}`}>
           {isLocked ? <Edit2 size={16} /> : <CheckCircle2 size={18} />}
         </button>
       </div>
@@ -30,8 +42,15 @@ const LockableInput = ({ label, value, onChange, name, placeholder, type = "text
   );
 };
 
-const LockablePhoneInput = ({ label, value, onChange }) => {
+/* --- 2. KİLİTLENEBİLİR TELEFON (KAYDET TETİKLEYİCİLİ) --- */
+const LockablePhoneInput = ({ label, value, onChange, onSave }) => {
   const [isLocked, setIsLocked] = useState(true);
+
+  const handleToggleLock = () => {
+    if (!isLocked && onSave) onSave();
+    setIsLocked(!isLocked);
+  };
+
   return (
     <div className="relative group">
       {label && <label className="label">{label}</label>}
@@ -39,7 +58,7 @@ const LockablePhoneInput = ({ label, value, onChange }) => {
         <div className={`transition-all duration-300 rounded-xl overflow-hidden border ${isLocked ? 'border-transparent pointer-events-none opacity-80 bg-slate-100' : 'border-blue-500 ring-4 ring-blue-50/50 bg-white'}`}>
            <PhoneInput country={'tr'} value={value} onChange={onChange} disabled={isLocked} inputStyle={{width:'100%', height:'52px', borderRadius:'0.75rem', border: 'none', backgroundColor: isLocked ? '#f1f5f9' : 'white', color: isLocked ? '#64748b' : '#1e293b'}} buttonStyle={{border: 'none', backgroundColor: isLocked ? '#f1f5f9' : 'white', paddingLeft: '5px'}} />
         </div>
-        <button type="button" onClick={() => setIsLocked(!isLocked)} className={`absolute right-3 top-3 p-1 rounded-lg transition-colors z-20 ${isLocked ? 'text-slate-400 hover:text-blue-600 hover:bg-white pointer-events-auto' : 'text-blue-600 bg-blue-50 hover:bg-blue-100'}`}>
+        <button type="button" onClick={handleToggleLock} className={`absolute right-3 top-3 p-1 rounded-lg transition-colors z-20 ${isLocked ? 'text-slate-400 hover:text-blue-600 hover:bg-white pointer-events-auto' : 'text-green-600 bg-green-50 hover:bg-green-100'}`}>
           {isLocked ? <Edit2 size={16} /> : <CheckCircle2 size={18} />}
         </button>
       </div>
@@ -47,22 +66,43 @@ const LockablePhoneInput = ({ label, value, onChange }) => {
   );
 };
 
-const LockableTextarea = ({ label, value, onChange, name, placeholder, height = "h-24" }) => {
+/* --- 3. KİLİTLENEBİLİR TEXTAREA (KAYDET TETİKLEYİCİLİ) --- */
+const LockableTextarea = ({ label, value, onChange, onSave, name, placeholder, height = "h-24" }) => {
   const [isLocked, setIsLocked] = useState(true);
+
+  const handleToggleLock = () => {
+    if (!isLocked && onSave) onSave();
+    setIsLocked(!isLocked);
+  };
+
   return (
     <div className="relative group">
       {label && <label className="label">{label}</label>}
-      <div className="relative"><textarea name={name} value={value || ''} onChange={onChange} placeholder={placeholder} readOnly={isLocked} className={`w-full p-3.5 pr-12 rounded-xl transition-all duration-300 font-medium resize-none ${height} ${isLocked ? 'bg-slate-100 text-slate-500 border-transparent cursor-default' : 'bg-white text-slate-800 border-blue-500 ring-4 ring-blue-50/50 shadow-sm'} border`} /><button type="button" onClick={() => setIsLocked(!isLocked)} className={`absolute right-3 top-3 p-1 rounded-lg transition-colors ${isLocked ? 'text-slate-400 hover:text-blue-600 hover:bg-white' : 'text-blue-600 bg-blue-50 hover:bg-blue-100'}`}>{isLocked ? <Edit2 size={16} /> : <CheckCircle2 size={18} />}</button></div>
+      <div className="relative">
+        <textarea name={name} value={value || ''} onChange={onChange} placeholder={placeholder} readOnly={isLocked} className={`w-full p-3.5 pr-12 rounded-xl transition-all duration-300 font-medium resize-none ${height} ${isLocked ? 'bg-slate-100 text-slate-500 border-transparent cursor-default' : 'bg-white text-slate-800 border-blue-500 ring-4 ring-blue-50/50 shadow-sm'} border`} />
+        <button type="button" onClick={handleToggleLock} className={`absolute right-3 top-3 p-1 rounded-lg transition-colors ${isLocked ? 'text-slate-400 hover:text-blue-600 hover:bg-white' : 'text-green-600 bg-green-50 hover:bg-green-100'}`}>
+          {isLocked ? <Edit2 size={16} /> : <CheckCircle2 size={18} />}
+        </button>
+      </div>
     </div>
   );
 };
 
-const LockableTagInput = ({ label, value, onChange, suggestions = [] }) => {
+/* --- 4. KİLİTLENEBİLİR TAG INPUT (KAYDET TETİKLEYİCİLİ) --- */
+const LockableTagInput = ({ label, value, onChange, onSave, suggestions = [] }) => {
   const [isLocked, setIsLocked] = useState(true);
   const [inputValue, setInputValue] = useState("");
+  
   const tags = Array.isArray(value) ? value : (typeof value === 'string' && value.length > 0 ? value.split(',').map(s => s.trim()) : []);
+
   const addTag = (tagToAdd) => { if (!tagToAdd) return; if (!tags.includes(tagToAdd)) onChange([...tags, tagToAdd]); setInputValue(""); };
   const removeTag = (tagToRemove) => onChange(tags.filter(t => t !== tagToRemove));
+
+  const handleToggleLock = () => {
+    if (!isLocked && onSave) onSave(); // Kilitlenirken kaydet
+    setIsLocked(!isLocked);
+  };
+
   return (
     <div className="relative group">
       {label && <label className="label">{label}</label>}
@@ -72,16 +112,33 @@ const LockableTagInput = ({ label, value, onChange, suggestions = [] }) => {
            {tags.map((tag, idx) => (<span key={idx} className={`px-3 py-1 rounded-lg text-sm font-bold flex items-center gap-1 ${isLocked ? 'bg-slate-200 text-slate-600' : 'bg-blue-100 text-blue-700'}`}>{tag}{!isLocked && <button type="button" onClick={() => removeTag(tag)} className="hover:text-red-500 flex items-center"><X size={14}/></button>}</span>))}
            {!isLocked && <input value={inputValue} onChange={(e) => setInputValue(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addTag(inputValue.trim()))} className="flex-1 bg-transparent outline-none min-w-[150px] text-sm py-1" placeholder="Ekle..." />}
         </div>
-        <button type="button" onClick={() => setIsLocked(!isLocked)} className={`absolute right-3 top-3 p-1 rounded-lg transition-colors ${isLocked ? 'text-slate-400 hover:text-blue-600 hover:bg-white' : 'text-blue-600 bg-blue-50 hover:bg-blue-100'}`}>{isLocked ? <Edit2 size={16} /> : <CheckCircle2 size={18} />}</button>
+        <button type="button" onClick={handleToggleLock} className={`absolute right-3 top-3 p-1 rounded-lg transition-colors ${isLocked ? 'text-slate-400 hover:text-blue-600 hover:bg-white' : 'text-green-600 bg-green-50 hover:bg-green-100'}`}>
+          {isLocked ? <Edit2 size={16} /> : <CheckCircle2 size={18} />}
+        </button>
       </div>
       {!isLocked && suggestions.length > 0 && (<div className="mt-3 p-4 bg-slate-50 border border-slate-200 rounded-xl animate-fade-in-up"><div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Öneriler</div><div className="flex flex-wrap gap-2">{suggestions.map((sug, i) => (<button key={i} type="button" onClick={() => addTag(sug)} disabled={tags.includes(sug)} className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all ${tags.includes(sug) ? 'bg-green-100 text-green-700 border-green-200 opacity-50 cursor-not-allowed' : 'bg-white text-slate-600 border-slate-200 hover:border-blue-400 hover:text-blue-600 hover:shadow-sm'}`}>{tags.includes(sug) && <CheckCircle2 size={12} className="inline mr-1"/>}{sug}</button>))}</div></div>)}
     </div>
   );
 };
 
-const LockableToggle = ({ label, value, onChange }) => {
+/* --- 5. TOGGLE (ANINDA KAYDET) --- */
+const LockableToggle = ({ label, value, onChange, onSave }) => {
   const [isLocked, setIsLocked] = useState(true);
-  const handleToggle = () => { if (!isLocked) onChange(!value); };
+  
+  const handleToggle = () => { 
+    if (!isLocked) {
+        const newValue = !value;
+        onChange(newValue);
+        // Toggle olduğu için anında kaydetmeyi deneyebiliriz veya kullanıcı kilitlediğinde
+        // Kullanıcı deneyimi için toggle'da değişiklikten hemen sonra kaydetmek daha iyidir, ama kilit mantığına uyalım.
+    }
+  };
+
+  const handleToggleLock = () => {
+    if (!isLocked && onSave) onSave();
+    setIsLocked(!isLocked);
+  };
+
   return (
     <div className={`p-4 rounded-xl border transition-all duration-300 flex items-center justify-between group ${isLocked ? 'bg-slate-100 border-transparent' : 'bg-white border-blue-500 ring-4 ring-blue-50/50'}`}>
       <div className="flex items-center gap-4 flex-1 cursor-pointer select-none" onClick={handleToggle}>
@@ -90,16 +147,31 @@ const LockableToggle = ({ label, value, onChange }) => {
         </div>
         <div><span className="font-bold text-slate-700 text-sm block">{label}</span><span className="text-xs text-slate-400">{value ? 'Aktif' : 'Pasif'}</span></div>
       </div>
-      <button type="button" onClick={() => setIsLocked(!isLocked)} className={`p-1.5 rounded-lg transition-colors ${isLocked ? 'text-slate-400 hover:text-blue-600' : 'text-blue-600 bg-blue-50'}`}>{isLocked ? <Edit2 size={16} /> : <CheckCircle2 size={18} />}</button>
+      <button type="button" onClick={handleToggleLock} className={`p-1.5 rounded-lg transition-colors ${isLocked ? 'text-slate-400 hover:text-blue-600' : 'text-green-600 bg-green-50'}`}>
+        {isLocked ? <Edit2 size={16} /> : <CheckCircle2 size={18} />}
+      </button>
     </div>
   );
 };
 
-const CampaignManager = ({ campaigns = [], onChange }) => {
+/* --- 6. KAMPANYA YÖNETİCİSİ (MANUEL KAYIT) --- */
+const CampaignManager = ({ campaigns = [], onChange, onSave }) => {
   const [isLocked, setIsLocked] = useState(true);
   const [newCamp, setNewCamp] = useState({ name: '', discount: '' });
-  const addCampaign = () => { if (newCamp.name && newCamp.discount) { onChange([...campaigns, newCamp]); setNewCamp({ name: '', discount: '' }); }};
+  
+  const addCampaign = () => { 
+      if (newCamp.name && newCamp.discount) { 
+          onChange([...campaigns, newCamp]); 
+          setNewCamp({ name: '', discount: '' }); 
+      }
+  };
   const removeCampaign = (index) => { onChange(campaigns.filter((_, i) => i !== index)); };
+
+  const handleToggleLock = () => {
+    if (!isLocked && onSave) onSave();
+    setIsLocked(!isLocked);
+  };
+
   return (
     <div className="relative group">
       <label className="label">Aktif Kampanyalar</label>
@@ -109,20 +181,31 @@ const CampaignManager = ({ campaigns = [], onChange }) => {
            {campaigns.map((camp, idx) => (<div key={idx} className="flex items-center justify-between bg-white p-3 rounded-lg border border-slate-200 shadow-sm"><div className="flex items-center gap-3"><div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-red-600 font-bold text-xs">%{camp.discount}</div><span className="text-sm font-bold text-slate-700">{camp.name}</span></div>{!isLocked && <button type="button" onClick={() => removeCampaign(idx)} className="text-slate-300 hover:text-red-500"><Trash2 size={16}/></button>}</div>))}
         </div>
         {!isLocked && (<div className="mt-4 flex gap-2 items-center pt-4 border-t border-slate-100"><input value={newCamp.name} onChange={e => setNewCamp({...newCamp, name: e.target.value})} placeholder="Kampanya Adı" className="flex-1 border p-2 rounded-lg text-sm outline-none focus:border-blue-500"/><div className="relative w-24"><Percent size={14} className="absolute left-2 top-2.5 text-slate-400"/><input type="number" value={newCamp.discount} onChange={e => setNewCamp({...newCamp, discount: e.target.value})} placeholder="İndirim" className="w-full border p-2 pl-6 rounded-lg text-sm outline-none focus:border-blue-500"/></div><button type="button" onClick={addCampaign} className="bg-[#001F54] text-white p-2 rounded-lg hover:bg-blue-900"><Plus size={18}/></button></div>)}
-        <button type="button" onClick={() => setIsLocked(!isLocked)} className={`absolute right-3 top-3 p-1 rounded-lg transition-colors ${isLocked ? 'text-slate-400 hover:text-blue-600' : 'text-blue-600 bg-blue-50'}`}>{isLocked ? <Edit2 size={16} /> : <CheckCircle2 size={18} />}</button>
+        <button type="button" onClick={handleToggleLock} className={`absolute right-3 top-3 p-1 rounded-lg transition-colors ${isLocked ? 'text-slate-400 hover:text-blue-600' : 'text-green-600 bg-green-50'}`}>
+          {isLocked ? <Edit2 size={16} /> : <CheckCircle2 size={18} />}
+        </button>
       </div>
     </div>
   );
 };
 
-const StaffItemCard = ({ item, index, onUpdate, onRemove }) => {
+/* --- 7. PERSONEL KARTI --- */
+const StaffItemCard = ({ item, index, onUpdate, onRemove, onSave }) => {
   const [isEditing, setIsEditing] = useState(false);
   useEffect(() => { if (!item.name) setIsEditing(true); }, []);
+
+  const handleFinishEdit = () => {
+    setIsEditing(false);
+    if(onSave) onSave();
+  };
+
   return (
     <div className={`relative transition-all duration-300 rounded-2xl border ${isEditing ? 'bg-white border-blue-200 shadow-xl scale-[1.01] z-10 p-6' : 'bg-slate-50 border-slate-200 hover:border-blue-200 p-6'}`}>
       <div className="absolute top-4 right-4 flex gap-2">
-        <button type="button" onClick={() => setIsEditing(!isEditing)} className={`p-2 rounded-lg transition-colors ${isEditing ? 'bg-green-100 text-green-700' : 'bg-white text-slate-400 hover:text-blue-600 shadow-sm'}`}>{isEditing ? <CheckCircle2 size={18}/> : <Edit2 size={16}/>}</button>
-        <button type="button" onClick={() => onRemove(index)} className="p-2 rounded-lg bg-white text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors shadow-sm"><Trash2 size={16}/></button>
+        <button type="button" onClick={() => { isEditing ? handleFinishEdit() : setIsEditing(true) }} className={`p-2 rounded-lg transition-colors ${isEditing ? 'bg-green-100 text-green-700' : 'bg-white text-slate-400 hover:text-blue-600 shadow-sm'}`}>
+          {isEditing ? <CheckCircle2 size={18}/> : <Edit2 size={16}/>}
+        </button>
+        <button type="button" onClick={() => { onRemove(index); if(onSave) setTimeout(onSave, 500); }} className="p-2 rounded-lg bg-white text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors shadow-sm"><Trash2 size={16}/></button>
       </div>
       {isEditing ? (
         <div className="grid gap-4 animate-fade-in-up">
@@ -145,11 +228,10 @@ const StaffItemCard = ({ item, index, onUpdate, onRemove }) => {
   );
 };
 
-/* --- ANA COMPONENT (AUTOSAVE ÖZELLİKLİ) --- */
+/* --- ANA COMPONENT --- */
 const BusinessSettings = () => {
   const [saveStatus, setSaveStatus] = useState('idle'); // idle, saving, success, error
   const [lastSaved, setLastSaved] = useState(null);
-  const [isLoaded, setIsLoaded] = useState(false); // İlk verinin çekildiğini kontrol et
   
   const [activeTab, setActiveTab] = useState('general');
   const [selectedType, setSelectedType] = useState('pilates');
@@ -181,7 +263,9 @@ const BusinessSettings = () => {
         const safeType = (BUSINESS_TYPES && BUSINESS_TYPES[typeFromDb]) ? typeFromDb : 'pilates';
         setSelectedType(safeType);
 
-        if (data.workingHours && data.workingHours !== '{}') try { setSchedule(JSON.parse(data.workingHours)); } catch(e) {}
+        if (data.workingHours && data.workingHours !== '{}') {
+             try { setSchedule(JSON.parse(data.workingHours)); } catch(e) { console.error("Schedule Parse Error", e); }
+        }
 
         let finalServiceDetails = data.serviceDetails || {};
         if (Object.keys(finalServiceDetails).length === 0 && data.classTypes) {
@@ -205,48 +289,50 @@ const BusinessSettings = () => {
             campaigns: finalCampaigns,
             socialMedia: mergedSocial
         }));
-        setIsLoaded(true); // Veri yüklendi, artık autosave çalışabilir
       }
-    } catch (err) { console.error(err); }
+    } catch (err) { console.error("Fetch Error:", err); }
   };
 
-  // --- AUTOSAVE LOGIC ---
-  const saveToBackend = useCallback(async (currentData, currentSchedule) => {
+  // --- KAYDETME FONKSİYONU (TRIGGER İLE ÇALIŞIR) ---
+  const triggerSave = async () => {
     setSaveStatus('saving');
-    const finalData = { ...currentData, workingHours: JSON.stringify(currentSchedule) };
     
+    // Veriyi hazırla
+    const finalData = { 
+        ...formData, 
+        businessType: selectedType, // Tipin doğru gittiğinden emin ol
+        workingHours: JSON.stringify(schedule) // Backend string bekliyor
+    };
+
+    console.log("Saving Data to Backend:", finalData); // DEBUG İÇİN
+
     try {
         const token = localStorage.getItem('token');
         const apiUrl = import.meta.env.VITE_API_URL || "https://pax-backend-9m4q.onrender.com/api";
+        
         const res = await fetch(`${apiUrl}/business-profile`, { 
             method: 'PUT', 
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, 
+            headers: { 
+                'Content-Type': 'application/json', 
+                'Authorization': `Bearer ${token}` 
+            }, 
             body: JSON.stringify(finalData) 
         });
         
         if (res.ok) {
             setSaveStatus('success');
             setLastSaved(new Date());
-            setTimeout(() => setSaveStatus('idle'), 2000);
+            setTimeout(() => setSaveStatus('idle'), 3000);
         } else {
+            const errorText = await res.text();
+            console.error("Backend Error Response:", errorText);
             throw new Error('Save failed');
         }
     } catch (e) {
-        console.error("Autosave Error:", e);
+        console.error("Save Network Error:", e);
         setSaveStatus('error');
     }
-  }, []);
-
-  // Debounce Etkisi: Veri değişimini dinle ve 1.5 sn sonra kaydet
-  useEffect(() => {
-    if (!isLoaded) return; // İlk yükleme sırasında kaydetme
-
-    const timer = setTimeout(() => {
-        saveToBackend(formData, schedule);
-    }, 1500); // 1.5 saniye bekleme süresi
-
-    return () => clearTimeout(timer); // Eğer kullanıcı yazmaya devam ederse sayacı sıfırla
-  }, [formData, schedule, isLoaded, saveToBackend]);
+  };
 
 
   // --- HANDLERS ---
@@ -263,9 +349,20 @@ const BusinessSettings = () => {
   const addItem = () => setFormData(p => ({ ...p, staffOrItems: [...p.staffOrItems, { name: '', title: '', desc: '' }] }));
   const removeItem = (i) => setFormData(p => ({ ...p, staffOrItems: p.staffOrItems.filter((_, idx) => idx !== i) }));
   const updateItem = (i, field, value) => { const n = [...formData.staffOrItems]; n[i][field] = value; setFormData(p => ({ ...p, staffOrItems: n })); };
-  const handleScheduleChange = (day, field, value) => setSchedule(prev => ({ ...prev, [day]: { ...prev[day], [field]: value } }));
+  
+  const handleScheduleChange = (day, field, value) => {
+      setSchedule(prev => ({ ...prev, [day]: { ...prev[day], [field]: value } }));
+  };
+  // Saat değiştiğinde kilit olmadığı için manuel tetikleme butonu ekleyebiliriz veya kullanıcı başka bir yeri kilitlediğinde kaydolur.
+  // Kullanıcı deneyimi için çalışma saatlerinin olduğu bloğa bir "Kaydet" butonu eklemek mantıklı olabilir.
 
-  const handleTypeSelect = (key) => { setSelectedType(key); setFormData(p => ({...p, businessType: key})); };
+  const handleTypeSelect = (key) => { 
+      setSelectedType(key); 
+      setFormData(p => ({...p, businessType: key}));
+      // Tür değişince anında kaydet
+      setTimeout(triggerSave, 500);
+  };
+
   const currentConfig = (BUSINESS_TYPES && BUSINESS_TYPES[selectedType]) ? BUSINESS_TYPES[selectedType] : BUSINESS_TYPES['pilates'];
   const ActiveIcon = currentConfig?.icon || Briefcase;
 
@@ -277,7 +374,7 @@ const BusinessSettings = () => {
            <p className="text-slate-500 text-sm mt-1">Sektörünüzü seçin ve bilgilerinizi yönetin.</p>
         </div>
         
-        {/* AUTOSAVE INDICATOR */}
+        {/* KAYIT DURUM GÖSTERGESİ */}
         <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-full border border-slate-100 shadow-sm">
            {saveStatus === 'saving' && (
               <>
@@ -295,6 +392,7 @@ const BusinessSettings = () => {
               <>
                 <CloudOff size={16} className="text-red-500" />
                 <span className="text-xs font-bold text-red-600">Kaydedilemedi</span>
+                <button onClick={triggerSave} className="ml-2 text-[10px] underline text-red-700">Tekrar Dene</button>
               </>
            )}
            {saveStatus === 'idle' && lastSaved && (
@@ -303,6 +401,7 @@ const BusinessSettings = () => {
                 <span className="text-xs font-medium text-slate-400">Son Kayıt: {lastSaved.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
               </>
            )}
+           {saveStatus === 'idle' && !lastSaved && <span className="text-xs text-slate-400">Değişiklik bekleniyor...</span>}
         </div>
       </div>
 
@@ -337,19 +436,34 @@ const BusinessSettings = () => {
                 {activeTab === 'general' && (
                     <div className="space-y-8 animate-fade-in-up">
                         <div className="grid md:grid-cols-2 gap-8">
-                            <LockableInput label="İşletme / Marka Adı" name="businessName" value={formData.businessName} onChange={handleChange} placeholder="Örn: Pax Pilates" />
-                            <LockablePhoneInput label="Telefon Numarası" value={formData.phone} onChange={val => setFormData({...formData, phone: val})} />
+                            <LockableInput label="İşletme / Marka Adı" name="businessName" value={formData.businessName} onChange={handleChange} onSave={triggerSave} placeholder="Örn: Pax Pilates" />
+                            <LockablePhoneInput label="Telefon Numarası" value={formData.phone} onChange={val => setFormData({...formData, phone: val})} onSave={triggerSave} />
                         </div>
-                        <LockableTextarea label="Adres ve Konum" name="branches" value={formData.branches} onChange={handleChange} placeholder="Adres..." height="h-24"/>
-                        <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 group relative hover:border-blue-200"><div className="flex justify-between mb-4"><h4 className="label mb-0">Çalışma Saatleri</h4><Lock size={14} className="text-slate-400 group-hover:text-blue-500"/></div><div className="space-y-2 opacity-70 group-hover:opacity-100 transition-opacity">{Object.keys(schedule).map(day => (<div key={day} className="flex gap-4 items-center bg-white p-2 rounded-lg border border-slate-200"><span className="w-20 font-bold capitalize text-xs">{daysMap[day]}</span><input type="checkbox" checked={schedule[day]?.open} onChange={(e)=>handleScheduleChange(day,'open',e.target.checked)}/><input type="time" value={schedule[day]?.start||'09:00'} onChange={(e)=>handleScheduleChange(day,'start',e.target.value)} className="border rounded px-1 text-xs"/><input type="time" value={schedule[day]?.end||'18:00'} onChange={(e)=>handleScheduleChange(day,'end',e.target.value)} className="border rounded px-1 text-xs"/></div>))}</div></div>
+                        <LockableTextarea label="Adres ve Konum" name="branches" value={formData.branches} onChange={handleChange} onSave={triggerSave} placeholder="Adres..." height="h-24"/>
+                        <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 group relative hover:border-blue-200">
+                            <div className="flex justify-between items-center mb-4">
+                                <h4 className="label mb-0">Çalışma Saatleri</h4>
+                                <button type="button" onClick={triggerSave} className="text-xs bg-white border border-slate-200 px-3 py-1 rounded-lg hover:bg-blue-50 hover:text-blue-600 font-bold flex gap-1 items-center"><Save size={12}/> Saatleri Kaydet</button>
+                            </div>
+                            <div className="space-y-2 opacity-100 transition-opacity">
+                                {Object.keys(schedule).map(day => (
+                                    <div key={day} className="flex gap-4 items-center bg-white p-2 rounded-lg border border-slate-200">
+                                        <span className="w-20 font-bold capitalize text-xs">{daysMap[day]}</span>
+                                        <input type="checkbox" checked={schedule[day]?.open} onChange={(e)=>handleScheduleChange(day,'open',e.target.checked)}/>
+                                        <input type="time" value={schedule[day]?.start||'09:00'} onChange={(e)=>handleScheduleChange(day,'start',e.target.value)} className="border rounded px-1 text-xs"/>
+                                        <input type="time" value={schedule[day]?.end||'18:00'} onChange={(e)=>handleScheduleChange(day,'end',e.target.value)} className="border rounded px-1 text-xs"/>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
                         
                         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            <LockableInput label="Website" name="socialMedia.website" value={formData.socialMedia.website} onChange={handleChange} placeholder="https://" icon={Globe} iconColor="text-slate-500" />
-                            <LockableInput label="Instagram" name="socialMedia.instagram" value={formData.socialMedia.instagram} onChange={handleChange} placeholder="@kullanici" icon={Instagram} iconColor="text-pink-600" />
-                            <LockableInput label="YouTube" name="socialMedia.youtube" value={formData.socialMedia.youtube} onChange={handleChange} placeholder="Kanal Linki" icon={Youtube} iconColor="text-red-600" />
-                            <LockableInput label="LinkedIn" name="socialMedia.linkedin" value={formData.socialMedia.linkedin} onChange={handleChange} placeholder="Profil Linki" icon={Linkedin} iconColor="text-blue-700" />
-                            <LockableInput label="TikTok" name="socialMedia.tiktok" value={formData.socialMedia.tiktok} onChange={handleChange} placeholder="@kullanici" icon={Video} iconColor="text-black" />
-                            <LockableInput label="Diller" name="languages" value={formData.languages} onChange={handleChange} placeholder="TR, EN" />
+                            <LockableInput label="Website" name="socialMedia.website" value={formData.socialMedia.website} onChange={handleChange} onSave={triggerSave} placeholder="https://" icon={Globe} iconColor="text-slate-500" />
+                            <LockableInput label="Instagram" name="socialMedia.instagram" value={formData.socialMedia.instagram} onChange={handleChange} onSave={triggerSave} placeholder="@kullanici" icon={Instagram} iconColor="text-pink-600" />
+                            <LockableInput label="YouTube" name="socialMedia.youtube" value={formData.socialMedia.youtube} onChange={handleChange} onSave={triggerSave} placeholder="Kanal Linki" icon={Youtube} iconColor="text-red-600" />
+                            <LockableInput label="LinkedIn" name="socialMedia.linkedin" value={formData.socialMedia.linkedin} onChange={handleChange} onSave={triggerSave} placeholder="Profil Linki" icon={Linkedin} iconColor="text-blue-700" />
+                            <LockableInput label="TikTok" name="socialMedia.tiktok" value={formData.socialMedia.tiktok} onChange={handleChange} onSave={triggerSave} placeholder="@kullanici" icon={Video} iconColor="text-black" />
+                            <LockableInput label="Diller" name="languages" value={formData.languages} onChange={handleChange} onSave={triggerSave} placeholder="TR, EN" />
                         </div>
                     </div>
                 )}
@@ -363,29 +477,32 @@ const BusinessSettings = () => {
                             const label = isObject ? field.label : key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
                             
                             if (isObject && field.type === 'tags') {
-                                return (<LockableTagInput key={key} label={label} value={formData.serviceDetails?.[key]} suggestions={field.suggestions} onChange={(newTags) => handleServiceDetailChange(key, newTags)}/>);
+                                return (<LockableTagInput key={key} label={label} value={formData.serviceDetails?.[key]} suggestions={field.suggestions} onChange={(newTags) => handleServiceDetailChange(key, newTags)} onSave={triggerSave}/>);
                             }
                             if (isObject && field.type === 'toggle') {
-                                return (<LockableToggle key={key} label={label} value={formData.serviceDetails?.[key] || false} onChange={(val) => handleServiceDetailChange(key, val)} />);
+                                return (<LockableToggle key={key} label={label} value={formData.serviceDetails?.[key] || false} onChange={(val) => handleServiceDetailChange(key, val)} onSave={triggerSave} />);
                             }
-                            return (<LockableTextarea key={key} label={label} value={formData.serviceDetails?.[key] || ''} onChange={(e) => handleServiceDetailChange(key, e.target.value)} placeholder={`${label} detayları...`} height="h-32" />);
+                            return (<LockableTextarea key={key} label={label} value={formData.serviceDetails?.[key] || ''} onChange={(e) => handleServiceDetailChange(key, e.target.value)} onSave={triggerSave} placeholder={`${label} detayları...`} height="h-32" />);
                         })}
                     </div>
                 )}
 
                 {(['staff', 'inventory'].includes(activeTab)) && (
                     <div className="space-y-6 animate-fade-in-up">
-                        <div className="grid md:grid-cols-2 gap-6">{formData.staffOrItems.map((item, index) => (<StaffItemCard key={index} index={index} item={item} onUpdate={updateItem} onRemove={removeItem} />))}</div>
+                        <div className="grid md:grid-cols-2 gap-6">{formData.staffOrItems.map((item, index) => (<StaffItemCard key={index} index={index} item={item} onUpdate={updateItem} onRemove={removeItem} onSave={triggerSave} />))}</div>
                         <button type="button" onClick={addItem} className="dashed-btn py-6 hover:shadow-md"><div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 mb-2 group-hover:scale-110 transition-transform"><Plus size={24}/></div><span className="text-blue-800 font-bold">{currentConfig.labels?.newItemBtn || 'Yeni Ekle'}</span></button>
                     </div>
                 )}
 
-                {activeTab === 'ai' && (<div className="space-y-6 animate-fade-in-up">{formData.faq.map((q, i) => (<div key={i} className="flex gap-4 items-start bg-slate-50 p-4 rounded-xl border border-slate-100 relative"><div className="flex-1 space-y-4"><LockableInput label={`Soru ${i+1}`} value={q.question} onChange={e=>{const n=[...formData.faq];n[i].question=e.target.value;setFormData({...formData,faq:n})}} placeholder="?" /><LockableTextarea label="Cevap" value={q.answer} onChange={e=>{const n=[...formData.faq];n[i].answer=e.target.value;setFormData({...formData,faq:n})}} placeholder="..." height="h-20" /></div><button type="button" onClick={()=>{setFormData({...formData, faq:formData.faq.filter((_,x)=>x!==i)})}} className="text-slate-300 hover:text-red-500 absolute top-4 right-4"><Trash2 size={20}/></button></div>))}<button type="button" onClick={()=>setFormData({...formData, faq:[...formData.faq, {question:'', answer:''}]})} className="dashed-btn"><Plus size={18}/> Soru Ekle</button></div>)}
+                {activeTab === 'ai' && (<div className="space-y-6 animate-fade-in-up">{formData.faq.map((q, i) => (<div key={i} className="flex gap-4 items-start bg-slate-50 p-4 rounded-xl border border-slate-100 relative"><div className="flex-1 space-y-4"><LockableInput label={`Soru ${i+1}`} value={q.question} onChange={e=>{const n=[...formData.faq];n[i].question=e.target.value;setFormData({...formData,faq:n})}} onSave={triggerSave} placeholder="?" /><LockableTextarea label="Cevap" value={q.answer} onChange={e=>{const n=[...formData.faq];n[i].answer=e.target.value;setFormData({...formData,faq:n})}} onSave={triggerSave} placeholder="..." height="h-20" /></div><button type="button" onClick={()=>{setFormData({...formData, faq:formData.faq.filter((_,x)=>x!==i)}); setTimeout(triggerSave, 500);}} className="text-slate-300 hover:text-red-500 absolute top-4 right-4"><Trash2 size={20}/></button></div>))}<button type="button" onClick={()=>setFormData({...formData, faq:[...formData.faq, {question:'', answer:''}]})} className="dashed-btn"><Plus size={18}/> Soru Ekle</button></div>)}
                 
                 {activeTab === 'payment' && (
                     <div className="animate-fade-in-up space-y-8">
-                        <div><label className="label mb-4">Kabul Edilen Ödeme Yöntemleri</label><div className="grid grid-cols-2 md:grid-cols-4 gap-4">{['creditCard', 'transfer', 'pos', 'cash'].map(m => (<label key={m} className={`p-4 border rounded-xl cursor-pointer flex flex-col items-center gap-2 transition-all ${formData.paymentMethods[m] ? 'bg-blue-50 border-blue-500 text-blue-700' : 'bg-white border-slate-200 hover:bg-slate-50'}`}><input type="checkbox" checked={formData.paymentMethods[m]} onChange={e=>setFormData({...formData, paymentMethods: {...formData.paymentMethods, [m]: e.target.checked}})} className="hidden"/><span className="capitalize font-bold text-sm">{m}</span></label>))}</div></div>
-                        <CampaignManager campaigns={formData.campaigns || []} onChange={(newVal) => setFormData(p => ({...p, campaigns: newVal}))} />
+                        <div>
+                            <div className="flex justify-between items-center mb-4"><label className="label mb-0">Kabul Edilen Ödeme Yöntemleri</label><button onClick={triggerSave} className="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded">Seçimi Kaydet</button></div>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">{['creditCard', 'transfer', 'pos', 'cash'].map(m => (<label key={m} className={`p-4 border rounded-xl cursor-pointer flex flex-col items-center gap-2 transition-all ${formData.paymentMethods[m] ? 'bg-blue-50 border-blue-500 text-blue-700' : 'bg-white border-slate-200 hover:bg-slate-50'}`}><input type="checkbox" checked={formData.paymentMethods[m]} onChange={e=>{setFormData({...formData, paymentMethods: {...formData.paymentMethods, [m]: e.target.checked}}); }} className="hidden"/><span className="capitalize font-bold text-sm">{m}</span></label>))}</div>
+                        </div>
+                        <CampaignManager campaigns={formData.campaigns || []} onChange={(newVal) => setFormData(p => ({...p, campaigns: newVal}))} onSave={triggerSave} />
                     </div>
                 )}
             </div>
