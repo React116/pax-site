@@ -1,15 +1,27 @@
-// src/utils/businessConfig.js
-
 import { 
   Leaf, Stethoscope, Gavel, Scissors, Utensils, 
-  Car, Home, Briefcase, Smile, PenTool, Coffee,
-  Dna, Hotel, Calculator, ShoppingBag
+  Car, Home, Calculator, ShoppingBag, 
+  Smile, Dna, Flower2
 } from 'lucide-react';
+
+// Pilates için Önerilen Ders Listesi
+const PILATES_SUGGESTIONS = [
+  "Reformer Beginner / Intermediate",
+  "Klinik Pilates",
+  "Hamile Pilatesi",
+  "Jumpboard Cardio Reformer",
+  "Postnatal Recovery Pilates",
+  "Mat Group Pilates",
+  "Power & HIIT Pilates",
+  "Skolyoz / Duruş Düzeltici Pilates",
+  "Private Reformer",
+  "Barre + Reformer Fusion"
+];
 
 export const BUSINESS_TYPES = {
   // --- 1. SAĞLIK & GÜZELLİK ---
   pilates: {
-    label: "Pilates / Yoga Stüdyosu",
+    label: "Pilates Stüdyosu",
     icon: Leaf,
     tabs: ['services', 'staff', 'health'],
     labels: {
@@ -18,7 +30,32 @@ export const BUSINESS_TYPES = {
       newItemBtn: "Yeni Eğitmen Ekle"
     },
     fields: {
-      services: ['classTypes', 'classFormat', 'duration', 'freeTrial', 'onlineService'],
+      // classTypes alanını özel bir obje olarak tanımlıyoruz ki frontend bunu tanısın
+      services: [
+        { key: 'classTypes', type: 'tags', suggestions: PILATES_SUGGESTIONS, label: 'Ders Türleri (Etiketler)' },
+        'classFormat', 
+        'duration', 
+        'freeTrial', 
+        'onlineService'
+      ],
+      staffSchema: { name: '', title: '', desc: '' }
+    }
+  },
+  yoga: {
+    label: "Yoga Stüdyosu",
+    icon: Flower2, // Yoga için yeni ikon
+    tabs: ['services', 'staff', 'health'],
+    labels: {
+      staff: "Eğitmenler / Yogi",
+      services: "Ders Akışları",
+      newItemBtn: "Eğitmen Ekle"
+    },
+    fields: {
+      services: [
+        { key: 'classTypes', type: 'tags', suggestions: ['Vinyasa Yoga', 'Hatha Yoga', 'Yin Yoga', 'Kundalini', 'Hamile Yogası'], label: 'Yoga Türleri' },
+        'meditation', 
+        'duration'
+      ],
       staffSchema: { name: '', title: '', desc: '' }
     }
   },
@@ -66,7 +103,7 @@ export const BUSINESS_TYPES = {
   },
   dietitian: {
     label: "Diyetisyen / Beslenme",
-    icon: ShoppingBag, // Temsili
+    icon: ShoppingBag,
     tabs: ['services', 'health'],
     labels: {
       staff: "Diyetisyenler",
@@ -126,20 +163,20 @@ export const BUSINESS_TYPES = {
   rentacar: {
     label: "Rent a Car / Araç Kiralama",
     icon: Car,
-    tabs: ['inventory', 'rules'], // Özel tab isimleri
+    tabs: ['inventory', 'rules'],
     labels: {
       inventory: "Araç Filosu",
       rules: "Kiralama Koşulları",
       newItemBtn: "Yeni Araç Ekle"
     },
     fields: {
-      inventory: [], // Inventory özel bir liste yapısı kullanacak
+      inventory: [],
       rules: ['deposit', 'minAge', 'licenseYear', 'kmLimit']
     }
   },
   hotel: {
     label: "Otel / Villa Kiralama",
-    icon: Hotel,
+    icon: Hotel, // Lucide-react'ten import ettiğinden emin ol
     tabs: ['inventory', 'rules'],
     labels: {
       inventory: "Odalar / Villalar",
