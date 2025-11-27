@@ -9,15 +9,11 @@ import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
 import { BUSINESS_TYPES } from '../utils/businessConfig';
 
-/* --- AYNI KALAN BİLEŞENLER --- */
+/* --- BİLEŞENLER AYNI --- */
 const LockableInput = ({ label, value, onChange, onSave, name, placeholder, type = "text", className = "", icon: Icon, iconColor = "text-slate-400" }) => {
   const [isLocked, setIsLocked] = useState(true);
   const inputRef = useRef(null);
-  const handleToggleLock = () => {
-    if (!isLocked && onSave) onSave();
-    else setTimeout(() => inputRef.current?.focus(), 100);
-    setIsLocked(!isLocked);
-  };
+  const handleToggleLock = () => { if (!isLocked && onSave) onSave(); else setTimeout(() => inputRef.current?.focus(), 100); setIsLocked(!isLocked); };
   return (
     <div className={`relative group ${className}`}>
       {label && <label className="label">{label}</label>}
@@ -194,6 +190,11 @@ const BusinessSettings = () => {
         }
 
         let finalServiceDetails = data.serviceDetails || {};
+        // String olarak gelirse parse et
+        if (typeof finalServiceDetails === 'string') {
+           try { finalServiceDetails = JSON.parse(finalServiceDetails); } catch(e) { finalServiceDetails = {}; }
+        }
+        
         if (Object.keys(finalServiceDetails).length === 0 && data.classTypes) {
              finalServiceDetails.classTypes = Array.isArray(data.classTypes) ? data.classTypes : data.classTypes.split(','); 
         }
@@ -219,7 +220,7 @@ const BusinessSettings = () => {
     } catch (err) { console.error("Fetch Error:", err); }
   };
 
-  // --- GÜÇLENDİRİLMİŞ KAYDETME FONKSİYONU ---
+  // --- DÜZELTİLMİŞ KAYDETME FONKSİYONU ---
   const triggerSave = async () => {
     setSaveStatus('saving');
     setErrorMessage('');
@@ -231,14 +232,23 @@ const BusinessSettings = () => {
         return;
     }
 
-    // Veriyi hazırla
+    // --- KRİTİK DÜZELTME: Veri Formatlama ---
+    // Backend "Cast to string failed" diyorsa, complex objeleri string'e çevirip göndermeliyiz.
+    
+    // Service Details'i string'e çevir (Eğer obje ise)
+    let processedServiceDetails = formData.serviceDetails;
+    if (typeof processedServiceDetails === 'object' && processedServiceDetails !== null) {
+        processedServiceDetails = JSON.stringify(processedServiceDetails);
+    }
+
     const finalData = { 
         ...formData, 
         businessType: selectedType, 
-        workingHours: JSON.stringify(schedule) 
+        workingHours: JSON.stringify(schedule),
+        serviceDetails: processedServiceDetails // Düzeltilmiş format
     };
 
-    console.log("Sunucuya giden veri:", finalData);
+    console.log("Sunucuya giden formatlanmış veri:", finalData);
 
     try {
         const apiUrl = import.meta.env.VITE_API_URL || "https://pax-backend-9m4q.onrender.com/api";
@@ -256,7 +266,6 @@ const BusinessSettings = () => {
             setLastSaved(new Date());
             setTimeout(() => setSaveStatus('idle'), 3000);
         } else {
-            // Hata mesajını yakala
             let errorText = await res.text();
             try { 
                 const errorJson = JSON.parse(errorText);
@@ -264,16 +273,15 @@ const BusinessSettings = () => {
             } catch(e) {}
             
             console.error("Backend Error:", res.status, errorText);
-            setErrorMessage(`Hata: ${res.status} - ${errorText.substring(0, 30)}...`);
+            setErrorMessage(`Sunucu Hatası: ${errorText.substring(0, 40)}...`);
             setSaveStatus('error');
         }
     } catch (e) {
         console.error("Network Error:", e);
-        setErrorMessage('Sunucuya ulaşılamadı.');
+        setErrorMessage('Bağlantı hatası.');
         setSaveStatus('error');
     }
   };
-
 
   // --- HANDLERS ---
   const handleChange = (e) => {
@@ -311,7 +319,7 @@ const BusinessSettings = () => {
            <p className="text-slate-500 text-sm mt-1">Sektörünüzü seçin ve bilgilerinizi yönetin.</p>
         </div>
         
-        {/* KAYIT DURUM GÖSTERGESİ (DETAYLI) */}
+        {/* KAYIT DURUM GÖSTERGESİ */}
         <div className={`flex items-center gap-3 px-4 py-2 rounded-full border shadow-sm transition-all ${saveStatus === 'error' ? 'bg-red-50 border-red-200' : 'bg-white border-slate-100'}`}>
            {saveStatus === 'saving' && (
               <>
