@@ -22,11 +22,11 @@ const DnDCalendar = withDragAndDrop(Calendar);
 
 // Renkler ve stiller
 const EVENT_TYPES = {
-  private: { label: 'Özel Ders', color: 'bg-purple-100 text-purple-800 border-purple-300' },
-  reformer: { label: 'Reformer', color: 'bg-blue-100 text-blue-800 border-blue-300' },
-  yoga: { label: 'Yoga', color: 'bg-orange-100 text-orange-800 border-orange-300' },
-  group: { label: 'Grup Ders', color: 'bg-emerald-100 text-emerald-800 border-emerald-300' },
-  online: { label: 'Online', color: 'bg-slate-100 text-slate-800 border-slate-300' }
+  private: { label: 'Özel Ders', color: 'bg-purple-100 text-purple-900 border-purple-400' },
+  reformer: { label: 'Reformer', color: 'bg-blue-100 text-blue-900 border-blue-400' },
+  yoga: { label: 'Yoga', color: 'bg-orange-100 text-orange-900 border-orange-400' },
+  group: { label: 'Grup Ders', color: 'bg-emerald-100 text-emerald-900 border-emerald-400' },
+  online: { label: 'Online', color: 'bg-slate-100 text-slate-900 border-slate-400' }
 };
 
 const CalendarPage = () => {
@@ -34,7 +34,7 @@ const CalendarPage = () => {
   const [events, setEvents] = useState([]);
   const [instructors, setInstructors] = useState([]);
   const [selectedEvent, setSelectedEvent] = useState(null);
-  const [view, setView] = useState(Views.WEEK); // Haftalık daha detaylı görünür
+  const [view, setView] = useState(Views.WEEK); // Haftalık ile başlasın
   const [date, setDate] = useState(new Date());
   
   // UI States
@@ -247,26 +247,27 @@ const CalendarPage = () => {
     );
   };
 
-  // --- GÖRSEL İYİLEŞTİRİLMİŞ EVENT KARTI ---
+  // --- GÖRSEL İYİLEŞTİRİLMİŞ EVENT KARTI (Haftalık Görünüm İçin Fix) ---
   const CustomEvent = ({ event }) => {
     const style = EVENT_TYPES[event.type || 'private'] || EVENT_TYPES.private;
     return (
-      <div className={`h-full w-full px-2 py-1 rounded-md border-l-4 shadow-sm flex flex-col justify-start overflow-hidden transition-all hover:brightness-95 ${style.color} ${style.border}`}>
+      // "whitespace-normal" ekledik: Metinler alt satıra geçsin
+      // "flex flex-col" ve "h-full" ile kutuyu dolduruyoruz
+      <div className={`h-full w-full px-1.5 py-1 rounded-md border-l-4 shadow-sm flex flex-col justify-start overflow-hidden transition-all hover:brightness-95 ${style.color} ${style.border}`}>
         
-        {/* Üst Satır: Saat ve Salon */}
-        <div className="flex justify-between items-center text-[10px] opacity-80 mb-0.5 font-medium">
+        {/* Üst Satır: Saat (Haftalık görünümde bazen alan dar olur, sadece saati gösterelim) */}
+        <div className="flex justify-between items-center text-[10px] opacity-80 mb-0.5 font-medium leading-none">
            <span>{format(event.start, 'HH:mm')}</span>
-           <span className="truncate max-w-[50px] hidden sm:inline">{event.room}</span>
         </div>
 
-        {/* Başlık: Müşteri Adı (Kalın ve Okunaklı) */}
-        <div className="font-bold text-xs leading-tight line-clamp-2 break-words mb-auto">
+        {/* Başlık: Müşteri Adı (Alt satıra geçebilir) */}
+        <div className="font-bold text-xs leading-tight break-words whitespace-normal mb-auto">
             {event.title}
         </div>
 
-        {/* Alt: Eğitmen */}
+        {/* Alt: Eğitmen (Sığarsa göster) */}
         <div className="text-[9px] opacity-90 mt-1 flex items-center gap-1 truncate">
-           <User size={10} className="shrink-0" /> {event.instructor}
+           <User size={10} className="shrink-0" /> {event.instructor.split(' ')[0]}
         </div>
       </div>
     );
@@ -362,7 +363,7 @@ const CalendarPage = () => {
         </AnimatePresence>
       </div>
 
-      {/* --- MODAL: ONAY PENCERESİ (CONFIRMATION) --- */}
+      {/* --- MODAL: ONAY --- */}
       {dragConfirm && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
             <motion.div initial={{scale: 0.9, opacity:0}} animate={{scale:1, opacity:1}} className="bg-white rounded-3xl shadow-2xl p-6 max-w-sm w-full border border-slate-200 text-center">
@@ -450,7 +451,16 @@ const CalendarPage = () => {
         .modern-calendar .rbc-off-range-bg { background: #f8fafc; }
         .modern-calendar .rbc-today { background: #eff6ff; }
         .modern-calendar .rbc-time-content { border-top: 1px solid #f1f5f9; }
-        .rbc-event { background: transparent !important; padding: 0 !important; border: none !important; outline: none !important; }
+        /* Hafta/Gün görünümleri için kritik stil ayarı */
+        .rbc-event { 
+            background: transparent !important; 
+            padding: 0 !important; 
+            border: none !important; 
+            outline: none !important; 
+            box-shadow: none !important;
+        }
+        .rbc-event-label { display: none !important; } /* Varsayılan saati gizle, bizimki daha şık */
+        .rbc-time-slot { min-height: 20px; }
       `}</style>
     </div>
   );
