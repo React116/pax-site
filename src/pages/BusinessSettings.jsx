@@ -9,7 +9,7 @@ import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
 import { BUSINESS_TYPES } from '../utils/businessConfig';
 
-/* --- BİLEŞENLER AYNI --- */
+/* --- BİLEŞENLER (STANDART) --- */
 const LockableInput = ({ label, value, onChange, onSave, name, placeholder, type = "text", className = "", icon: Icon, iconColor = "text-slate-400" }) => {
   const [isLocked, setIsLocked] = useState(true);
   const inputRef = useRef(null);
@@ -189,38 +189,41 @@ const BusinessSettings = () => {
              try { setSchedule(JSON.parse(data.workingHours)); } catch(e) { console.error("Schedule Parse Error", e); }
         }
 
+        // String olarak gelen verileri parse et (Eğer string ise)
         let finalServiceDetails = data.serviceDetails || {};
-        // String olarak gelirse parse et
-        if (typeof finalServiceDetails === 'string') {
-           try { finalServiceDetails = JSON.parse(finalServiceDetails); } catch(e) { finalServiceDetails = {}; }
-        }
+        if (typeof finalServiceDetails === 'string') { try { finalServiceDetails = JSON.parse(finalServiceDetails); } catch(e) {} }
         
-        if (Object.keys(finalServiceDetails).length === 0 && data.classTypes) {
-             finalServiceDetails.classTypes = Array.isArray(data.classTypes) ? data.classTypes : data.classTypes.split(','); 
-        }
+        let finalSocialMedia = data.socialMedia || {};
+        if (typeof finalSocialMedia === 'string') { try { finalSocialMedia = JSON.parse(finalSocialMedia); } catch(e) {} }
 
-        let finalCampaigns = [];
-        if (Array.isArray(data.campaigns)) finalCampaigns = data.campaigns;
-        else if (typeof data.campaigns === 'string' && data.campaigns.length > 0) {
-            finalCampaigns = [{ name: data.campaigns, discount: '0' }];
-        }
+        let finalPaymentMethods = data.paymentMethods || {};
+        if (typeof finalPaymentMethods === 'string') { try { finalPaymentMethods = JSON.parse(finalPaymentMethods); } catch(e) {} }
 
-        const defaultSocial = { website: '', instagram: '', youtube: '', linkedin: '', tiktok: '' };
-        const mergedSocial = { ...defaultSocial, ...(data.socialMedia || {}) };
+        let finalFaq = data.faq || [];
+        if (typeof finalFaq === 'string') { try { finalFaq = JSON.parse(finalFaq); } catch(e) {} }
 
+        let finalCampaigns = data.campaigns || [];
+        if (typeof finalCampaigns === 'string') { try { finalCampaigns = JSON.parse(finalCampaigns); } catch(e) {} }
+
+        let finalStaff = data.staffOrItems || [];
+        if (typeof finalStaff === 'string') { try { finalStaff = JSON.parse(finalStaff); } catch(e) {} }
+        
+        // Veriyi state'e yerleştir
         setFormData(prev => ({ 
             ...prev, ...data, 
             businessType: safeType,
-            staffOrItems: (data.staffOrItems?.length > 0) ? data.staffOrItems : (data.instructors?.map(i => ({ name: i.name, title: i.specialty, desc: i.bio })) || []),
+            staffOrItems: finalStaff,
             serviceDetails: finalServiceDetails,
             campaigns: finalCampaigns,
-            socialMedia: mergedSocial
+            socialMedia: finalSocialMedia,
+            paymentMethods: finalPaymentMethods,
+            faq: finalFaq
         }));
       }
     } catch (err) { console.error("Fetch Error:", err); }
   };
 
-  // --- DÜZELTİLMİŞ KAYDETME FONKSİYONU ---
+  // --- %100 ÇÖZÜM: HER ŞEYİ STRING'E ÇEVİRİP GÖNDERME ---
   const triggerSave = async () => {
     setSaveStatus('saving');
     setErrorMessage('');
@@ -228,27 +231,31 @@ const BusinessSettings = () => {
     const token = localStorage.getItem('token');
     if (!token) {
         setSaveStatus('error');
-        setErrorMessage('Giriş yapılmamış (Token yok).');
+        setErrorMessage('Giriş yapılmamış.');
         return;
     }
 
-    // --- KRİTİK DÜZELTME: Veri Formatlama ---
-    // Backend "Cast to string failed" diyorsa, complex objeleri string'e çevirip göndermeliyiz.
+    // GÖNDERİLECEK VERİYİ HAZIRLA (KOPYASINI AL)
+    const payload = { ...formData };
     
-    // Service Details'i string'e çevir (Eğer obje ise)
-    let processedServiceDetails = formData.serviceDetails;
-    if (typeof processedServiceDetails === 'object' && processedServiceDetails !== null) {
-        processedServiceDetails = JSON.stringify(processedServiceDetails);
-    }
+    // 1. İşletme türü ve Çalışma Saatleri
+    payload.businessType = selectedType;
+    payload.workingHours = JSON.stringify(schedule);
 
-    const finalData = { 
-        ...formData, 
-        businessType: selectedType, 
-        workingHours: JSON.stringify(schedule),
-        serviceDetails: processedServiceDetails // Düzeltilmiş format
-    };
+    // 2. TÜM KARMAŞIK OBJELERİ STRING'E ÇEVİR (BACKEND BUNU BEKLİYOR!)
+    // "Cast to string failed" hatası, backend bu alanları TEXT olarak beklediği için çıkıyor.
+    // Bu yüzden hepsini JSON.stringify ile paketliyoruz.
+    
+    if (typeof payload.serviceDetails === 'object') payload.serviceDetails = JSON.stringify(payload.serviceDetails);
+    if (typeof payload.socialMedia === 'object') payload.socialMedia = JSON.stringify(payload.socialMedia);
+    if (typeof payload.paymentMethods === 'object') payload.paymentMethods = JSON.stringify(payload.paymentMethods);
+    
+    // Dizileri de (Array) string'e çevir
+    if (Array.isArray(payload.staffOrItems)) payload.staffOrItems = JSON.stringify(payload.staffOrItems);
+    if (Array.isArray(payload.faq)) payload.faq = JSON.stringify(payload.faq);
+    if (Array.isArray(payload.campaigns)) payload.campaigns = JSON.stringify(payload.campaigns);
 
-    console.log("Sunucuya giden formatlanmış veri:", finalData);
+    console.log("Sunucuya Gönderilen PAKET:", payload);
 
     try {
         const apiUrl = import.meta.env.VITE_API_URL || "https://pax-backend-9m4q.onrender.com/api";
@@ -258,7 +265,7 @@ const BusinessSettings = () => {
                 'Content-Type': 'application/json', 
                 'Authorization': `Bearer ${token}` 
             }, 
-            body: JSON.stringify(finalData) 
+            body: JSON.stringify(payload) 
         });
         
         if (res.ok) {
@@ -272,13 +279,13 @@ const BusinessSettings = () => {
                 errorText = errorJson.message || errorText;
             } catch(e) {}
             
-            console.error("Backend Error:", res.status, errorText);
-            setErrorMessage(`Sunucu Hatası: ${errorText.substring(0, 40)}...`);
+            console.error("Backend Hatası:", errorText);
+            setErrorMessage(`Sunucu Hatası: ${errorText.substring(0, 50)}...`);
             setSaveStatus('error');
         }
     } catch (e) {
-        console.error("Network Error:", e);
-        setErrorMessage('Bağlantı hatası.');
+        console.error("Ağ Hatası:", e);
+        setErrorMessage('Sunucuya ulaşılamadı.');
         setSaveStatus('error');
     }
   };
