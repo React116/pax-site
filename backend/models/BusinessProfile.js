@@ -3,8 +3,7 @@ const mongoose = require('mongoose');
 const BusinessProfileSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   
-  // --- TEMEL BİLGİLER ---
-  businessType: { type: String, default: 'pilates' }, // Varsayılan pilates
+  businessType: { type: String, default: 'pilates' },
   businessName: { type: String, default: '' },
   branches: { type: String, default: '' },
   phone: { type: String, default: '' },
@@ -16,25 +15,18 @@ const BusinessProfileSchema = new mongoose.Schema({
     facebook: { type: String, default: '' }
   },
   
-  // Çalışma saatleri JSON string olarak tutulur
   workingHours: { type: String, default: '{}' }, 
   languages: { type: String, default: '' },
-
-  // --- DİNAMİK ALANLAR (Sektöre göre değişir) ---
-  
-  // 1. Hizmet Detayları (classTypes, treatmentTypes, menu vb. buraya gelir)
   serviceDetails: { type: mongoose.Schema.Types.Mixed, default: {} }, 
   
-  // 2. Liste Verileri (Eğitmenler, Doktorlar, Araçlar, Odalar buraya gelir)
   staffOrItems: [{
-    name: String, // İsim veya Araç Modeli
-    title: String, // Ünvan veya Plaka
-    desc: String, // Biyografi veya Özellikler
-    image: String,
-    price: String
+    name: { type: String, default: '' },
+    title: { type: String, default: '' },
+    desc: { type: String, default: '' },
+    image: { type: String, default: '' },
+    price: { type: String, default: '' }
   }],
 
-  // Eski yapı bozulmasın diye tutuyoruz (Migration için)
   instructors: [{
     name: String,
     specialty: String,
@@ -43,16 +35,19 @@ const BusinessProfileSchema = new mongoose.Schema({
     bio: String
   }],
 
-  // --- GENEL AYARLAR ---
-  requiredInfo: { type: String, default: '' }, // Rezervasyonda istenenler
+  requiredInfo: { type: String, default: '' },
   healthProtocols: { type: String, default: '' },
   
   faq: [{
-    question: String,
-    answer: String
+    question: { type: String, default: '' },
+    answer: { type: String, default: '' }
   }],
 
-  campaigns: { type: String, default: '' },
+  // --- BURASI KESİNLİKLE BÖYLE OLMALI ---
+  campaigns: [{
+    name: { type: String, default: '' },
+    discount: { type: String, default: '' }
+  }],
   
   paymentMethods: {
     creditCard: { type: Boolean, default: false },
@@ -63,6 +58,6 @@ const BusinessProfileSchema = new mongoose.Schema({
 
   isActive: { type: Boolean, default: false }
 
-}, { timestamps: true, strict: false }); // strict:false ile esneklik sağladık
+}, { timestamps: true, strict: false });
 
 module.exports = mongoose.model('BusinessProfile', BusinessProfileSchema);
