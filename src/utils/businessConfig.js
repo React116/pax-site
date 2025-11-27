@@ -1,7 +1,7 @@
 import { 
   Leaf, Stethoscope, Gavel, Scissors, Utensils, 
   Car, Home, Calculator, ShoppingBag, 
-  Smile, Dna, Flower2
+  Smile, Activity, Briefcase
 } from 'lucide-react';
 
 // Pilates için Önerilen Ders Listesi
@@ -18,6 +18,18 @@ const PILATES_SUGGESTIONS = [
   "Barre + Reformer Fusion"
 ];
 
+// Yoga için Önerilen Ders Listesi
+const YOGA_SUGGESTIONS = [
+  "Vinyasa Flow",
+  "Hatha Yoga",
+  "Yin Yoga",
+  "Kundalini Yoga",
+  "Hamile Yogası",
+  "Meditation & Breathwork",
+  "Ashtanga Yoga",
+  "Power Yoga"
+];
+
 export const BUSINESS_TYPES = {
   // --- 1. SAĞLIK & GÜZELLİK ---
   pilates: {
@@ -30,7 +42,6 @@ export const BUSINESS_TYPES = {
       newItemBtn: "Yeni Eğitmen Ekle"
     },
     fields: {
-      // classTypes alanını özel bir obje olarak tanımlıyoruz ki frontend bunu tanısın
       services: [
         { key: 'classTypes', type: 'tags', suggestions: PILATES_SUGGESTIONS, label: 'Ders Türleri (Etiketler)' },
         'classFormat', 
@@ -43,7 +54,7 @@ export const BUSINESS_TYPES = {
   },
   yoga: {
     label: "Yoga Stüdyosu",
-    icon: Flower2, // Yoga için yeni ikon
+    icon: Activity, // Flower2 yerine Activity kullandık (Daha güvenli)
     tabs: ['services', 'staff', 'health'],
     labels: {
       staff: "Eğitmenler / Yogi",
@@ -52,7 +63,7 @@ export const BUSINESS_TYPES = {
     },
     fields: {
       services: [
-        { key: 'classTypes', type: 'tags', suggestions: ['Vinyasa Yoga', 'Hatha Yoga', 'Yin Yoga', 'Kundalini', 'Hamile Yogası'], label: 'Yoga Türleri' },
+        { key: 'classTypes', type: 'tags', suggestions: YOGA_SUGGESTIONS, label: 'Yoga Türleri' },
         'meditation', 
         'duration'
       ],
@@ -89,7 +100,7 @@ export const BUSINESS_TYPES = {
   },
   aesthetic: {
     label: "Estetik / Güzellik Merkezi",
-    icon: Dna,
+    icon: Smile, // Dna yerine Smile (Standart)
     tabs: ['services', 'staff', 'health'],
     labels: {
       staff: "Uzmanlar / Doktorlar",
@@ -176,7 +187,7 @@ export const BUSINESS_TYPES = {
   },
   hotel: {
     label: "Otel / Villa Kiralama",
-    icon: Hotel, // Lucide-react'ten import ettiğinden emin ol
+    icon: Home, 
     tabs: ['inventory', 'rules'],
     labels: {
       inventory: "Odalar / Villalar",
