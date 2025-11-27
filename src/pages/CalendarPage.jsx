@@ -20,12 +20,13 @@ const locales = { 'tr': tr };
 const localizer = dateFnsLocalizer({ format, parse, startOfWeek, getDay, locales });
 const DnDCalendar = withDragAndDrop(Calendar);
 
+// Renkler ve stiller
 const EVENT_TYPES = {
-  private: { label: 'Özel Ders', color: 'bg-purple-100 text-purple-700 border-purple-200' },
-  reformer: { label: 'Reformer', color: 'bg-blue-100 text-blue-700 border-blue-200' },
-  yoga: { label: 'Yoga', color: 'bg-orange-100 text-orange-700 border-orange-200' },
-  group: { label: 'Grup Ders', color: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
-  online: { label: 'Online', color: 'bg-slate-100 text-slate-700 border-slate-200' }
+  private: { label: 'Özel Ders', color: 'bg-purple-100 text-purple-800 border-purple-300' },
+  reformer: { label: 'Reformer', color: 'bg-blue-100 text-blue-800 border-blue-300' },
+  yoga: { label: 'Yoga', color: 'bg-orange-100 text-orange-800 border-orange-300' },
+  group: { label: 'Grup Ders', color: 'bg-emerald-100 text-emerald-800 border-emerald-300' },
+  online: { label: 'Online', color: 'bg-slate-100 text-slate-800 border-slate-300' }
 };
 
 const CalendarPage = () => {
@@ -33,7 +34,7 @@ const CalendarPage = () => {
   const [events, setEvents] = useState([]);
   const [instructors, setInstructors] = useState([]);
   const [selectedEvent, setSelectedEvent] = useState(null);
-  const [view, setView] = useState(Views.MONTH); // Varsayılan Aylık Görünüm
+  const [view, setView] = useState(Views.WEEK); // Haftalık daha detaylı görünür
   const [date, setDate] = useState(new Date());
   
   // UI States
@@ -92,33 +93,24 @@ const CalendarPage = () => {
   const handleNavigate = useCallback((newDate) => setDate(newDate), []);
   const handleViewChange = useCallback((newView) => setView(newView), []);
 
-  // --- 3. SÜRÜKLE & BIRAK (DÜZELTİLDİ: AYLIK SENKRONİZASYON) ---
+  // --- 3. SÜRÜKLE & BIRAK ---
   const onEventDropRequest = ({ event, start, end }) => {
-    // Drop işlemi talep edildiğinde onay modalını aç
-    // Not: Aylık görünümde sadece Tarih değişir, saat korunur.
     setDragConfirm({ event, start, end });
   };
 
   const confirmEventDrop = async () => {
     if (!dragConfirm) return;
     const { event, start, end } = dragConfirm;
-
-    // 1. Yeni obje oluştur (Yeni tarihleri bas)
-    // Date objesi olduklarından emin oluyoruz
     const newStart = new Date(start);
     const newEnd = new Date(end);
     
     const updatedEvent = { ...event, start: newStart, end: newEnd };
-
-    // 2. Ana Listeyi güncelle
     setEvents(prevEvents => prevEvents.map(e => e.id === event.id ? updatedEvent : e));
 
-    // 3. SEÇİLİ ETKİNLİĞİ GÜNCELLE (FIX: Aylık görünümde detay panelini güncelle)
     if (selectedEvent && selectedEvent.id === event.id) {
         setSelectedEvent(updatedEvent);
     }
 
-    // 4. Backend'e kaydet
     try {
       await fetch(`${BASE_URL}/calendar/${event.id}`, {
         method: 'PUT',
@@ -130,9 +122,7 @@ const CalendarPage = () => {
     setDragConfirm(null);
   };
 
-  const cancelEventDrop = () => {
-    setDragConfirm(null);
-  };
+  const cancelEventDrop = () => setDragConfirm(null);
 
   // --- 4. KAYDETME ---
   const handleSave = async (e) => {
@@ -170,7 +160,6 @@ const CalendarPage = () => {
     } catch (err) { console.error(err); }
   };
 
-  // --- YARDIMCILAR ---
   const resetForm = () => {
     setFormData({ id: null, title: '', start: '', end: '', type: 'private', instructor: '', room: 'Ana Salon', desc: '', status: 'confirmed' });
     setIsEditMode(false);
@@ -182,12 +171,10 @@ const CalendarPage = () => {
     now.setMinutes(now.getMinutes() > 30 ? 60 : 30);
     now.setSeconds(0);
     const oneHourLater = new Date(now.getTime() + 60*60*1000);
-    
     const toLocalISO = (d) => {
        const offset = d.getTimezoneOffset() * 60000;
        return new Date(d.getTime() - offset).toISOString().slice(0, 16);
     };
-    
     setFormData(prev => ({ ...prev, start: toLocalISO(now), end: toLocalISO(oneHourLater) }));
     setShowModal(true);
   };
@@ -208,12 +195,10 @@ const CalendarPage = () => {
     return events.filter(e => e.type === filterType);
   }, [events, filterType]);
 
-  // --- UI COMPONENTS ---
   const CustomToolbar = (toolbar) => {
     const goToBack = () => toolbar.onNavigate(Navigate.PREVIOUS);
     const goToNext = () => toolbar.onNavigate(Navigate.NEXT);
     const goToCurrent = () => toolbar.onNavigate(Navigate.TODAY);
-
     const label = () => (
         <span className="text-sm font-bold text-slate-700 min-w-[140px] text-center select-none cursor-pointer" onClick={goToCurrent}>
           {format(toolbar.date, view === 'day' ? 'd MMMM yyyy' : 'MMMM yyyy', { locale: tr }).toUpperCase()}
@@ -227,7 +212,6 @@ const CalendarPage = () => {
            {label()}
            <button onClick={goToNext} className="p-2 hover:bg-slate-100 rounded-lg text-slate-500 transition-colors"><ChevronRight size={18}/></button>
         </div>
-
         <div className="flex bg-slate-100 p-1 rounded-xl">
            {['month', 'week', 'day'].map((v) => (
              <button key={v} onClick={() => toolbar.onView(v)} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${toolbar.view === v ? 'bg-white text-[#001F54] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
@@ -235,7 +219,6 @@ const CalendarPage = () => {
              </button>
            ))}
         </div>
-
         <div className="flex gap-2 items-center relative z-20">
             <div className="relative">
                 <button onClick={() => setIsFilterOpen(!isFilterOpen)} className={`flex items-center gap-2 p-2.5 border rounded-xl text-xs font-bold shadow-sm transition-all ${isFilterOpen ? 'bg-slate-50 border-slate-300 text-[#001F54]' : 'bg-white border-slate-200 text-slate-500'}`}>
@@ -264,21 +247,34 @@ const CalendarPage = () => {
     );
   };
 
+  // --- GÖRSEL İYİLEŞTİRİLMİŞ EVENT KARTI ---
   const CustomEvent = ({ event }) => {
     const style = EVENT_TYPES[event.type || 'private'] || EVENT_TYPES.private;
     return (
-      <div className={`h-full w-full px-2 py-0.5 rounded-md border-l-4 text-[10px] leading-tight shadow-sm overflow-hidden transition-all hover:brightness-95 ${style.color} ${style.border}`}>
-        <div className="font-bold truncate">{event.title}</div>
-        <div className="truncate opacity-80">{event.instructor}</div>
+      <div className={`h-full w-full px-2 py-1 rounded-md border-l-4 shadow-sm flex flex-col justify-start overflow-hidden transition-all hover:brightness-95 ${style.color} ${style.border}`}>
+        
+        {/* Üst Satır: Saat ve Salon */}
+        <div className="flex justify-between items-center text-[10px] opacity-80 mb-0.5 font-medium">
+           <span>{format(event.start, 'HH:mm')}</span>
+           <span className="truncate max-w-[50px] hidden sm:inline">{event.room}</span>
+        </div>
+
+        {/* Başlık: Müşteri Adı (Kalın ve Okunaklı) */}
+        <div className="font-bold text-xs leading-tight line-clamp-2 break-words mb-auto">
+            {event.title}
+        </div>
+
+        {/* Alt: Eğitmen */}
+        <div className="text-[9px] opacity-90 mt-1 flex items-center gap-1 truncate">
+           <User size={10} className="shrink-0" /> {event.instructor}
+        </div>
       </div>
     );
   };
 
-  // --- UI RENDER ---
   return (
     <div className="h-[calc(100vh-40px)] flex gap-6 overflow-hidden relative">
       
-      {/* SOL: TAKVİM */}
       <div className="flex-1 flex flex-col h-full relative z-0">
         <motion.div initial={{opacity:0, y:-10}} animate={{opacity:1, y:0}} className="mb-4 bg-gradient-to-r from-indigo-50 to-blue-50 p-3 rounded-xl border border-blue-100 flex items-center justify-between px-4">
            <div className="flex items-center gap-2 text-sm text-[#001F54]">
@@ -313,12 +309,11 @@ const CalendarPage = () => {
         </div>
       </div>
 
-      {/* SAĞ: DETAY PANELİ */}
       <div className="w-80 hidden xl:flex flex-col gap-4 h-full overflow-y-auto pb-4">
         <AnimatePresence mode="wait">
         {selectedEvent ? (
           <motion.div 
-            key={selectedEvent.id} // Re-render animation
+            key={selectedEvent.id}
             initial={{opacity: 0, x: 20}} animate={{opacity: 1, x: 0}} exit={{opacity: 0, x: 20}}
             className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm"
           >
@@ -336,10 +331,8 @@ const CalendarPage = () => {
             </div>
 
             <div className="space-y-4">
-               {/* FIX: Artık Gün/Ay/Yıl bilgisini de gösteriyoruz */}
                <InfoRow icon={CalendarDays} label="Tarih" value={format(new Date(selectedEvent.start), 'd MMMM yyyy', { locale: tr })} />
                <InfoRow icon={Clock} label="Saat" value={`${format(new Date(selectedEvent.start), 'HH:mm')} - ${format(new Date(selectedEvent.end), 'HH:mm')}`} />
-               
                <InfoRow icon={User} label="Eğitmen" value={selectedEvent.instructor || 'Atanmadı'} />
                <InfoRow icon={MapPin} label="Salon" value={selectedEvent.room || 'Ana Salon'} />
                {selectedEvent.desc && (
@@ -451,7 +444,6 @@ const CalendarPage = () => {
         </div>
       )}
 
-      {/* CSS */}
       <style>{`
         .modern-calendar .rbc-header { padding: 12px 0; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; border-bottom: 1px solid #f1f5f9; }
         .modern-calendar .rbc-day-bg { border-left: 1px solid #f8fafc; }
