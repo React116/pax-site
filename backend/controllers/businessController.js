@@ -1,61 +1,59 @@
 const BusinessProfile = require('../models/BusinessProfile');
 
-// 1. Profil Getirme Fonksiyonu (GET)
+// 1. Profil Getirme
 const getProfile = async (req, res) => {
   try {
     const profile = await BusinessProfile.findOne({ userId: req.user.id });
-    
-    // Profil yoksa boş obje dön
     if (!profile) {
       return res.status(200).json({});
     }
-    
     res.json(profile);
   } catch (err) {
     console.error("Profil Getirme Hatası:", err.message);
-    res.status(500).send('Server Hatası');
+    res.status(500).json({ message: 'Server Hatası: Veri çekilemedi.' });
   }
 };
 
-// 2. Profil Güncelleme Fonksiyonu (PUT) - DEBUG MODU
+// 2. Profil Güncelleme (HATA ÇÖZÜMÜ BURADA)
 const updateProfile = async (req, res) => {
-  // --- KONSOL LOGLARI (Sorunu bulmak için buraya bakacağız) ---
-  console.log("-------------------------------------------------");
-  console.log("📡 GÜNCELLEME İSTEĞİ GELDİ");
-  console.log("👤 İşlem Yapan Kullanıcı ID:", req.user ? req.user.id : 'KULLANICI BULUNAMADI!');
-  
-  // Gelen veriyi detaylı görelim (Hangi alanlar geliyor?)
-  console.log("📦 Frontend'den Gelen Veri:", JSON.stringify(req.body, null, 2)); 
+  console.log("📡 GÜNCELLEME İSTEĞİ:", req.user.id);
 
   try {
-    // Frontend'den gelen verileri al
-    const updates = req.body;
+    const updates = { ...req.body };
 
-    // GÜVENLİK: ID ve Tarih alanlarını gelen veriden temizle
+    // --- GÜVENLİK VE TEMİZLİK ---
     delete updates.userId;
     delete updates._id;
     delete updates.createdAt;
     delete updates.updatedAt;
 
+    // --- KRİTİK DÜZELTME: CAMPAIGNS ---
+    // Eğer frontend'den campaigns geliyorsa ve dizi değilse, boş dizi yap.
+    // Bu, "Cast to embedded failed" hatasını önler.
+    if (updates.campaigns && !Array.isArray(updates.campaigns)) {
+        console.log("⚠️ Uyarı: Campaigns dizi değil, düzeltiliyor...");
+        updates.campaigns = [];
+    }
+
     // Veritabanı İşlemi
     const profile = await BusinessProfile.findOneAndUpdate(
-      { userId: req.user.id }, // Kimi?
-      { $set: updates },       // Neyi?
-      { new: true, upsert: true, runValidators: true } // runValidators: Model kurallarına uymayan veriyi reddet
+      { userId: req.user.id },
+      { $set: updates },
+      { new: true, upsert: true, runValidators: true }
     );
 
-    console.log("✅ BAŞARIYLA KAYDEDİLDİ. Profil ID:", profile._id);
-    console.log("-------------------------------------------------");
-    
+    console.log("✅ Başarıyla Kaydedildi.");
     res.json(profile);
 
   } catch (err) {
-    // HATA VARSA DETAYLI YAZDIR
-    console.error("❌ KAYIT BAŞARISIZ OLDU!");
-    console.error("Hata Detayı:", err); // Hatanın tamamını gör
-    console.log("-------------------------------------------------");
+    console.error("❌ KAYIT HATASI DETAYI:", err);
     
-    res.status(500).send('Server Hatası: ' + err.message);
+    // BURASI DÜZELTİLDİ: Artık düz yazı (send) yerine JSON gönderiyoruz.
+    // Frontend artık "Unexpected token S" hatası vermeyecek, gerçek hatayı gösterecek.
+    res.status(500).json({ 
+        message: 'Kaydedilemedi: ' + (err.message || 'Bilinmeyen sunucu hatası'),
+        error: err.toString()
+    });
   }
 };
 
