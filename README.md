@@ -1,16 +1,56 @@
-# React + Vite
+# Pax Group Global Website
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Modern marketing site and customer portal for Pax Group Global built with React 19 and Vite. The project uses Tailwind CSS for styling, React Router for client-side navigation, and a lightweight language context to power Turkish/English content.
 
-Currently, two official plugins are available:
+## Getting started
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+1. Install dependencies (Node 18+ recommended):
+   ```bash
+   npm install
+   ```
+2. Run the development server with hot reload:
+   ```bash
+   npm run dev
+   ```
+3. Create a production build:
+   ```bash
+   npm run build
+   ```
+4. Preview the production build locally:
+   ```bash
+   npm run preview
+   ```
 
-## React Compiler
+## Project structure
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- `src/App.jsx` – Root layout with navigation, footer, landing content, and route definitions for marketing pages, blog, solutions, pricing, and the dashboard shell.
+- `src/main.jsx` – Vite entry that mounts the app and wraps it with the `LanguageProvider`.
+- `src/LanguageContext.jsx` – Centralized translations and helper hooks for toggling between Turkish (`tr`) and English (`en`).
+- `src/pages` – Dashboard and utility pages (calendar, overview, settings, etc.).
+- `src/layouts/DashboardLayout.jsx` – Sidebar + main content shell used for authenticated routes.
+- `src/components` – Shared UI pieces such as cards, lists, forms, and hero sections.
+- `public/` – Static assets including the logo and localized hero images.
 
-## Expanding the ESLint configuration
+## Routing and authentication
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Client-side routing is handled by `react-router-dom`. Marketing routes (e.g., `/`, `/cozumler`, `/fiyatlar`, `/blog`) are publicly accessible. Dashboard routes are nested under `/panel` and are guarded by `ProtectedRoute` to redirect unauthenticated users to the login page.
+
+## Localization workflow
+
+All copy and language-aware image paths live in `src/LanguageContext.jsx` under the `translations` object. To add or update content:
+
+1. Add the new key/value pairs to both `tr` and `en` objects so the UI stays in sync across languages.
+2. Read translations via the `useLanguage()` hook, which returns `{ language, toggleLanguage, t }`.
+3. For new pages or components, reference `t.some.sectionKey` instead of hard-coding strings. This keeps the navbar, hero, forms, and CTA buttons automatically bilingual.
+
+## Styling
+
+Tailwind CSS is configured via `tailwind.config.js` and `postcss.config.js`. Utility classes are applied directly in JSX, and `App.css`/`index.css` contain global resets and glassmorphism helpers used across the landing page.
+
+## Scripts
+
+- `npm run dev` – Start the Vite dev server.
+- `npm run build` – Generate an optimized production bundle.
+- `npm run preview` – Serve the production bundle locally.
+- `npm run lint` – Run ESLint with the project rules.
+
