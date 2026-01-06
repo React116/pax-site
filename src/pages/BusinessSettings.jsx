@@ -171,7 +171,7 @@ const StaffItemCard = ({ item, index, onUpdate, onRemove }) => {
 
   return (
     <div className={`relative transition-all duration-300 rounded-2xl border ${isEditing ? 'bg-white border-blue-200 shadow-xl scale-[1.01] z-10 p-6' : 'bg-slate-50 border-slate-200 hover:border-blue-200 p-6'}`}>
-      <div className="absolute top-4 right-4 flex gap-2">
+      <div className="absolute top-4 right-4 z-50 flex gap-2 pointer-events-auto">
 <button
   type="button"
   onClick={(e) => {
