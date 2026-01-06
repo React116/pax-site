@@ -20,6 +20,29 @@ const updateProfile = async (req, res) => {
 
   try {
     const updates = { ...req.body };
+    // Mevcut profili okuyup kritik alanları korumak için kullanacağız.
+const existingProfile = await BusinessProfile.findOne({ userId: req.user.id });
+
+// --- GÜVENLİK VE TEMİZLİK ---
+delete updates.userId;
+delete updates._id;
+delete updates.createdAt;
+delete updates.updatedAt;
+
+// --- İŞLETME TÜRÜ: TEK SEFERLİK SEÇİM ---
+// businessTypeLocked=true ise businessType değişikliğini reddeder/korur.
+// İlk seçimde (kilitli değilken) businessType gönderildiyse otomatik kilitler.
+if (existingProfile?.businessTypeLocked) {
+  // Kilitliyse her zaman DB'deki businessType'ı koru
+  updates.businessType = existingProfile.businessType;
+  updates.businessTypeLocked = true;
+} else {
+  // Kilitli değilse ve frontend businessType gönderiyorsa kilitle
+  if (typeof updates.businessType !== 'undefined') {
+    updates.businessTypeLocked = true;
+  }
+}
+
 
     // --- GÜVENLİK VE TEMİZLİK ---
     delete updates.userId;
