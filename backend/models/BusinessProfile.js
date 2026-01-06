@@ -5,6 +5,8 @@ const BusinessProfileSchema = new mongoose.Schema({
   
   // --- TEMEL BİLGİLER ---
   businessType: { type: String, default: 'pilates' },
+  // İşletme türü bir kez seçildikten sonra kilitlenir.
+  businessTypeLocked: { type: Boolean, default: false },
   businessName: { type: String, default: '' },
   branches: { type: String, default: '' },
   phone: { type: String, default: '' },

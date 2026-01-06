@@ -223,6 +223,8 @@ const BusinessSettings = () => {
   const [message, setMessage] = useState(null);
   const [activeTab, setActiveTab] = useState('general');
   const [selectedType, setSelectedType] = useState('pilates');
+  const [typeLocked, setTypeLocked] = useState(false);
+
 
   const [formData, setFormData] = useState({
     businessType: 'pilates', businessName: '', branches: '', phone: '', email: '', languages: '',
@@ -246,6 +248,9 @@ const BusinessSettings = () => {
       
       if (res.ok) {
         const data = await res.json();
+        setTypeLocked(Boolean(saved?.businessTypeLocked));
+if (saved?.businessType) setSelectedType(saved.businessType);
+
         const typeFromDb = data.businessType || 'pilates';
         const safeType = (BUSINESS_TYPES && BUSINESS_TYPES[typeFromDb]) ? typeFromDb : 'pilates';
         setSelectedType(safeType);
@@ -328,6 +333,7 @@ const BusinessSettings = () => {
     } 
     finally { setLoading(false); setTimeout(() => setMessage(null), 3000); }
   };
+if (typeLocked) return;
 
   const handleTypeSelect = (key) => { setSelectedType(key); setFormData(p => ({...p, businessType: key})); };
   const currentConfig = (BUSINESS_TYPES && BUSINESS_TYPES[selectedType]) ? BUSINESS_TYPES[selectedType] : BUSINESS_TYPES['pilates'];
