@@ -1,35 +1,28 @@
-const jwt = require('jsonwebtoken');
-const User = require('../models/User'); // User modelinin yolu. Eğer User.js modelin varsa bu çalışır.
+const jwt = require("jsonwebtoken");
+const User = require("../models/User");
 
 const protect = async (req, res, next) => {
-  let token;
+  try {
+    const auth = req.headers.authorization || "";
 
-  if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith('Bearer')
-  ) {
-    try {
-      // Token'ı al (Bearer <token> formatında olduğu için boşluktan bölüyoruz)
-      token = req.headers.authorization.split(' ')[1];
-
-      // Token'ı doğrula
-      // NOT: process.env.JWT_SECRET .env dosyasında tanımlı olmalı.
-      // Eğer .env dosyan yoksa veya hata alırsan buraya geçici olarak 'gizlisifre' yazabilirsin ama önerilmez.
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'gizlisifre123');
-
-      // Token içindeki ID'den kullanıcıyı bul
-      // -password diyerek şifreyi getirme diyoruz.
-      req.user = await User.findById(decoded.id).select('-password');
-
-      next();
-    } catch (error) {
-      console.error(error);
-      res.status(401).json({ msg: 'Yetkisiz erişim, token geçersiz' });
+    if (!auth.startsWith("Bearer ")) {
+      return res.status(401).json({ message: "Token yok, yetkisiz erişim." });
     }
-  }
 
-  if (!token) {
-    res.status(401).json({ msg: 'Yetkisiz erişim, token yok' });
+    const token = auth.split(" ")[1];
+
+    // Login token'ını hangi secret ile imzalıyorsan burada da o olmalı
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || "gizlisifre123");
+
+    const user = await User.findById(decoded.id).select("-password");
+    if (!user) {
+      return res.status(401).json({ message: "Kullanıcı bulunamadı." });
+    }
+
+    req.user = user;
+    next();
+  } catch (err) {
+    return res.status(401).json({ message: "Token geçersiz.", error: err.message });
   }
 };
 
