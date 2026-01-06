@@ -172,9 +172,27 @@ const StaffItemCard = ({ item, index, onUpdate, onRemove }) => {
   return (
     <div className={`relative transition-all duration-300 rounded-2xl border ${isEditing ? 'bg-white border-blue-200 shadow-xl scale-[1.01] z-10 p-6' : 'bg-slate-50 border-slate-200 hover:border-blue-200 p-6'}`}>
       <div className="absolute top-4 right-4 flex gap-2">
-        <button type="button" onClick={() => setIsEditing(!isEditing)} className={`p-2 rounded-lg transition-colors ${isEditing ? 'bg-green-100 text-green-700' : 'bg-white text-slate-400 hover:text-blue-600 shadow-sm'}`}>
-          {isEditing ? <CheckCircle2 size={18}/> : <Edit2 size={16}/>}
-        </button>
+<button
+  type="button"
+  onClick={(e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (isEditing) {
+      setIsEditing(false); // edit açıksa kapat
+    } else {
+      setIsEditing(true);  // edit kapalıysa aç
+    }
+  }}
+  className={`p-2 rounded-lg transition-colors ${
+    isEditing
+      ? 'bg-green-100 text-green-700'
+      : 'bg-white text-slate-400 hover:text-blue-600 shadow-sm'
+  }`}
+>
+  {isEditing ? <CheckCircle2 size={18} /> : <Edit2 size={16} />}
+</button>
+
         <button type="button" onClick={() => onRemove(index)} className="p-2 rounded-lg bg-white text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors shadow-sm"><Trash2 size={16}/></button>
       </div>
       {isEditing ? (
