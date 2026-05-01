@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
@@ -56,17 +56,37 @@ const staggerContainer = {
 // --- NAVBAR (MENÜ - TEMİZ HALİ) ---
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [langOpen, setLangOpen] = useState(false);
+  const langRef = useRef(null);
   const { language, toggleLanguage, t } = useLanguage();
-  
+
+  const langs = [
+    { code: 'tr', flag: '🇹🇷', label: 'Türkçe' },
+    { code: 'en', flag: '🇬🇧', label: 'English' },
+    { code: 'ru', flag: '🇷🇺', label: 'Русский' },
+    { code: 'me', flag: '🇲🇪', label: 'Crnogorski' },
+  ];
+  const currentLang = langs.find(l => l.code === language);
+
   // Sayfa değişimini ve giriş durumunu takip et
-  const location = useLocation(); 
+  const location = useLocation();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
     const user = localStorage.getItem("userName");
-    setIsLoggedIn(!!user); 
-  }, [location]); 
-  
+    setIsLoggedIn(!!user);
+  }, [location]);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (langRef.current && !langRef.current.contains(e.target)) {
+        setLangOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const scrollToContact = () => {
     if (window.location.pathname === '/') {
        const contactSection = document.getElementById('contact');
@@ -122,24 +142,31 @@ const Navbar = () => {
           <Link to="/fiyatlar" className="hover:text-[#001F54] transition-colors font-bold text-blue-600">{t.nav.pricing}</Link>
           <button onClick={scrollToContact} className="hover:text-[#001F54] transition-colors cursor-pointer">{t.nav.contact}</button>
           
-          {/* DİL BUTONLARI */}
-          <div className="flex items-center bg-slate-100 rounded-full p-1 h-9 gap-0.5">
-            {[
-              { code: 'tr', flag: '🇹🇷', label: 'TR' },
-              { code: 'en', flag: '🇬🇧', label: 'EN' },
-              { code: 'ru', flag: '🇷🇺', label: 'RU' },
-              { code: 'me', flag: '🇲🇪', label: 'ME' },
-            ].map(({ code, flag, label }) => (
-              <button
-                key={code}
-                onClick={() => toggleLanguage(code)}
-                title={label}
-                className={`px-2 h-full rounded-full text-xs font-bold transition-all flex items-center gap-1 ${language === code ? 'bg-white text-[#001F54] shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
-              >
-                <span className="text-base leading-none">{flag}</span>
-                <span className="hidden xl:inline">{label}</span>
-              </button>
-            ))}
+          {/* DİL DROPDOWN */}
+          <div className="relative" ref={langRef}>
+            <button
+              onClick={() => setLangOpen(!langOpen)}
+              className="flex items-center gap-2 px-3 py-2 rounded-full bg-slate-100 hover:bg-slate-200 transition-all text-sm font-bold text-[#001F54] border border-transparent hover:border-slate-200"
+            >
+              <span className="text-lg leading-none">{currentLang.flag}</span>
+              <span className="uppercase text-xs">{currentLang.code}</span>
+              <ChevronDown size={12} className={`transition-transform duration-200 ${langOpen ? 'rotate-180' : ''}`} />
+            </button>
+            {langOpen && (
+              <div className="absolute top-full right-0 mt-2 w-44 bg-white border border-slate-100 shadow-2xl rounded-2xl overflow-hidden z-50">
+                {langs.map(({ code, flag, label }) => (
+                  <button
+                    key={code}
+                    onClick={() => { toggleLanguage(code); setLangOpen(false); }}
+                    className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-colors ${language === code ? 'bg-blue-50 text-[#001F54] font-bold' : 'text-slate-600 hover:bg-slate-50'}`}
+                  >
+                    <span className="text-xl leading-none">{flag}</span>
+                    <span>{label}</span>
+                    {language === code && <Check size={14} className="ml-auto text-[#001F54]" />}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* GİRİŞ KONTROLÜ - SADECE PANEL BUTONU */}
@@ -158,13 +185,13 @@ const Navbar = () => {
         
         {/* MOBİL HAMBURGER BUTONU */}
         <div className="flex items-center gap-4 md:hidden">
-          <button onClick={() => {
-            const cycle = ['tr', 'en', 'ru', 'me'];
-            const next = cycle[(cycle.indexOf(language) + 1) % cycle.length];
-            toggleLanguage(next);
-          }} className="flex items-center gap-1 font-bold text-sm text-[#001F54] border border-slate-200 px-2 py-1 rounded-md">
-            <span className="text-base leading-none">{{ tr: '🇹🇷', en: '🇬🇧', ru: '🇷🇺', me: '🇲🇪' }[language]}</span>
-            <span>{language.toUpperCase()}</span>
+          <button
+            onClick={() => setLangOpen(!langOpen)}
+            className="flex items-center gap-1.5 font-bold text-sm text-[#001F54] border border-slate-200 px-3 py-1.5 rounded-full bg-slate-50"
+          >
+            <span className="text-base leading-none">{currentLang.flag}</span>
+            <span className="text-xs uppercase">{currentLang.code}</span>
+            <ChevronDown size={12} className={`transition-transform duration-200 ${langOpen ? 'rotate-180' : ''}`} />
           </button>
           <button className="text-[#001F54]" onClick={() => setIsOpen(!isOpen)}>
             {isOpen ? <X size={28} /> : <Menu size={28} />}
@@ -190,21 +217,21 @@ const Navbar = () => {
           </div>
 
           {/* MOBİL DİL SEÇİCİ */}
-          <div className="flex items-center gap-2 pb-4 border-b border-slate-50">
-            {[
-              { code: 'tr', flag: '🇹🇷', label: 'TR' },
-              { code: 'en', flag: '🇬🇧', label: 'EN' },
-              { code: 'ru', flag: '🇷🇺', label: 'RU' },
-              { code: 'me', flag: '🇲🇪', label: 'ME' },
-            ].map(({ code, flag, label }) => (
-              <button
-                key={code}
-                onClick={() => toggleLanguage(code)}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-bold transition-all border ${language === code ? 'bg-[#001F54] text-white border-[#001F54]' : 'bg-white text-slate-500 border-slate-200 hover:border-slate-300'}`}
-              >
-                <span className="text-base">{flag}</span> {label}
-              </button>
-            ))}
+          <div className="pb-4 border-b border-slate-50">
+            <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Dil / Language</div>
+            <div className="flex flex-col gap-1">
+              {langs.map(({ code, flag, label }) => (
+                <button
+                  key={code}
+                  onClick={() => { toggleLanguage(code); setIsOpen(false); }}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${language === code ? 'bg-[#001F54] text-white' : 'bg-slate-50 text-slate-600 hover:bg-slate-100'}`}
+                >
+                  <span className="text-xl leading-none">{flag}</span>
+                  <span>{label}</span>
+                  {language === code && <Check size={14} className="ml-auto text-white" />}
+                </button>
+              ))}
+            </div>
           </div>
 
           <Link to="/basari-hikayeleri" onClick={() => setIsOpen(false)} className="text-lg font-bold text-orange-600 flex items-center gap-2"><TrendingUp size={20}/> {t.nav.successStories}</Link>
