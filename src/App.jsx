@@ -61,10 +61,10 @@ const Navbar = () => {
   const { language, toggleLanguage, t } = useLanguage();
 
   const langs = [
-    { code: 'tr', flag: '🇹🇷', label: 'Türkçe' },
-    { code: 'en', flag: '🇬🇧', label: 'English' },
-    { code: 'ru', flag: '🇷🇺', label: 'Русский' },
-    { code: 'me', flag: '🇲🇪', label: 'Crnogorski' },
+    { code: 'tr', flag: 'https://flagcdn.com/w40/tr.png', label: 'Türkçe' },
+    { code: 'en', flag: 'https://flagcdn.com/w40/gb.png', label: 'English' },
+    { code: 'ru', flag: 'https://flagcdn.com/w40/ru.png', label: 'Русский' },
+    { code: 'me', flag: 'https://flagcdn.com/w40/me.png', label: 'Crnogorski' },
   ];
   const currentLang = langs.find(l => l.code === language);
 
@@ -148,19 +148,19 @@ const Navbar = () => {
               onClick={() => setLangOpen(!langOpen)}
               className="flex items-center gap-2 px-3 py-2 rounded-full bg-slate-100 hover:bg-slate-200 transition-all text-sm font-bold text-[#001F54] border border-transparent hover:border-slate-200"
             >
-              <span className="text-lg leading-none">{currentLang.flag}</span>
+              <img src={currentLang.flag} alt={currentLang.code} className="w-5 h-auto rounded-sm shadow-sm" />
               <span className="uppercase text-xs">{currentLang.code}</span>
               <ChevronDown size={12} className={`transition-transform duration-200 ${langOpen ? 'rotate-180' : ''}`} />
             </button>
             {langOpen && (
-              <div className="absolute top-full right-0 mt-2 w-44 bg-white border border-slate-100 shadow-2xl rounded-2xl overflow-hidden z-50">
+              <div className="absolute top-full right-0 mt-2 w-48 bg-white border border-slate-100 shadow-2xl rounded-2xl overflow-hidden z-50">
                 {langs.map(({ code, flag, label }) => (
                   <button
                     key={code}
                     onClick={() => { toggleLanguage(code); setLangOpen(false); }}
                     className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-colors ${language === code ? 'bg-blue-50 text-[#001F54] font-bold' : 'text-slate-600 hover:bg-slate-50'}`}
                   >
-                    <span className="text-xl leading-none">{flag}</span>
+                    <img src={flag} alt={label} className="w-6 h-auto rounded-sm shadow-sm" />
                     <span>{label}</span>
                     {language === code && <Check size={14} className="ml-auto text-[#001F54]" />}
                   </button>
@@ -189,7 +189,7 @@ const Navbar = () => {
             onClick={() => setLangOpen(!langOpen)}
             className="flex items-center gap-1.5 font-bold text-sm text-[#001F54] border border-slate-200 px-3 py-1.5 rounded-full bg-slate-50"
           >
-            <span className="text-base leading-none">{currentLang.flag}</span>
+            <img src={currentLang.flag} alt={currentLang.code} className="w-5 h-auto rounded-sm shadow-sm" />
             <span className="text-xs uppercase">{currentLang.code}</span>
             <ChevronDown size={12} className={`transition-transform duration-200 ${langOpen ? 'rotate-180' : ''}`} />
           </button>
@@ -226,7 +226,7 @@ const Navbar = () => {
                   onClick={() => { toggleLanguage(code); setIsOpen(false); }}
                   className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${language === code ? 'bg-[#001F54] text-white' : 'bg-slate-50 text-slate-600 hover:bg-slate-100'}`}
                 >
-                  <span className="text-xl leading-none">{flag}</span>
+                  <img src={flag} alt={label} className="w-6 h-auto rounded-sm shadow-sm" />
                   <span>{label}</span>
                   {language === code && <Check size={14} className="ml-auto text-white" />}
                 </button>
