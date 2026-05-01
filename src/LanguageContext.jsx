@@ -19,7 +19,11 @@ const translations = {
       pricing: "Fiyatlar",
       contact: "İletişim",
       consult: "Danışmanlık Al",
-      corporate: "KURUMSAL"
+      corporate: "KURUMSAL",
+      login: "Giriş Yap",
+      register: "Kayıt Ol",
+      myPanel: "Panelim",
+      goPanel: "Panele Git"
     },
     hero: {
       badge: "ZEKA MÜHENDİSLİĞİ",
@@ -146,7 +150,11 @@ const translations = {
       pricing: "Pricing",
       contact: "Contact",
       consult: "Get Consultancy",
-      corporate: "CORPORATE"
+      corporate: "CORPORATE",
+      login: "Login",
+      register: "Sign Up",
+      myPanel: "My Panel",
+      goPanel: "Go to Panel"
     },
     hero: {
       badge: "INTELLIGENCE ENGINEERING",
@@ -273,7 +281,11 @@ const translations = {
       pricing: "Цены",
       contact: "Контакты",
       consult: "Получить консультацию",
-      corporate: "КОРПОРАТИВНОЕ"
+      corporate: "КОРПОРАТИВНОЕ",
+      login: "Войти",
+      register: "Регистрация",
+      myPanel: "Мой кабинет",
+      goPanel: "Перейти в кабинет"
     },
     hero: {
       badge: "ИНЖЕНЕРИЯ ИНТЕЛЛЕКТА",
@@ -400,7 +412,11 @@ const translations = {
       pricing: "Cijene",
       contact: "Kontakt",
       consult: "Zatražite savjet",
-      corporate: "KORPORATIVNO"
+      corporate: "KORPORATIVNO",
+      login: "Prijava",
+      register: "Registracija",
+      myPanel: "Moj panel",
+      goPanel: "Idi na panel"
     },
     hero: {
       badge: "INŽENJERING INTELIGENCIJE",

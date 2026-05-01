@@ -200,12 +200,12 @@ const Navbar = () => {
           {/* GİRİŞ KONTROLÜ - SADECE PANEL BUTONU */}
           {isLoggedIn ? (
             <Link to="/panel" className="bg-green-500 text-white px-5 py-2 rounded-full font-bold text-sm hover:bg-green-600 transition-all flex items-center gap-2 shadow-md">
-               <User size={18} /> Panelim
+               <User size={18} /> {t.nav.myPanel}
             </Link>
           ) : (
             <div className="flex items-center gap-3">
-               <Link to="/giris-yap" className="text-[#001F54] font-bold hover:text-blue-600">Giriş Yap</Link>
-               <Link to="/kayit-ol" className="bg-[#001F54] text-white px-5 py-2.5 rounded-full font-bold text-sm shadow-lg hover:bg-[#0f172a]">Kayıt Ol</Link>
+               <Link to="/giris-yap" className="text-[#001F54] font-bold hover:text-blue-600">{t.nav.login}</Link>
+               <Link to="/kayit-ol" className="bg-[#001F54] text-white px-5 py-2.5 rounded-full font-bold text-sm shadow-lg hover:bg-[#0f172a]">{t.nav.register}</Link>
             </div>
           )}
 
@@ -234,12 +234,12 @@ const Navbar = () => {
           <div className="pb-4 border-b border-slate-50">
              {isLoggedIn ? (
                 <Link to="/panel" onClick={() => setIsOpen(false)} className="w-full bg-green-500 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2">
-                   <User size={20} /> Panele Git
+                   <User size={20} /> {t.nav.goPanel}
                 </Link>
              ) : (
                 <div className="grid grid-cols-2 gap-4">
-                  <Link to="/giris-yap" onClick={() => setIsOpen(false)} className="text-center py-3 border border-slate-200 rounded-xl font-bold text-[#001F54]">Giriş Yap</Link>
-                  <Link to="/kayit-ol" onClick={() => setIsOpen(false)} className="text-center py-3 bg-[#001F54] text-white rounded-xl font-bold">Kayıt Ol</Link>
+                  <Link to="/giris-yap" onClick={() => setIsOpen(false)} className="text-center py-3 border border-slate-200 rounded-xl font-bold text-[#001F54]">{t.nav.login}</Link>
+                  <Link to="/kayit-ol" onClick={() => setIsOpen(false)} className="text-center py-3 bg-[#001F54] text-white rounded-xl font-bold">{t.nav.register}</Link>
                 </div>
              )}
           </div>
@@ -878,8 +878,13 @@ const HomePage = () => {
 };
 
 const WhatsAppButton = () => (
-  <a href="https://wa.me/38268599708" target="_blank" rel="noopener noreferrer" className="fixed bottom-8 right-8 z-50 bg-green-500 text-white p-4 rounded-full shadow-2xl hover:scale-110 transition-transform duration-300 flex items-center justify-center">
-    <MessageSquare size={28} fill="white" />
+  <a href="https://wa.me/38268599708" target="_blank" rel="noopener noreferrer"
+    className="fixed bottom-8 right-8 z-50 bg-[#25D366] text-white p-4 rounded-full shadow-2xl hover:scale-110 hover:bg-[#20bc5a] transition-all duration-300 flex items-center justify-center"
+    aria-label="WhatsApp"
+  >
+    <svg viewBox="0 0 32 32" width="28" height="28" fill="white" xmlns="http://www.w3.org/2000/svg">
+      <path d="M16.003 2.667C8.637 2.667 2.667 8.637 2.667 16c0 2.363.627 4.672 1.816 6.693L2.667 29.333l6.827-1.789A13.287 13.287 0 0 0 16.003 29.333C23.37 29.333 29.333 23.363 29.333 16S23.37 2.667 16.003 2.667zm0 2.4c6.032 0 10.933 4.902 10.933 10.933S22.035 26.933 16.003 26.933c-2.052 0-3.99-.565-5.653-1.548l-.407-.24-4.05 1.062 1.082-3.945-.264-.424A10.897 10.897 0 0 1 5.07 16c0-6.031 4.901-10.933 10.933-10.933zm-3.29 5.6c-.197 0-.516.074-.787.369-.27.296-1.033 1.01-1.033 2.46s1.057 2.853 1.205 3.051c.147.197 2.066 3.276 5.07 4.464 2.503.987 3.011.79 3.554.741.542-.049 1.747-.714 1.994-1.404.247-.69.247-1.28.173-1.404-.074-.123-.271-.197-.567-.345-.296-.148-1.747-.862-2.018-.96-.27-.098-.467-.148-.664.148-.197.296-.762.96-.934 1.157-.172.197-.345.222-.641.074-.296-.148-1.25-.46-2.38-1.47-.88-.786-1.474-1.756-1.647-2.053-.172-.296-.018-.456.13-.603.132-.133.296-.345.444-.517.148-.173.197-.297.296-.494.099-.197.05-.37-.024-.517-.074-.148-.653-1.608-.908-2.2-.24-.57-.487-.493-.664-.502l-.566-.01z"/>
+    </svg>
   </a>
 );
 
