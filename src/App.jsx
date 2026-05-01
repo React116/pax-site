@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { 
-  ArrowRight, Menu, X, Code2, BrainCircuit, LineChart, 
-  MapPin, Phone, Mail, CheckCircle2, MessageSquare, 
+import {
+  ArrowRight, Menu, X, Code2, BrainCircuit, LineChart,
+  MapPin, Phone, Mail, CheckCircle2, MessageSquare,
   Linkedin, Instagram, Youtube, Send, Twitter, ShieldCheck, Lock, Check, Star,
-  TrendingUp, Activity, Server, ChevronDown, BookOpen, Globe, User, Settings 
+  TrendingUp, Activity, Server, ChevronDown, BookOpen, Globe, User, Settings,
+  Zap, Shield, Cpu, Layers, Rocket, Database, Cloud, GitBranch, Gauge, Sparkles,
+  Terminal, Workflow, ChevronRight, Bot, Search
 } from 'lucide-react';
 
 // --- SAYFA İMPORTLARI ---
@@ -51,6 +53,32 @@ const fadeInUp = {
 const staggerContainer = {
   hidden: { opacity: 0 },
   visible: { opacity: 1, transition: { staggerChildren: 0.2 } }
+};
+
+// --- COUNTER HOOK ---
+const useCountUp = (end, duration = 1800) => {
+  const [count, setCount] = useState(0);
+  const [started, setStarted] = useState(false);
+  const ref = useRef(null);
+  useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) setStarted(true);
+    }, { threshold: 0.5 });
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+  useEffect(() => {
+    if (!started) return;
+    let start = 0;
+    const step = end / (duration / 16);
+    const timer = setInterval(() => {
+      start += step;
+      if (start >= end) { setCount(end); clearInterval(timer); }
+      else setCount(Math.floor(start));
+    }, 16);
+    return () => clearInterval(timer);
+  }, [started, end, duration]);
+  return { count, ref };
 };
 
 // --- NAVBAR (MENÜ - TEMİZ HALİ) ---
@@ -405,6 +433,101 @@ const AdvancedContactForm = () => {
   );
 };
 
+// --- İSTATİSTİKLER (AnimasyonLU) ---
+const StatCard = ({ end, suffix = '', label, desc, highlight }) => {
+  const { count, ref } = useCountUp(end);
+  return (
+    <div ref={ref} className={`p-8 rounded-3xl text-center transition-all duration-300 hover:-translate-y-2 group ${highlight ? 'bg-gradient-to-br from-[#001F54] to-[#0f2b6b] shadow-2xl shadow-blue-900/30 border-0' : 'bg-white border border-slate-100 shadow-sm hover:shadow-xl'}`}>
+      <div className={`text-4xl md:text-5xl font-bold mb-2 font-serif group-hover:scale-110 transition-transform ${highlight ? 'text-white' : 'text-[#001F54]'}`}>
+        {count}{suffix}
+      </div>
+      <div className={`text-xs font-bold uppercase tracking-widest mb-3 ${highlight ? 'text-blue-200' : 'text-slate-400'}`}>{label}</div>
+      <p className={`text-xs leading-relaxed px-2 ${highlight ? 'text-blue-100' : 'text-slate-500'}`}>{desc}</p>
+    </div>
+  );
+};
+
+const StatsSection = ({ t }) => (
+  <div className="py-20 bg-slate-50 relative z-20">
+    <div className="max-w-7xl mx-auto px-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+        <StatCard end={500} suffix="k+" label={t.stats.msgTitle} desc={t.stats.msgDesc} />
+        <StatCard end={99} suffix="%" label={t.stats.satisfactionTitle} desc={t.stats.satisfactionDesc} highlight />
+        <StatCard end={24} suffix="/7" label={t.stats.supportTitle} desc={t.stats.supportDesc} />
+        <StatCard end={10} suffix="+" label={t.stats.countryTitle} desc={t.stats.countryDesc} />
+      </div>
+    </div>
+  </div>
+);
+
+// --- TEKNOLOJİ BANNER ---
+const TechBanner = () => {
+  const techs = ['OpenAI GPT-4o', 'React 19', 'Node.js', 'MongoDB', 'Docker', 'AWS', 'WhatsApp API', 'Redis', 'Stripe', 'Vercel', 'TypeScript', 'Tailwind CSS'];
+  return (
+    <div className="py-6 bg-[#0d1117] overflow-hidden border-y border-slate-800">
+      <div className="relative flex overflow-hidden">
+        <div className="absolute left-0 top-0 h-full w-20 bg-gradient-to-r from-[#0d1117] to-transparent z-10 pointer-events-none" />
+        <div className="absolute right-0 top-0 h-full w-20 bg-gradient-to-l from-[#0d1117] to-transparent z-10 pointer-events-none" />
+        <motion.div
+          className="flex gap-0 shrink-0"
+          animate={{ x: ["0%", "-50%"] }}
+          transition={{ repeat: Infinity, ease: "linear", duration: 30 }}
+          style={{ width: "max-content" }}
+        >
+          {[...techs, ...techs].map((tech, i) => (
+            <div key={i} className="flex items-center gap-3 px-6 border-r border-slate-700/50">
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
+              <span className="text-slate-400 font-code text-sm whitespace-nowrap">{tech}</span>
+            </div>
+          ))}
+        </motion.div>
+      </div>
+    </div>
+  );
+};
+
+// --- NASIL ÇALIŞIR ---
+const HowItWorks = () => {
+  const steps = [
+    { icon: <Search size={24} />, num: "01", title: "Analiz & Keşif", desc: "İşletmenizi, hedef kitlenizi ve otomasyon ihtiyaçlarınızı derinlemesine analiz ediyoruz.", color: "from-blue-500 to-blue-600" },
+    { icon: <Layers size={24} />, num: "02", title: "Mimari Tasarım", desc: "Ölçeklenebilir, güvenli ve size özel AI altyapısını tasarlıyoruz.", color: "from-violet-500 to-violet-600" },
+    { icon: <Code2 size={24} />, num: "03", title: "Geliştirme & Entegrasyon", desc: "WhatsApp, web ve sosyal medyaya AI ajanlarını kusursuz entegre ediyoruz.", color: "from-teal-500 to-teal-600" },
+    { icon: <Rocket size={24} />, num: "04", title: "Canlıya Geçiş & Destek", desc: "7/24 izleme ve teknik destek ile sisteminizi canlı tutuyoruz.", color: "from-orange-500 to-orange-600" },
+  ];
+  return (
+    <section className="py-28 bg-white relative overflow-hidden">
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(37,99,235,0.05)_0%,_transparent_60%)]" />
+      <div className="max-w-7xl mx-auto px-6 relative z-10">
+        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-20">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-50 border border-blue-100 text-blue-600 text-xs font-bold uppercase tracking-widest mb-6">
+            <Workflow size={12} /> Süreç
+          </div>
+          <h2 className="text-4xl font-bold text-[#0f172a] font-serif mb-4">Nasıl Çalışıyoruz?</h2>
+          <p className="text-slate-500 max-w-xl mx-auto">Fikrinizden üretime kadar her adımda yanınızdayız.</p>
+        </motion.div>
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {steps.map((step, i) => (
+            <motion.div key={i} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.15 }}
+              className="tech-card relative rounded-2xl p-7 border border-slate-100 hover:shadow-xl transition-all duration-300 group">
+              <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${step.color} flex items-center justify-center text-white mb-5 group-hover:scale-110 transition-transform`}>
+                {step.icon}
+              </div>
+              <div className="text-5xl font-bold text-slate-100 font-code absolute top-5 right-5 select-none">{step.num}</div>
+              <h3 className="text-lg font-bold text-[#0f172a] mb-2">{step.title}</h3>
+              <p className="text-sm text-slate-500 leading-relaxed">{step.desc}</p>
+              {i < steps.length - 1 && (
+                <div className="hidden lg:flex absolute -right-3 top-1/2 -translate-y-1/2 z-20">
+                  <ChevronRight size={20} className="text-slate-300" />
+                </div>
+              )}
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
 // --- MÜŞTERİ YORUMLARI ---
 const Testimonials = () => {
   const { t } = useLanguage();
@@ -466,145 +589,205 @@ const HomePage = () => {
 
   return (
     <>
-      <section className="relative pt-40 pb-20 lg:pt-48 lg:pb-32 overflow-hidden bg-gradient-to-br from-[#F8FAFC] to-white">
-        <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:20px_20px] opacity-60"></div>
+      {/* ─── HERO ─── */}
+      <section className="relative pt-40 pb-16 lg:pt-44 lg:pb-28 overflow-hidden bg-[#f8fafc]">
+        {/* Grid pattern */}
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(148,163,184,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(148,163,184,0.08)_1px,transparent_1px)] bg-[size:40px_40px]" />
+        {/* Gradient orbs */}
+        <div className="absolute top-20 left-[10%] w-96 h-96 bg-blue-300/20 rounded-full blur-[100px] animate-blob pointer-events-none" />
+        <div className="absolute bottom-10 right-[5%] w-80 h-80 bg-violet-300/20 rounded-full blur-[80px] animate-blob-slow pointer-events-none" />
+        <div className="absolute top-40 right-[30%] w-64 h-64 bg-teal-300/15 rounded-full blur-[80px] animate-blob-slow pointer-events-none" />
+
         <div className="max-w-7xl mx-auto px-6 relative z-10">
           <div className="grid lg:grid-cols-2 gap-16 lg:gap-20 items-center">
-            
+
             <motion.div initial="hidden" animate="visible" variants={staggerContainer}>
-              <motion.div variants={fadeInUp} className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-slate-200 shadow-sm mb-8">
+              {/* Badge */}
+              <motion.div variants={fadeInUp} className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-blue-100 shadow-sm mb-8">
                 <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
                 </span>
                 <span className="text-xs font-bold text-slate-700 tracking-widest uppercase">{t.hero.badge}</span>
               </motion.div>
 
-              <motion.h1 variants={fadeInUp} className="text-5xl lg:text-[5.5rem] font-bold text-[#0f172a] leading-[1] mb-6 font-serif tracking-tight">
+              {/* Title */}
+              <motion.h1 variants={fadeInUp} className="text-5xl lg:text-[5.5rem] font-bold text-[#0f172a] leading-[1.05] mb-6 font-serif tracking-tight">
                 {t.hero.titleStart} <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#2563EB] to-[#1d4ed8]">{t.hero.titleHighlight}</span>
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#2563EB] via-blue-500 to-teal-500 animate-gradient-x">{t.hero.titleHighlight}</span>
                 <span className="text-teal-500">.</span>
               </motion.h1>
 
-              <motion.p variants={fadeInUp} className="text-lg text-slate-500 leading-relaxed mb-10 max-w-lg font-medium">
+              <motion.p variants={fadeInUp} className="text-lg text-slate-500 leading-relaxed mb-8 max-w-lg">
                 {t.hero.desc}
               </motion.p>
 
+              {/* Tech stack pills */}
+              <motion.div variants={fadeInUp} className="flex flex-wrap gap-2 mb-10">
+                {[
+                  { icon: <BrainCircuit size={13} />, label: 'GPT-4o' },
+                  { icon: <Code2 size={13} />, label: 'React 19' },
+                  { icon: <Database size={13} />, label: 'MongoDB' },
+                  { icon: <Cloud size={13} />, label: 'AWS' },
+                  { icon: <Zap size={13} />, label: 'Edge AI' },
+                ].map(({ icon, label }) => (
+                  <span key={label} className="inline-flex items-center gap-1.5 px-3 py-1 bg-white border border-slate-200 rounded-full text-xs font-semibold text-slate-600 shadow-sm hover:border-blue-200 hover:text-blue-600 transition-colors">
+                    <span className="text-blue-500">{icon}</span>{label}
+                  </span>
+                ))}
+              </motion.div>
+
               <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-4">
-                <Link to="/cozumler" className="bg-[#001F54] text-white px-8 py-4 rounded-full font-bold text-sm hover:bg-[#0f172a] hover:scale-[1.02] transition-all shadow-xl shadow-blue-900/10 flex items-center justify-center gap-2">
-                  {t.hero.btnDiscover} <ArrowRight size={18} />
+                <Link to="/cozumler" className="bg-[#001F54] text-white px-8 py-4 rounded-full font-bold text-sm hover:bg-[#0f172a] hover:scale-[1.02] transition-all shadow-xl shadow-blue-900/20 flex items-center justify-center gap-2 group">
+                  {t.hero.btnDiscover} <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                 </Link>
-                <button onClick={() => document.getElementById('contact').scrollIntoView({behavior: 'smooth'})} className="px-8 py-4 rounded-full font-bold text-sm text-[#001F54] bg-white border border-slate-200 hover:border-blue-300 hover:bg-blue-50 transition-all shadow-sm">
-                  {t.hero.btnContact}
+                <button onClick={() => document.getElementById('contact').scrollIntoView({ behavior: 'smooth' })} className="px-8 py-4 rounded-full font-bold text-sm text-[#001F54] bg-white border border-slate-200 hover:border-blue-300 hover:bg-blue-50 transition-all shadow-sm flex items-center justify-center gap-2">
+                  <MessageSquare size={16} /> {t.hero.btnContact}
                 </button>
               </motion.div>
             </motion.div>
 
-            {/* DASHBOARD GÖRSELİ */}
-            <motion.div 
-              initial={{ opacity: 0, x: 50 }} 
-              animate={{ opacity: 1, x: 0 }} 
-              transition={{ duration: 1, delay: 0.2 }}
+            {/* ─── SAĞ: DARK CODE TERMİNAL ─── */}
+            <motion.div
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 1, delay: 0.3 }}
               className="relative hidden lg:block"
             >
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-blue-100/50 blur-3xl rounded-full -z-10"></div>
-              <div className="relative bg-white/80 backdrop-blur-xl rounded-[2rem] border border-white/60 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.08)] p-8 w-full max-w-lg mx-auto transform rotate-[-2deg] hover:rotate-0 transition-transform duration-700">
-                <div className="flex items-center justify-between mb-8">
-                  <div className="flex gap-2">
-                    <div className="w-3 h-3 rounded-full bg-red-400"></div>
-                    <div className="w-3 h-3 rounded-full bg-amber-400"></div>
-                    <div className="w-3 h-3 rounded-full bg-green-400"></div>
+              {/* Glow halo */}
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[105%] h-[105%] bg-gradient-to-br from-blue-500/10 via-violet-500/10 to-teal-500/10 blur-3xl rounded-full -z-10" />
+
+              {/* Terminal window */}
+              <div className="relative bg-[#0d1117] rounded-2xl border border-slate-700/80 shadow-[0_40px_80px_-20px_rgba(0,0,0,0.5)] overflow-hidden">
+                {/* Title bar */}
+                <div className="flex items-center gap-2 px-5 py-3 bg-[#161b22] border-b border-slate-700/80">
+                  <div className="flex gap-1.5">
+                    <div className="w-3 h-3 rounded-full bg-red-500" />
+                    <div className="w-3 h-3 rounded-full bg-yellow-500" />
+                    <div className="w-3 h-3 rounded-full bg-green-500" />
                   </div>
-                  <div className="flex items-center gap-2 text-slate-400 text-xs font-bold tracking-wider uppercase">
-                    <Activity size={14} /> LIVE DASHBOARD
+                  <div className="ml-3 flex items-center gap-2 text-slate-400 text-xs font-code">
+                    <Terminal size={12} /> pax-ai-engine  ~  main
                   </div>
-                </div>
-                <div className="relative h-48 w-full bg-gradient-to-b from-slate-50 to-white rounded-xl border border-dashed border-slate-200 mb-6 overflow-hidden flex items-end px-4 pb-0">
-                  <div className="absolute inset-0 grid grid-cols-6 grid-rows-4 gap-4 opacity-30">
-                     {[...Array(24)].map((_,i) => <div key={i} className="border-r border-t border-slate-100"></div>)}
-                  </div>
-                  <svg className="w-full h-full visible relative z-10 drop-shadow-md" viewBox="0 0 200 100" preserveAspectRatio="none">
-                    <path d="M0,80 C30,80 50,60 80,50 C110,40 140,45 170,20 L200,15" fill="none" stroke="#2563EB" strokeWidth="4" strokeLinecap="round" />
-                    <defs>
-                      <linearGradient id="chartFill" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#2563EB" stopOpacity="0.2"/>
-                        <stop offset="100%" stopColor="#2563EB" stopOpacity="0"/>
-                      </linearGradient>
-                    </defs>
-                    <path d="M0,80 C30,80 50,60 80,50 C110,40 140,45 170,20 L200,15 V100 H0 Z" fill="url(#chartFill)" stroke="none" />
-                  </svg>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center text-green-500 border border-green-100"><CheckCircle2 size={20} /></div>
-                    <div><div className="text-[10px] text-slate-400 font-bold uppercase">Status</div><div className="text-sm font-bold text-slate-800">All Systems Go</div></div>
-                  </div>
-                  <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-500 border border-blue-100"><Server size={20} /></div>
-                    <div><div className="text-[10px] text-slate-400 font-bold uppercase">Uptime</div><div className="text-sm font-bold text-slate-800">99.99%</div></div>
+                  <div className="ml-auto flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+                    <span className="text-green-400 text-[10px] font-code font-bold">LIVE</span>
                   </div>
                 </div>
-                <div className="absolute -top-6 -right-12 bg-white p-4 rounded-2xl shadow-xl border border-slate-100 animate-bounce [animation-duration:3s]">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center text-green-600"><TrendingUp size={20} /></div>
-                    <div><div className="text-[10px] text-slate-400 font-bold uppercase">Revenue Growth</div><div className="text-xl font-bold text-slate-800">+127%</div></div>
+
+                {/* Code body */}
+                <div className="p-6 font-code text-[13px] space-y-1.5 leading-relaxed">
+                  <div><span className="text-slate-500">// PAX AI Engine v3.1 — production</span></div>
+                  <div className="mt-2">
+                    <span className="text-purple-400">import</span>
+                    <span className="text-white"> {"{ PaxAgent }"} </span>
+                    <span className="text-purple-400">from</span>
+                    <span className="text-green-400"> '@paxgroup/core'</span>
+                  </div>
+                  <div>
+                    <span className="text-purple-400">import</span>
+                    <span className="text-white"> {"{ WhatsApp, WebChat }"} </span>
+                    <span className="text-purple-400">from</span>
+                    <span className="text-green-400"> '@paxgroup/channels'</span>
+                  </div>
+                  <div className="mt-3">
+                    <span className="text-blue-400">const</span>
+                    <span className="text-yellow-300"> agent </span>
+                    <span className="text-white">= </span>
+                    <span className="text-blue-400">new </span>
+                    <span className="text-teal-400">PaxAgent</span>
+                    <span className="text-white">{"({"}</span>
+                  </div>
+                  <div className="pl-4"><span className="text-orange-300">model</span><span className="text-white">: </span><span className="text-green-400">'gpt-4o'</span><span className="text-white">,</span></div>
+                  <div className="pl-4"><span className="text-orange-300">channels</span><span className="text-white">: [WhatsApp, WebChat],</span></div>
+                  <div className="pl-4"><span className="text-orange-300">languages</span><span className="text-white">: [</span><span className="text-green-400">'tr'</span><span className="text-white">, </span><span className="text-green-400">'en'</span><span className="text-white">, </span><span className="text-green-400">'ru'</span><span className="text-white">, </span><span className="text-green-400">'me'</span><span className="text-white">],</span></div>
+                  <div className="pl-4"><span className="text-orange-300">mode</span><span className="text-white">: </span><span className="text-green-400">'autonomous'</span></div>
+                  <div><span className="text-white">{"});"}</span></div>
+                  <div className="mt-2">
+                    <span className="text-blue-400">await </span>
+                    <span className="text-yellow-300">agent</span>
+                    <span className="text-white">.</span>
+                    <span className="text-teal-400">deploy</span>
+                    <span className="text-white">()</span>
+                  </div>
+                  <div className="mt-3 space-y-1">
+                    <div className="flex items-center gap-2"><span className="text-green-400">✓</span><span className="text-green-400 text-xs">Agent deployed successfully</span></div>
+                    <div className="flex items-center gap-2"><span className="text-green-400">✓</span><span className="text-slate-300 text-xs">Listening on 4 channels</span></div>
+                    <div className="flex items-center gap-2"><span className="text-green-400">✓</span><span className="text-slate-300 text-xs">Handling 1,247 active conversations</span></div>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-blue-400">›</span>
+                      <span className="text-white animate-cursor">_</span>
+                    </div>
                   </div>
                 </div>
-                <div className="absolute -bottom-5 -left-8 bg-[#001F54] text-white p-4 rounded-2xl shadow-xl shadow-blue-900/20 flex items-center gap-3 pr-6">
-                   <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center"><BrainCircuit size={20} className="text-blue-200" /></div>
-                   <div><div className="text-[10px] text-blue-200 font-bold uppercase">AI Agents</div><div className="text-sm font-bold flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-green-400"></span> Online</div></div>
+
+                {/* Status bar */}
+                <div className="border-t border-slate-700/80 px-5 py-2.5 flex justify-between text-[11px] font-code bg-[#0d1117]">
+                  <span className="text-slate-500">uptime <span className="text-green-400">99.99%</span></span>
+                  <span className="text-slate-500">msgs/day <span className="text-blue-400">17,439</span></span>
+                  <span className="text-slate-500">latency <span className="text-teal-400">42ms</span></span>
+                </div>
+              </div>
+
+              {/* Floating cards */}
+              <div className="absolute -top-5 -right-10 bg-white rounded-2xl shadow-2xl border border-slate-100 px-4 py-3 flex items-center gap-3 animate-float">
+                <div className="w-9 h-9 bg-green-100 rounded-xl flex items-center justify-center"><TrendingUp size={18} className="text-green-600" /></div>
+                <div>
+                  <div className="text-[10px] text-slate-400 font-bold uppercase">Revenue Growth</div>
+                  <div className="text-base font-bold text-slate-800">+127%</div>
+                </div>
+              </div>
+
+              <div className="absolute -bottom-5 -left-8 bg-[#001F54] text-white rounded-2xl shadow-xl px-4 py-3 flex items-center gap-3 animate-float-delay">
+                <div className="w-9 h-9 bg-white/10 rounded-xl flex items-center justify-center"><Bot size={18} className="text-blue-200" /></div>
+                <div>
+                  <div className="text-[10px] text-blue-200 font-bold uppercase">AI Agents</div>
+                  <div className="text-xs font-bold flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-green-400 inline-block" /> Online</div>
                 </div>
               </div>
             </motion.div>
+
           </div>
         </div>
       </section>
       
-      {/* İSTATİSTİKLER */}
-      <div className="py-20 bg-white relative z-20">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <div className="bg-slate-50 p-8 rounded-3xl border border-slate-100 text-center hover:shadow-xl transition-all duration-300 hover:-translate-y-2 group">
-               <div className="text-4xl md:text-5xl font-bold text-[#001F54] mb-2 font-serif group-hover:scale-110 transition-transform">500k+</div>
-               <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">{t.stats.msgTitle}</div>
-               <p className="text-xs text-slate-500 leading-relaxed px-2">{t.stats.msgDesc}</p>
-            </div>
-            <div className="bg-[#001F54] p-8 rounded-3xl text-center shadow-2xl transform md:scale-110 z-10 border-4 border-white">
-               <div className="text-4xl md:text-5xl font-bold text-white mb-2 font-serif">%99</div>
-               <div className="text-xs font-bold text-blue-200 uppercase tracking-widest mb-3">{t.stats.satisfactionTitle}</div>
-               <p className="text-xs text-blue-100 leading-relaxed px-2">{t.stats.satisfactionDesc}</p>
-            </div>
-            <div className="bg-slate-50 p-8 rounded-3xl border border-slate-100 text-center hover:shadow-xl transition-all duration-300 hover:-translate-y-2 group">
-               <div className="text-4xl md:text-5xl font-bold text-[#001F54] mb-2 font-serif group-hover:scale-110 transition-transform">7/24</div>
-               <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">{t.stats.supportTitle}</div>
-               <p className="text-xs text-slate-500 leading-relaxed px-2">{t.stats.supportDesc}</p>
-            </div>
-            <div className="bg-slate-50 p-8 rounded-3xl border border-slate-100 text-center hover:shadow-xl transition-all duration-300 hover:-translate-y-2 group">
-               <div className="text-4xl md:text-5xl font-bold text-[#001F54] mb-2 font-serif group-hover:scale-110 transition-transform">10+</div>
-               <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">{t.stats.countryTitle}</div>
-               <p className="text-xs text-slate-500 leading-relaxed px-2">{t.stats.countryDesc}</p>
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* ─── İSTATİSTİKLER ─── */}
+      <StatsSection t={t} />
 
-      {/* ÇÖZÜMLER */}
-      <section id="solutions" className="py-32 bg-slate-50 relative">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-20">
+      {/* ─── TEKNOLOJİ BANNER ─── */}
+      <TechBanner />
+
+      {/* ─── ÇÖZÜMLER ─── */}
+      <section id="solutions" className="py-32 bg-white relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_rgba(37,99,235,0.04)_0%,_transparent_60%)]" />
+        <div className="max-w-7xl mx-auto px-6 relative z-10">
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-20">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-50 border border-blue-100 text-blue-600 text-xs font-bold uppercase tracking-widest mb-6">
+              <Sparkles size={12} /> {t.solutions.title}
+            </div>
             <h2 className="text-4xl font-bold text-[#0f172a] mb-4 font-serif">{t.solutions.title}</h2>
             <p className="text-slate-500 max-w-2xl mx-auto">{t.solutions.subtitle}</p>
-          </div>
+          </motion.div>
           <div className="grid md:grid-cols-3 gap-8">
             {solutions.map((item, idx) => (
-              <motion.div key={idx} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: idx * 0.2 }} className="bg-white rounded-2xl p-8 shadow-lg border border-slate-100 hover:shadow-2xl hover:border-blue-200 transition-all duration-300 flex flex-col h-full">
-                <div className={`w-16 h-16 ${item.bg} rounded-2xl flex items-center justify-center mb-6 shadow-sm`}>{item.icon}</div>
-                <h3 className="text-2xl font-bold text-[#001F54] mb-3 font-serif">{item.title}</h3>
-                <p className="text-slate-600 leading-relaxed mb-8">{item.desc}</p>
+              <motion.div key={idx} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: idx * 0.15 }}
+                className="tech-card relative rounded-2xl p-8 border border-slate-100 hover:shadow-2xl transition-all duration-300 flex flex-col h-full bg-white group">
+                {/* Top accent */}
+                <div className={`absolute top-0 left-0 right-0 h-1 rounded-t-2xl bg-gradient-to-r ${idx === 0 ? 'from-blue-500 to-blue-600' : idx === 1 ? 'from-teal-500 to-teal-600' : 'from-violet-500 to-violet-600'} opacity-0 group-hover:opacity-100 transition-opacity`} />
+                <div className={`w-14 h-14 ${item.bg} rounded-2xl flex items-center justify-center mb-6 shadow-sm group-hover:scale-110 transition-transform`}>{item.icon}</div>
+                <h3 className="text-xl font-bold text-[#001F54] mb-3 font-serif">{item.title}</h3>
+                <p className="text-slate-500 leading-relaxed mb-6 text-sm">{item.desc}</p>
                 <div className="mt-auto">
-                  <div className="w-full h-px bg-slate-100 mb-6"></div>
-                  <ul className="space-y-3">{item.features.map((feature, i) => (<li key={i} className="flex items-start gap-3 text-sm text-slate-600"><div className="mt-1 bg-green-100 p-1 rounded-full"><Check size={12} className="text-green-600 stroke-[3]" /></div>{feature}</li>))}</ul>
-                  <Link to={`/cozumler#${item.id}`} className="block text-center w-full mt-8 py-3 rounded-xl border border-[#001F54] text-[#001F54] font-semibold hover:bg-[#001F54] hover:text-white transition-all text-sm">{t.solutions.btnDetail}</Link>
+                  <div className="flex flex-wrap gap-2 mb-6">
+                    {item.features.map((feature, i) => (
+                      <span key={i} className="inline-flex items-center gap-1 px-3 py-1 bg-slate-50 border border-slate-100 rounded-full text-xs font-semibold text-slate-600">
+                        <Check size={10} className="text-green-500 stroke-[3]" />{feature}
+                      </span>
+                    ))}
+                  </div>
+                  <Link to={`/cozumler#${item.id}`} className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-slate-50 border border-slate-200 text-[#001F54] font-bold hover:bg-[#001F54] hover:text-white hover:border-[#001F54] transition-all text-sm group/btn">
+                    {t.solutions.btnDetail} <ArrowRight size={14} className="group-hover/btn:translate-x-1 transition-transform" />
+                  </Link>
                 </div>
               </motion.div>
             ))}
@@ -612,7 +795,10 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* VİZYON */}
+      {/* ─── NASIL ÇALIŞIR ─── */}
+      <HowItWorks />
+
+      {/* ─── VİZYON ─── */}
       <div id="about" className="relative py-32 bg-[#0a192f] overflow-hidden">
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-20"></div>
         <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-white to-transparent opacity-5"></div>
@@ -654,6 +840,36 @@ const HomePage = () => {
           </div>
         </div>
       </div>
+
+      {/* ─── NEDEN PAX? ─── */}
+      <section className="py-24 bg-slate-50 relative overflow-hidden">
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(148,163,184,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(148,163,184,0.06)_1px,transparent_1px)] bg-[size:40px_40px]" />
+        <div className="max-w-7xl mx-auto px-6 relative z-10">
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-[#0f172a] font-serif mb-4">Neden PAX GROUP?</h2>
+            <p className="text-slate-500 max-w-xl mx-auto">Balkanlar'ın en yenilikçi AI mühendisliği firması olarak fark yaratıyoruz.</p>
+          </motion.div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[
+              { icon: <Shield size={22} />, title: "Enterprise Güvenlik", desc: "SOC2, GDPR ve KVKK uyumlu altyapı. Verileriniz her zaman korumalı.", color: "text-blue-600 bg-blue-50" },
+              { icon: <Gauge size={22} />, title: "Yüksek Performans", desc: "42ms ortalama yanıt süresi ile rakipsiz hız. 99.99% uptime garantisi.", color: "text-green-600 bg-green-50" },
+              { icon: <GitBranch size={22} />, title: "Sürekli Güncelleme", desc: "AI modellerimiz her gün optimize ediliyor. Siz uyurken biz çalışıyoruz.", color: "text-violet-600 bg-violet-50" },
+              { icon: <Globe size={22} />, title: "Çok Dilli AI", desc: "TR, EN, RU, ME ve 20+ dilde doğal dil işleme kabiliyeti.", color: "text-teal-600 bg-teal-50" },
+              { icon: <Cpu size={22} />, title: "Özel Model Fine-tuning", desc: "Sektörünüze özgü GPT fine-tuning ile rakipsiz doğruluk oranları.", color: "text-orange-600 bg-orange-50" },
+              { icon: <Zap size={22} />, title: "Hızlı Entegrasyon", desc: "WhatsApp, Instagram, Web, Telegram — 48 saat içinde canlıya alın.", color: "text-yellow-600 bg-yellow-50" },
+            ].map((item, i) => (
+              <motion.div key={i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }}
+                className="bg-white rounded-2xl p-6 border border-slate-100 hover:shadow-lg transition-all duration-300 flex gap-4 group hover:-translate-y-1">
+                <div className={`w-11 h-11 rounded-xl ${item.color} flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform`}>{item.icon}</div>
+                <div>
+                  <h4 className="font-bold text-[#0f172a] mb-1">{item.title}</h4>
+                  <p className="text-sm text-slate-500 leading-relaxed">{item.desc}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
 
       <Testimonials />
       <AdvancedContactForm />
