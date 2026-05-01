@@ -14,7 +14,7 @@ const DashboardOverview = () => {
         const token = localStorage.getItem('token');
         if (!token) return;
 
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/business-profile`, {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/business-profile`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
 
@@ -43,7 +43,7 @@ const DashboardOverview = () => {
     try {
       const token = localStorage.getItem('token');
       // Backend'e durumu güncellemesi için istek at
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/business-profile`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/business-profile`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

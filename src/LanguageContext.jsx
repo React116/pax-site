@@ -4,12 +4,10 @@ import React, { createContext, useState, useContext } from 'react';
 // --- TÜM SİTE ÇEVİRİLERİ ---
 const translations = {
   tr: {
-    // --- GÖRSELLER (Dil bazlı görsel değişimi için) ---
     images: {
-      hero: "/hero-tr.png", // Örnek: Türkçe görsel yolu
+      hero: "/hero-tr.png",
       about: "/about-us-tr.jpg"
     },
-    // --- NAVİGASYON ---
     nav: {
       successStories: "Başarı Hikayeleri",
       about: "Hakkımızda",
@@ -23,7 +21,6 @@ const translations = {
       consult: "Danışmanlık Al",
       corporate: "KURUMSAL"
     },
-    // --- ANA SAYFA (Home) ---
     hero: {
       badge: "ZEKA MÜHENDİSLİĞİ",
       titleStart: "Ticaretin",
@@ -113,7 +110,6 @@ const translations = {
       connect: "Bağlantıda Kalın",
       rights: "© 2025 PAX GROUP GLOBAL. Tüm hakları saklıdır."
     },
-    // --- DİĞER SAYFALAR (Burayı kendi içeriklerinize göre doldurmalısınız) ---
     pricingPage: {
       title: "Fiyatlandırma",
       desc: "İşletmeniz için en uygun paketi seçin.",
@@ -133,8 +129,8 @@ const translations = {
       readMore: "Devamını Oku"
     }
   },
+
   en: {
-    // --- IMAGES (Language based) ---
     images: {
       hero: "/hero-en.png",
       about: "/about-us-en.jpg"
@@ -241,15 +237,14 @@ const translations = {
       connect: "Stay Connected",
       rights: "© 2025 PAX GROUP GLOBAL. All rights reserved."
     },
-    // --- OTHER PAGES (Update these with your content) ---
     pricingPage: {
       title: "Pricing",
       desc: "Choose the best plan for your business.",
       monthly: "Monthly",
       yearly: "Yearly",
       plans: [
-        { name: "Starter", price: "$99", features: ["Basic Features", "Email Support"] },
-        { name: "Professional", price: "$299", features: ["All Features", "24/7 Support"] }
+        { name: "Starter", price: "€99", features: ["Basic Features", "Email Support"] },
+        { name: "Professional", price: "€299", features: ["All Features", "24/7 Support"] }
       ]
     },
     storyPage: {
@@ -260,6 +255,260 @@ const translations = {
       title: "Blog & Insights",
       readMore: "Read More"
     }
+  },
+
+  ru: {
+    images: {
+      hero: "/hero-ru.png",
+      about: "/about-us-ru.jpg"
+    },
+    nav: {
+      successStories: "Истории успеха",
+      about: "О нас",
+      whoWeAre: "Кто мы?",
+      whoWeAreDesc: "История PAX Group",
+      blog: "Блог и контент",
+      blogDesc: "Технологические тренды",
+      solutions: "Решения",
+      pricing: "Цены",
+      contact: "Контакты",
+      consult: "Получить консультацию",
+      corporate: "КОРПОРАТИВНОЕ"
+    },
+    hero: {
+      badge: "ИНЖЕНЕРИЯ ИНТЕЛЛЕКТА",
+      titleStart: "Нейронная сеть",
+      titleHighlight: "бизнеса",
+      desc: "PAX GROUP строит AI-нативные инфраструктуры для современного бизнеса. От автономных агентов до SaaS-архитектур — мы создаём цифровое будущее уже сегодня.",
+      btnDiscover: "Открыть решения",
+      btnContact: "Связаться"
+    },
+    stats: {
+      msgTitle: "AI-сообщений в месяц",
+      msgDesc: "Непрерывная коммуникация с высокопроизводительными серверами.",
+      satisfactionTitle: "Удовлетворённость клиентов",
+      satisfactionDesc: "Показатель успеха на основе отзывов.",
+      supportTitle: "Поддержка 24/7",
+      supportDesc: "Наша техническая команда всегда рядом с вами.",
+      countryTitle: "Стран обслуживания",
+      countryDesc: "Глобальная сервисная сеть."
+    },
+    solutions: {
+      title: "Технологические решения",
+      subtitle: "Комплексные цифровые услуги для вашего бизнеса.",
+      btnDetail: "Подробнее",
+      items: [
+        { title: "Разработка SaaS платформ", desc: "Масштабируемые и безопасные программные инфраструктуры.", features: ["Современная архитектура", "Облачные технологии", "Высокая безопасность"] },
+        { title: "AI-рабочая сила и чатбот", desc: "ИИ-ассистенты, работающие круглосуточно.", features: ["Автоматизация WhatsApp", "Ответы 24/7", "Мультиязычность"] },
+        { title: "Стратегический консалтинг", desc: "Создаём дорожную карту цифровой трансформации.", features: ["Дорожная карта", "Снижение затрат", "Анализ рынка"] }
+      ]
+    },
+    vision: {
+      badge: "2025 • Черногория",
+      titleStart: "Строим будущее",
+      titleHighlight: "из Черногории",
+      titleEnd: "",
+      desc: "PAX GROUP строит надёжный технологический мост из Балкан в мир, объединяя европейскую инженерную дисциплину со скоростью ИИ.",
+      btnStory: "Наша история"
+    },
+    testimonials: {
+      title: "Истории успеха",
+      subtitle: "Что говорят компании?",
+      reviews: [
+        { title: "Владелец стоматологии", text: "Запись к врачу полностью автоматизирована." },
+        { title: "Студия пилатеса", text: "Телефонный трафик снизился на 80%." },
+        { title: "Риелтор", text: "Клиенты получают мгновенные ответы 24/7." },
+        { title: "Владелец интернет-магазина", text: "Мы больше не пропускаем ночные вопросы." },
+        { title: "Центр красоты", text: "Клиенты записываются через WhatsApp." }
+      ]
+    },
+    form: {
+      title: "Начнём ваш проект",
+      subtitle: "Заполните форму, чтобы трансформировать бизнес с помощью AI.",
+      office: "Главный офис",
+      phone: "Телефон",
+      email: "Эл. почта",
+      labels: {
+        name: "Ваше имя / Название компании",
+        phone: "Номер WhatsApp",
+        email: "Ваш Email",
+        sector: "Ваша отрасль",
+        platforms: "Платформы для использования",
+        customers: "Примерное количество клиентов в день",
+        intent: "Намерение начать",
+        fastReply: "Быстрый ответ"
+      },
+      placeholders: {
+        name: "Напр.: Pax Tourism",
+        phone: "+7 XXX XXX XX XX",
+        email: "example@company.com",
+        select: "Выбрать..."
+      },
+      intents: {
+        now: "Хочу начать прямо сейчас",
+        demo: "Хочу посмотреть демо",
+        info: "Просто хочу информацию"
+      },
+      checkboxText: "Хочу, чтобы мою заявку рассмотрели и ответили через WhatsApp.",
+      btnSending: "Отправка...",
+      btnSend: "Отправить форму",
+      success: "✅ Сообщение успешно отправлено!",
+      error: "❌ Произошла ошибка."
+    },
+    footer: {
+      corporate: "Корпоративное",
+      legal: "Политика конфиденциальности",
+      terms: "Условия использования",
+      cookies: "Политика файлов cookie",
+      kvkk: "Соответствие GDPR",
+      connect: "Оставайтесь на связи",
+      rights: "© 2025 PAX GROUP GLOBAL. Все права защищены."
+    },
+    pricingPage: {
+      title: "Тарифы",
+      desc: "Выберите лучший план для вашего бизнеса.",
+      monthly: "В месяц",
+      yearly: "В год",
+      plans: [
+        { name: "Начальный", price: "€99", features: ["Базовые функции", "Email-поддержка"] },
+        { name: "Профессиональный", price: "€299", features: ["Все функции", "Поддержка 24/7"] }
+      ]
+    },
+    storyPage: {
+      title: "Наша история",
+      content: "Pax Group была основана для служения человечеству с помощью технологий..."
+    },
+    blogPage: {
+      title: "Блог и статьи",
+      readMore: "Читать далее"
+    }
+  },
+
+  me: {
+    images: {
+      hero: "/hero-me.png",
+      about: "/about-us-me.jpg"
+    },
+    nav: {
+      successStories: "Priče o uspjehu",
+      about: "O nama",
+      whoWeAre: "Ko smo mi?",
+      whoWeAreDesc: "Priča PAX Grupe",
+      blog: "Blog i sadržaj",
+      blogDesc: "Tehnološki trendovi",
+      solutions: "Rješenja",
+      pricing: "Cijene",
+      contact: "Kontakt",
+      consult: "Zatražite savjet",
+      corporate: "KORPORATIVNO"
+    },
+    hero: {
+      badge: "INŽENJERING INTELIGENCIJE",
+      titleStart: "Neuronska mreža",
+      titleHighlight: "biznisa",
+      desc: "PAX GROUP gradi AI-nativne infrastrukture za moderna preduzeća. Od autonomnih agenata do SaaS arhitektura, gradimo digitalnu budućnost već danas.",
+      btnDiscover: "Istražite rješenja",
+      btnContact: "Kontaktirajte nas"
+    },
+    stats: {
+      msgTitle: "AI poruka mjesečno",
+      msgDesc: "Neprekidna komunikacija sa serverima visokog kapaciteta.",
+      satisfactionTitle: "Zadovoljstvo klijenata",
+      satisfactionDesc: "Stopa uspjeha na osnovu povratnih informacija.",
+      supportTitle: "Podrška 24/7",
+      supportDesc: "Naš tehnički tim uvijek je uz vas.",
+      countryTitle: "Zemalja u usluzi",
+      countryDesc: "Globalna servisna mreža."
+    },
+    solutions: {
+      title: "Tehnološka rješenja",
+      subtitle: "Sveobuhvatne digitalne usluge za vaše preduzeće.",
+      btnDetail: "Pogledajte detalje",
+      items: [
+        { title: "Razvoj SaaS platformi", desc: "Skalabilne i sigurne softverske infrastrukture.", features: ["Moderna arhitektura", "Zasnovano na oblaku", "Visoka sigurnost"] },
+        { title: "AI radna snaga i chatbot", desc: "AI asistenti koji rade 24/7.", features: ["WhatsApp automatizacija", "Odgovor 24/7", "Višejezičnost"] },
+        { title: "Strateški konsalting", desc: "Kreiramo putokaz za vašu digitalnu transformaciju.", features: ["Putokaz", "Smanjenje troškova", "Analiza tržišta"] }
+      ]
+    },
+    vision: {
+      badge: "2025 • Crna Gora",
+      titleStart: "Gradimo budućnost",
+      titleHighlight: "iz Crne Gore",
+      titleEnd: "",
+      desc: "PAX GROUP gradi pouzdan tehnološki most od Balkana prema svijetu, kombinujući evropsku inženjersku disciplinu sa brzinom vještačke inteligencije.",
+      btnStory: "Naša priča"
+    },
+    testimonials: {
+      title: "Priče o uspjehu",
+      subtitle: "Šta preduzeća kažu?",
+      reviews: [
+        { title: "Vlasnik stomatološke klinike", text: "Zakazivanje je potpuno automatizovano." },
+        { title: "Pilates studio", text: "Telefonski saobraćaj smanjen za 80%." },
+        { title: "Konsultant za nekretnine", text: "Klijenti dobijaju trenutne odgovore 24/7." },
+        { title: "Vlasnik e-Commerce-a", text: "Više ne propuštamo noćne upite." },
+        { title: "Centar ljepote", text: "Klijenti zakazuju putem WhatsApp-a." }
+      ]
+    },
+    form: {
+      title: "Pokrenimo vaš projekat",
+      subtitle: "Popunite obrazac za transformaciju vašeg poslovanja uz AI.",
+      office: "Sjedište",
+      phone: "Telefon",
+      email: "E-pošta",
+      labels: {
+        name: "Vaše ime / Naziv kompanije",
+        phone: "WhatsApp broj",
+        email: "Vaša e-adresa",
+        sector: "Vaša industrija",
+        platforms: "Platforme koje želite koristiti",
+        customers: "Procijenjeni broj klijenata dnevno",
+        intent: "Namjera početka",
+        fastReply: "Brzi odgovor"
+      },
+      placeholders: {
+        name: "Npr.: Pax Turizam",
+        phone: "+382 XX XXX XXX",
+        email: "primjer@kompanija.com",
+        select: "Odaberite..."
+      },
+      intents: {
+        now: "Želim početi odmah",
+        demo: "Želim vidjeti demo",
+        info: "Samo tražim informacije"
+      },
+      checkboxText: "Želim da moj zahtjev bude pregledan i da mi se brzo odgovori putem WhatsApp-a.",
+      btnSending: "Slanje...",
+      btnSend: "Pošaljite obrazac",
+      success: "✅ Poruka je uspješno poslata!",
+      error: "❌ Došlo je do greške."
+    },
+    footer: {
+      corporate: "Korporativno",
+      legal: "Politika privatnosti",
+      terms: "Uslovi korišćenja",
+      cookies: "Politika kolačića",
+      kvkk: "GDPR usklađenost",
+      connect: "Ostanite u kontaktu",
+      rights: "© 2025 PAX GROUP GLOBAL. Sva prava zadržana."
+    },
+    pricingPage: {
+      title: "Cijene",
+      desc: "Odaberite najbolji plan za vaše preduzeće.",
+      monthly: "Mjesečno",
+      yearly: "Godišnje",
+      plans: [
+        { name: "Početni", price: "€99", features: ["Osnovne funkcije", "E-mail podrška"] },
+        { name: "Profesionalni", price: "€299", features: ["Sve funkcije", "Podrška 24/7"] }
+      ]
+    },
+    storyPage: {
+      title: "Naša priča",
+      content: "Pax Group je osnovan da služi čovječanstvu uz pomoć tehnologije..."
+    },
+    blogPage: {
+      title: "Blog i napisi",
+      readMore: "Pročitajte više"
+    }
   }
 };
 
@@ -267,7 +516,7 @@ const LanguageContext = createContext();
 
 export const LanguageProvider = ({ children }) => {
   const [language, setLanguage] = useState('tr');
-  
+
   const toggleLanguage = (lang) => {
     setLanguage(lang);
   };

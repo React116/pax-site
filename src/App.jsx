@@ -123,9 +123,23 @@ const Navbar = () => {
           <button onClick={scrollToContact} className="hover:text-[#001F54] transition-colors cursor-pointer">{t.nav.contact}</button>
           
           {/* DİL BUTONLARI */}
-          <div className="flex items-center bg-slate-100 rounded-full p-1 h-8">
-            <button onClick={() => toggleLanguage('tr')} className={`px-3 h-full rounded-full text-xs font-bold transition-all ${language === 'tr' ? 'bg-white text-[#001F54] shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>TR</button>
-            <button onClick={() => toggleLanguage('en')} className={`px-3 h-full rounded-full text-xs font-bold transition-all ${language === 'en' ? 'bg-white text-[#001F54] shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>EN</button>
+          <div className="flex items-center bg-slate-100 rounded-full p-1 h-9 gap-0.5">
+            {[
+              { code: 'tr', flag: '🇹🇷', label: 'TR' },
+              { code: 'en', flag: '🇬🇧', label: 'EN' },
+              { code: 'ru', flag: '🇷🇺', label: 'RU' },
+              { code: 'me', flag: '🇲🇪', label: 'ME' },
+            ].map(({ code, flag, label }) => (
+              <button
+                key={code}
+                onClick={() => toggleLanguage(code)}
+                title={label}
+                className={`px-2 h-full rounded-full text-xs font-bold transition-all flex items-center gap-1 ${language === code ? 'bg-white text-[#001F54] shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+              >
+                <span className="text-base leading-none">{flag}</span>
+                <span className="hidden xl:inline">{label}</span>
+              </button>
+            ))}
           </div>
 
           {/* GİRİŞ KONTROLÜ - SADECE PANEL BUTONU */}
@@ -144,8 +158,13 @@ const Navbar = () => {
         
         {/* MOBİL HAMBURGER BUTONU */}
         <div className="flex items-center gap-4 md:hidden">
-          <button onClick={() => toggleLanguage(language === 'tr' ? 'en' : 'tr')} className="flex items-center gap-1 font-bold text-sm text-[#001F54] border border-slate-200 px-2 py-1 rounded-md">
-            <Globe size={16}/> {language.toUpperCase()}
+          <button onClick={() => {
+            const cycle = ['tr', 'en', 'ru', 'me'];
+            const next = cycle[(cycle.indexOf(language) + 1) % cycle.length];
+            toggleLanguage(next);
+          }} className="flex items-center gap-1 font-bold text-sm text-[#001F54] border border-slate-200 px-2 py-1 rounded-md">
+            <span className="text-base leading-none">{{ tr: '🇹🇷', en: '🇬🇧', ru: '🇷🇺', me: '🇲🇪' }[language]}</span>
+            <span>{language.toUpperCase()}</span>
           </button>
           <button className="text-[#001F54]" onClick={() => setIsOpen(!isOpen)}>
             {isOpen ? <X size={28} /> : <Menu size={28} />}
@@ -168,6 +187,24 @@ const Navbar = () => {
                   <Link to="/kayit-ol" onClick={() => setIsOpen(false)} className="text-center py-3 bg-[#001F54] text-white rounded-xl font-bold">Kayıt Ol</Link>
                 </div>
              )}
+          </div>
+
+          {/* MOBİL DİL SEÇİCİ */}
+          <div className="flex items-center gap-2 pb-4 border-b border-slate-50">
+            {[
+              { code: 'tr', flag: '🇹🇷', label: 'TR' },
+              { code: 'en', flag: '🇬🇧', label: 'EN' },
+              { code: 'ru', flag: '🇷🇺', label: 'RU' },
+              { code: 'me', flag: '🇲🇪', label: 'ME' },
+            ].map(({ code, flag, label }) => (
+              <button
+                key={code}
+                onClick={() => toggleLanguage(code)}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-bold transition-all border ${language === code ? 'bg-[#001F54] text-white border-[#001F54]' : 'bg-white text-slate-500 border-slate-200 hover:border-slate-300'}`}
+              >
+                <span className="text-base">{flag}</span> {label}
+              </button>
+            ))}
           </div>
 
           <Link to="/basari-hikayeleri" onClick={() => setIsOpen(false)} className="text-lg font-bold text-orange-600 flex items-center gap-2"><TrendingUp size={20}/> {t.nav.successStories}</Link>
@@ -647,26 +684,9 @@ function App() {
 
               {/* --- PANEL ROTALARI (NESTED) --- */}
               <Route path="/panel" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
-   <Route index element={<DashboardOverview />} />
-   <Route path="settings" element={<BusinessSettings />} />
-   {/* BU SATIRI EKLE: */}
-   <Route path="calendar" element={<CalendarPage />} />
-</Route>
-              <Route 
-                path="/panel" 
-                element={
-                  <ProtectedRoute>
-                    <DashboardLayout />
-                  </ProtectedRoute>
-                  
-                }
-                
-              >
-                {/* /panel adresine girince Overview açılacak */}
                 <Route index element={<DashboardOverview />} />
-                
-                {/* /panel/settings adresine girince Settings, Layout'un içinde açılacak */}
                 <Route path="settings" element={<BusinessSettings />} />
+                <Route path="calendar" element={<CalendarPage />} />
               </Route>
 
             </Routes>
