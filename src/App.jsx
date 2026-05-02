@@ -316,8 +316,14 @@ const Footer = () => {
           </div>
           <div>
             <h4 className="text-white font-bold mb-6">{t.footer.connect}</h4>
-            <div className="flex gap-4 mb-8">
-              <a href="https://www.instagram.com/pax_groupglobal" target="_blank" rel="noopener noreferrer" className="bg-slate-800 p-2 rounded-lg hover:bg-pink-600 hover:text-white transition-all" aria-label="Instagram"><Instagram size={20}/></a>
+            <div className="flex gap-3 mb-8">
+              <a href="https://www.instagram.com/pax_groupglobal" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-slate-800 rounded-lg hover:bg-pink-600 flex items-center justify-center text-slate-400 hover:text-white transition-all" aria-label="Instagram"><Instagram size={19}/></a>
+              <a href="#" className="w-10 h-10 bg-slate-800 rounded-lg hover:bg-blue-600 flex items-center justify-center text-slate-400 hover:text-white transition-all" aria-label="LinkedIn">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3A2 2 0 0 1 21 5V19A2 2 0 0 1 19 21H5A2 2 0 0 1 3 19V5A2 2 0 0 1 5 3H19M18.5 18.5V13.2A3.26 3.26 0 0 0 15.24 9.94C14.39 9.94 13.4 10.46 12.92 11.24V10.13H10.13V18.5H12.92V13.57C12.92 12.8 13.54 12.17 14.31 12.17A1.4 1.4 0 0 1 15.71 13.57V18.5H18.5M6.88 8.56A1.68 1.68 0 0 0 8.56 6.88C8.56 5.95 7.81 5.19 6.88 5.19A1.69 1.69 0 0 0 5.19 6.88C5.19 7.81 5.95 8.56 6.88 8.56M8.27 18.5V10.13H5.5V18.5H8.27Z" /></svg>
+              </a>
+              <a href="#" className="w-10 h-10 bg-slate-800 rounded-lg hover:bg-slate-600 flex items-center justify-center text-slate-400 hover:text-white transition-all" aria-label="GitHub">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z" /></svg>
+              </a>
             </div>
             <div className="flex flex-col gap-2 text-xs"><div className="flex items-center gap-2 text-green-400"><Lock size={14}/> SSL Secure 256-bit</div><div className="flex items-center gap-2 text-blue-400"><CheckCircle2 size={14}/> GDPR Compliant</div></div>
           </div>
@@ -386,13 +392,13 @@ const AdvancedContactForm = () => {
         </div>
         <div className="lg:col-span-3">
           <form onSubmit={handleSubmit} className="bg-white p-8 md:p-10 rounded-3xl shadow-xl border border-slate-100 relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#001F54] via-blue-500 to-teal-400"></div>
+            <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-[#001F54] via-blue-500 to-cyan-500"></div>
             <div className="space-y-6">
               <div className="grid md:grid-cols-2 gap-6">
-                <div><label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">{t.form.labels.name}</label><input required name="İsim_Firma" type="text" className="w-full p-3 rounded-xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-[#001F54] outline-none transition-all" placeholder={t.form.placeholders.name} /></div>
-                <div><label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">{t.form.labels.phone}</label><input required name="Telefon" type="tel" className="w-full p-3 rounded-xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-[#001F54] outline-none transition-all" placeholder={t.form.placeholders.phone} /></div>
+                <div><label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">{t.form.labels.name}</label><input required name="İsim_Firma" type="text" className="w-full p-3.5 rounded-xl bg-slate-50 border-2 border-slate-200 focus:border-blue-500 focus:bg-white focus:shadow-[0_0_0_3px_rgba(37,99,235,0.1)] outline-none transition-all" placeholder={t.form.placeholders.name} /></div>
+                <div><label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">{t.form.labels.phone}</label><input required name="Telefon" type="tel" className="w-full p-3.5 rounded-xl bg-slate-50 border-2 border-slate-200 focus:border-blue-500 focus:bg-white focus:shadow-[0_0_0_3px_rgba(37,99,235,0.1)] outline-none transition-all" placeholder={t.form.placeholders.phone} /></div>
               </div>
-              <div><label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">{t.form.labels.email}</label><input required name="email" type="email" className="w-full p-3 rounded-xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-[#001F54] outline-none transition-all" placeholder={t.form.placeholders.email} /></div>
+              <div><label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">{t.form.labels.email}</label><input required name="email" type="email" className="w-full p-3.5 rounded-xl bg-slate-50 border-2 border-slate-200 focus:border-blue-500 focus:bg-white focus:shadow-[0_0_0_3px_rgba(37,99,235,0.1)] outline-none transition-all" placeholder={t.form.placeholders.email} /></div>
               <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">{t.form.labels.sector}</label>
                 <select required name="Sektör" className="w-full p-3 rounded-xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-[#001F54] outline-none transition-all text-slate-600">
@@ -458,8 +464,8 @@ const AdvancedContactForm = () => {
 const StatCard = ({ end, suffix = '', label, desc, highlight }) => {
   const { count, ref } = useCountUp(end);
   return (
-    <div ref={ref} className={`p-8 rounded-3xl text-center transition-all duration-300 hover:-translate-y-2 group ${highlight ? 'bg-gradient-to-br from-[#001F54] to-[#0f2b6b] shadow-2xl shadow-blue-900/30 border-0' : 'bg-white border border-slate-100 shadow-sm hover:shadow-xl'}`}>
-      <div className={`text-4xl md:text-5xl font-bold mb-2 font-serif group-hover:scale-110 transition-transform ${highlight ? 'text-white' : 'text-[#001F54]'}`}>
+    <div ref={ref} className={`p-8 rounded-3xl text-center transition-all duration-300 hover:-translate-y-3 group ${highlight ? 'bg-gradient-to-br from-[#001F54] to-[#0f2b6b] shadow-2xl shadow-blue-900/40 border border-blue-400/20' : 'bg-white border-2 border-slate-100 shadow-sm hover:border-blue-200 hover:shadow-2xl'}`}>
+      <div className={`text-4xl md:text-5xl font-bold mb-2 font-serif group-hover:scale-110 transition-transform ${highlight ? 'text-white drop-shadow-lg' : 'text-[#001F54] group-hover:text-blue-600'}`}>
         {count}{suffix}
       </div>
       <div className={`text-xs font-bold uppercase tracking-widest mb-3 ${highlight ? 'text-blue-200' : 'text-slate-400'}`}>{label}</div>
@@ -471,7 +477,7 @@ const StatCard = ({ end, suffix = '', label, desc, highlight }) => {
 const StatsSection = ({ t }) => (
   <div className="py-20 bg-slate-50 relative z-20">
     <div className="max-w-7xl mx-auto px-6">
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
         <StatCard end={4} suffix="" label={t.stats.langTitle} desc={t.stats.langDesc} />
         <StatCard end={48} suffix="h" label={t.stats.deployTitle} desc={t.stats.deployDesc} highlight />
         <StatCard end={24} suffix="/7" label={t.stats.supportTitle} desc={t.stats.supportDesc} />
@@ -511,10 +517,10 @@ const TechBanner = () => {
 const HowItWorks = () => {
   const { t } = useLanguage();
   const stepIcons = [
-    <Search size={24} />,
-    <Layers size={24} />,
-    <Code2 size={24} />,
-    <Rocket size={24} />,
+    <Search size={26} />,
+    <Layers size={26} />,
+    <Code2 size={26} />,
+    <Rocket size={26} />,
   ];
   const stepColors = [
     "from-blue-500 to-blue-600",
@@ -544,15 +550,16 @@ const HowItWorks = () => {
           {steps.map((step, i) => (
             <motion.div key={i} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.15 }}
               className="tech-card relative rounded-2xl p-7 border border-slate-100 hover:shadow-xl transition-all duration-300 group">
-              <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${step.color} flex items-center justify-center text-white mb-5 group-hover:scale-110 transition-transform`}>
+              <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${step.color} flex items-center justify-center text-white mb-5 group-hover:scale-110 transition-transform shadow-lg`}>
                 {step.icon}
               </div>
-              <div className="text-5xl font-bold text-slate-100 font-code absolute top-5 right-5 select-none">{step.num}</div>
-              <h3 className="text-lg font-bold text-[#0f172a] mb-2">{step.title}</h3>
+              <div className="text-5xl font-bold text-slate-100 font-code absolute top-4 right-4 select-none opacity-60">{step.num}</div>
+              <h3 className="text-lg font-bold text-[#0f172a] mb-2 font-serif">{step.title}</h3>
               <p className="text-sm text-slate-500 leading-relaxed">{step.desc}</p>
               {i < steps.length - 1 && (
-                <div className="hidden lg:flex absolute -right-3 top-1/2 -translate-y-1/2 z-20">
-                  <ChevronRight size={20} className="text-slate-300" />
+                <div className="hidden lg:flex items-center absolute -right-4 top-1/2 -translate-y-1/2 z-20">
+                  <div className="w-4 h-0.5 bg-gradient-to-r from-slate-200 to-blue-300" />
+                  <ChevronRight size={18} className="text-blue-400 -ml-1" />
                 </div>
               )}
             </motion.div>
@@ -593,18 +600,22 @@ const Testimonials = () => {
           style={{ width: "max-content" }}
         >
           {[...t.testimonials.reviews, ...t.testimonials.reviews].map((review, i) => (
-            <div key={i} className="w-[360px] bg-white p-7 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+            <div key={i} className="w-[360px] bg-white p-7 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-between hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
               <p className="text-slate-600 text-sm leading-relaxed mb-6">"{review.text}"</p>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between pt-4 border-t border-slate-100">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 bg-blue-50 rounded-xl flex items-center justify-center text-[#001F54] shrink-0">
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl flex items-center justify-center text-[#001F54] shrink-0">
                     {sectorIcons[i % sectorIcons.length]}
                   </div>
-                  <span className="text-xs font-bold text-[#001F54] uppercase tracking-wide">{review.title}</span>
+                  <div>
+                    <span className="text-xs font-bold text-[#001F54] uppercase tracking-wide block">{review.title}</span>
+                    <span className="text-[10px] text-slate-400">{review.sector || 'B2B'}</span>
+                  </div>
                 </div>
-                <span className="text-[10px] bg-green-50 text-green-600 border border-green-100 px-2.5 py-1 rounded-full font-bold shrink-0">
-                  {t.testimonials.verified}
-                </span>
+                <div className="inline-flex items-center gap-1.5 bg-green-50 border border-green-200 px-3 py-1.5 rounded-full shrink-0">
+                  <CheckCircle2 size={11} className="text-green-600" />
+                  <span className="text-[10px] font-bold text-green-700">{t.testimonials.verified}</span>
+                </div>
               </div>
             </div>
           ))}
@@ -650,7 +661,7 @@ const HomePage = () => {
         <div className="absolute bottom-10 right-[5%] w-80 h-80 bg-violet-300/20 rounded-full blur-[80px] animate-blob-slow pointer-events-none" />
         <div className="absolute top-40 right-[30%] w-64 h-64 bg-teal-300/15 rounded-full blur-[80px] animate-blob-slow pointer-events-none" />
 
-        <div className="max-w-7xl mx-auto px-6 relative z-10">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 relative z-10">
           <div className="grid lg:grid-cols-2 gap-16 lg:gap-20 items-center">
 
             <motion.div initial="hidden" animate="visible" variants={staggerContainer}>
@@ -666,8 +677,8 @@ const HomePage = () => {
               {/* Title */}
               <motion.h1 variants={fadeInUp} className="text-5xl lg:text-[5.5rem] font-bold text-[#0f172a] leading-[1.05] mb-6 font-serif tracking-tight">
                 {t.hero.titleStart} <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#2563EB] via-blue-500 to-teal-500 animate-gradient-x">{t.hero.titleHighlight}</span>
-                <span className="text-teal-500">.</span>
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#2563EB] via-blue-500 to-cyan-500 animate-gradient-x">{t.hero.titleHighlight}</span>
+                <span className="text-cyan-500">.</span>
               </motion.h1>
 
               <motion.p variants={fadeInUp} className="text-lg text-slate-500 leading-relaxed mb-8 max-w-lg">
@@ -693,9 +704,24 @@ const HomePage = () => {
                 <Link to="/cozumler" className="bg-[#001F54] text-white px-8 py-4 rounded-full font-bold text-sm hover:bg-[#0f172a] hover:scale-[1.02] transition-all shadow-xl shadow-blue-900/20 flex items-center justify-center gap-2 group">
                   {t.hero.btnDiscover} <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                 </Link>
-                <button onClick={() => document.getElementById('contact').scrollIntoView({ behavior: 'smooth' })} className="px-8 py-4 rounded-full font-bold text-sm text-[#001F54] bg-white border border-slate-200 hover:border-blue-300 hover:bg-blue-50 transition-all shadow-sm flex items-center justify-center gap-2">
+                <button onClick={() => document.getElementById('contact').scrollIntoView({ behavior: 'smooth' })} className="px-8 py-4 rounded-full font-bold text-sm text-[#001F54] bg-transparent border-2 border-[#001F54] hover:bg-[#001F54] hover:text-white transition-all flex items-center justify-center gap-2">
                   <MessageSquare size={16} /> {t.hero.btnContact}
                 </button>
+              </motion.div>
+
+              {/* Trust badges */}
+              <motion.div variants={fadeInUp} className="hidden md:flex items-center gap-6 mt-8 pt-8 border-t border-slate-200">
+                <div className="flex items-center gap-2 text-xs text-slate-500 font-semibold">
+                  <Lock size={13} className="text-green-600" /> 256-bit SSL
+                </div>
+                <div className="w-px h-4 bg-slate-200" />
+                <div className="flex items-center gap-2 text-xs text-slate-500 font-semibold">
+                  <CheckCircle2 size={13} className="text-blue-500" /> GDPR Compliant
+                </div>
+                <div className="w-px h-4 bg-slate-200" />
+                <div className="flex items-center gap-2 text-xs text-slate-500 font-semibold">
+                  <ShieldCheck size={13} className="text-cyan-500" /> 99.9% Uptime
+                </div>
               </motion.div>
             </motion.div>
 
@@ -829,9 +855,9 @@ const HomePage = () => {
           <div className="grid md:grid-cols-3 gap-8">
             {solutions.map((item, idx) => (
               <motion.div key={idx} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: idx * 0.15 }}
-                className="tech-card relative rounded-2xl p-8 border border-slate-100 hover:shadow-2xl transition-all duration-300 flex flex-col h-full bg-white group">
+                className="tech-card relative rounded-2xl p-8 border-2 border-slate-100 hover:border-blue-200 hover:shadow-[0_20px_60px_rgba(37,99,235,0.12)] transition-all duration-300 flex flex-col h-full bg-white group overflow-hidden">
                 {/* Top accent */}
-                <div className={`absolute top-0 left-0 right-0 h-1 rounded-t-2xl bg-gradient-to-r ${idx === 0 ? 'from-blue-500 to-blue-600' : idx === 1 ? 'from-teal-500 to-teal-600' : 'from-violet-500 to-violet-600'} opacity-0 group-hover:opacity-100 transition-opacity`} />
+                <div className={`absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r ${idx === 0 ? 'from-blue-500 to-blue-600' : idx === 1 ? 'from-cyan-500 to-teal-500' : 'from-violet-500 to-violet-600'} scale-x-0 group-hover:scale-x-100 transition-transform origin-left`} />
                 <div className={`w-14 h-14 ${item.bg} rounded-2xl flex items-center justify-center mb-6 shadow-sm group-hover:scale-110 transition-transform`}>{item.icon}</div>
                 <h3 className="text-xl font-bold text-[#001F54] mb-3 font-serif">{item.title}</h3>
                 <p className="text-slate-500 leading-relaxed mb-6 text-sm">{item.desc}</p>
@@ -907,16 +933,16 @@ const HomePage = () => {
             <h2 className="text-4xl font-bold text-[#0f172a] font-serif mb-4">{t.whyPax.title}</h2>
             <p className="text-slate-500 max-w-xl mx-auto">{t.whyPax.subtitle}</p>
           </motion.div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {t.whyPax.items.map((item, i) => ({
               ...item,
               ...whyIcons[i]
             })).map((item, i) => (
               <motion.div key={i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }}
-                className="bg-white rounded-2xl p-6 border border-slate-100 hover:shadow-lg transition-all duration-300 flex gap-4 group hover:-translate-y-1">
-                <div className={`w-11 h-11 rounded-xl ${item.color} flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform`}>{item.icon}</div>
+                className="bg-white rounded-2xl p-7 border-2 border-slate-100 hover:border-blue-200 hover:shadow-xl transition-all duration-300 flex gap-4 group hover:-translate-y-2">
+                <div className={`w-12 h-12 rounded-xl ${item.color} flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform`}>{item.icon}</div>
                 <div>
-                  <h4 className="font-bold text-[#0f172a] mb-1">{item.title}</h4>
+                  <h4 className="font-bold text-[#0f172a] mb-2 text-base">{item.title}</h4>
                   <p className="text-sm text-slate-500 leading-relaxed">{item.desc}</p>
                 </div>
               </motion.div>
