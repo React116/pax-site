@@ -1,13 +1,16 @@
 import React, { useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
-import { 
-  ArrowLeft, Code2, BrainCircuit, LineChart, 
-  Server, Shield, Database, Smartphone, 
-  Bot, MessageSquare, Zap, Users, 
-  Target, TrendingUp, Layers, CheckCircle2 
+import {
+  ArrowLeft, Code2, BrainCircuit, LineChart,
+  Server, Shield, Database, Smartphone,
+  Bot, MessageSquare, Zap, Users,
+  Target, TrendingUp, Layers, CheckCircle2
 } from 'lucide-react';
+import SEO from './components/SEO';
+import { useLanguage } from './LanguageContext';
 
 const SolutionsPage = () => {
+  const { t, language } = useLanguage();
   const { hash } = useLocation();
 
   // Sayfa açıldığında veya hash değiştiğinde ilgili bölüme kaydır
@@ -24,7 +27,7 @@ const SolutionsPage = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans selection:bg-blue-100">
-      
+      <SEO title={t.seo.solutions.title} description={t.seo.solutions.desc} path="/cozumler" lang={language} />
       {/* HEADER */}
       <div className="bg-[#001F54] py-24 relative overflow-hidden">
         <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>

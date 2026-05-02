@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { ArrowRight, Mail, Lock } from 'lucide-react';
+import SEO from './components/SEO';
+import { useLanguage } from './LanguageContext';
 
 const Login = () => {
+  const { t, language } = useLanguage();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({ email: '', password: '' });
 
@@ -47,6 +50,7 @@ const handleSubmit = async (e) => {
 
   return (
     <div className="min-h-screen pt-32 pb-20 bg-slate-50 flex items-center justify-center px-6">
+      <SEO title={t.seo.login.title} description={t.seo.login.desc} path="/giris-yap" lang={language} />
       <div className="bg-white p-10 rounded-3xl shadow-xl border border-slate-100 w-full max-w-md">
         <div className="text-center mb-8">
             <h2 className="text-3xl font-serif font-bold text-[#001F54]">Giriş Yap</h2>

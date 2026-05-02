@@ -1,6 +1,8 @@
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Check, X, ArrowLeft, Zap, Star, Briefcase } from 'lucide-react';
+import SEO from './components/SEO';
+import { useLanguage } from './LanguageContext';
 
 const ScrollToTop = () => {
   useEffect(() => {
@@ -10,8 +12,10 @@ const ScrollToTop = () => {
 };
 
 const PricingPage = () => {
+  const { t, language } = useLanguage();
   return (
     <div className="min-h-screen bg-slate-50 font-sans selection:bg-blue-100">
+      <SEO title={t.seo.pricing.title} description={t.seo.pricing.desc} path="/fiyatlar" lang={language} />
       <ScrollToTop />
       
       {/* HEADER */}

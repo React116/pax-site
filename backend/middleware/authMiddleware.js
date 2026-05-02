@@ -12,7 +12,7 @@ const protect = async (req, res, next) => {
     const token = auth.split(" ")[1];
 
     // Login token'ını hangi secret ile imzalıyorsan burada da o olmalı
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || "REDACTED_JWT_SECRET");
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     const user = await User.findById(decoded.id).select("-password");
     if (!user) {

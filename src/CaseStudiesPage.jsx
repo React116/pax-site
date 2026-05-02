@@ -2,6 +2,8 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, CheckCircle2, TrendingUp, Clock, Phone, ShoppingBag, Users, ChevronRight, BarChart3 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import SEO from './components/SEO';
+import { useLanguage } from './LanguageContext';
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
@@ -103,6 +105,7 @@ const CaseStudyCard = ({ data, index }) => {
 };
 
 const CaseStudiesPage = () => {
+  const { t, language } = useLanguage();
   const cases = [
     {
       category: "Klinik & Sağlık",
@@ -162,6 +165,7 @@ const CaseStudiesPage = () => {
 
   return (
     <div className="pt-32 pb-20 bg-white">
+      <SEO title={t.seo.cases.title} description={t.seo.cases.desc} path="/basari-hikayeleri" lang={language} />
       {/* HEADER SECTION */}
       <div className="max-w-7xl mx-auto px-6 mb-24 text-center">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="inline-block px-4 py-1.5 rounded-full border border-blue-100 bg-blue-50 text-[#001F54] text-xs font-bold tracking-widest uppercase mb-6">

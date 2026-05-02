@@ -1,33 +1,44 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
+import { HelmetProvider } from 'react-helmet-async';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
+import SEO from './components/SEO';
 import { motion } from 'framer-motion';
 import {
   ArrowRight, Menu, X, Code2, BrainCircuit, LineChart,
   MapPin, Phone, Mail, CheckCircle2, MessageSquare,
-  Linkedin, Instagram, Youtube, Send, Twitter, ShieldCheck, Lock, Check, Star,
+  Instagram, Send, ShieldCheck, Lock, Check, Star,
   TrendingUp, Activity, Server, ChevronDown, BookOpen, Globe, User, Settings,
   Zap, Shield, Cpu, Layers, Rocket, Database, Cloud, GitBranch, Gauge, Sparkles,
   Terminal, Workflow, ChevronRight, Bot, Search
 } from 'lucide-react';
 
-// --- SAYFA İMPORTLARI ---
-import { PrivacyPolicy, TermsOfUse, CookiePolicy, KvkkText } from './LegalPages';
-import PricingPage from './PricingPage';
-import BlogPostDetail from './BlogPostDetail';
-import SolutionsPage from './SolutionsPage';
-import StoryPage from './HikayeSayfasi'; 
-import CaseStudiesPage from './CaseStudiesPage';
-import BlogPage from './BlogPage';
-import BusinessSettings from './pages/BusinessSettings';
-import CalendarPage from './pages/CalendarPage';
+// --- AĞIR SAYFALAR — LAZY LOAD ---
+const PrivacyPolicy   = lazy(() => import('./LegalPages').then(m => ({ default: m.PrivacyPolicy })));
+const TermsOfUse      = lazy(() => import('./LegalPages').then(m => ({ default: m.TermsOfUse })));
+const CookiePolicy    = lazy(() => import('./LegalPages').then(m => ({ default: m.CookiePolicy })));
+const KvkkText        = lazy(() => import('./LegalPages').then(m => ({ default: m.KvkkText })));
+const PricingPage     = lazy(() => import('./PricingPage'));
+const BlogPostDetail  = lazy(() => import('./BlogPostDetail'));
+const SolutionsPage   = lazy(() => import('./SolutionsPage'));
+const StoryPage       = lazy(() => import('./HikayeSayfasi'));
+const CaseStudiesPage = lazy(() => import('./CaseStudiesPage'));
+const BlogPage        = lazy(() => import('./BlogPage'));
 
-// --- PANEL VE AUTH IMPORTLARI ---
-import Register from './Register';
-import Login from './Login';
-import DashboardLayout from './layouts/DashboardLayout';   // YENİ: Sidebar'ı tutan kabuk
-import DashboardOverview from './pages/DashboardOverview'; // YENİ: Ana panel görünümü
-import ProtectedRoute from './ProtectedRoute'; 
+// --- PANEL VE AUTH (EAGER — küçük, kritik yol) ---
+import Register        from './Register';
+import Login           from './Login';
+import BusinessSettings from './pages/BusinessSettings';
+import CalendarPage    from './pages/CalendarPage';
+import DashboardLayout  from './layouts/DashboardLayout';
+import DashboardOverview from './pages/DashboardOverview';
+import ProtectedRoute  from './ProtectedRoute';
 import { LanguageProvider, useLanguage } from './LanguageContext';
+
+const PageLoader = () => (
+  <div className="min-h-screen flex items-center justify-center bg-slate-50">
+    <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
+  </div>
+);
 
 // --- SAYFA KAYDIRMA YARDIMCISI ---
 const ScrollToTop = () => {
@@ -306,11 +317,7 @@ const Footer = () => {
           <div>
             <h4 className="text-white font-bold mb-6">{t.footer.connect}</h4>
             <div className="flex gap-4 mb-8">
-              <a href="#" className="bg-slate-800 p-2 rounded-lg hover:bg-blue-600 hover:text-white transition-all"><Linkedin size={20}/></a>
-              <a href="#" className="bg-slate-800 p-2 rounded-lg hover:bg-black hover:text-white transition-all"><Twitter size={20}/></a>
-              <a href="#" className="bg-slate-800 p-2 rounded-lg hover:bg-pink-600 hover:text-white transition-all"><Instagram size={20}/></a>
-              <a href="#" className="bg-slate-800 p-2 rounded-lg hover:bg-red-600 hover:text-white transition-all"><Youtube size={20}/></a>
-              <a href="#" className="bg-slate-800 p-2 rounded-lg hover:bg-sky-500 hover:text-white transition-all"><Send size={20}/></a>
+              <a href="https://www.instagram.com/pax_groupglobal" target="_blank" rel="noopener noreferrer" className="bg-slate-800 p-2 rounded-lg hover:bg-pink-600 hover:text-white transition-all" aria-label="Instagram"><Instagram size={20}/></a>
             </div>
             <div className="flex flex-col gap-2 text-xs"><div className="flex items-center gap-2 text-green-400"><Lock size={14}/> SSL Secure 256-bit</div><div className="flex items-center gap-2 text-blue-400"><CheckCircle2 size={14}/> GDPR Compliant</div></div>
           </div>
@@ -332,20 +339,35 @@ const AdvancedContactForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setFormStatus('sending');
-    const formData = new FormData(e.target);
+    const raw = new FormData(e.target);
     const platforms = [];
-    document.querySelectorAll('input[name="platforms"]:checked').forEach((checkbox) => {
-      platforms.push(checkbox.value);
+    document.querySelectorAll('input[name="platforms"]:checked').forEach((cb) => {
+      platforms.push(cb.value);
     });
-    formData.set('platforms', platforms.join(', '));
+
+    const payload = {
+      name:          raw.get('İsim_Firma') || '',
+      phone:         raw.get('Telefon') || '',
+      email:         raw.get('email') || '',
+      sector:        raw.get('Sektör') || '',
+      platforms:     platforms.join(', '),
+      customerCount: raw.get('Müşteri_Sayısı') || '',
+      intent:        raw.get('Niyet') || '',
+      wantsWhatsApp: raw.get('WhatsApp_Dönüş_İstiyor') === 'EVET',
+    };
 
     try {
-      const response = await fetch("https://formsubmit.co/ajax/contact@paxgroupglobal.com", {
-        method: "POST", body: formData
+      const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+      const response = await fetch(`${apiBase}/leads`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
       });
-      if (response.ok) { setFormStatus('success'); e.target.reset(); } 
+      if (response.ok) { setFormStatus('success'); e.target.reset(); }
       else { setFormStatus('error'); }
-    } catch (error) { setFormStatus('error'); }
+    } catch {
+      setFormStatus('error');
+    }
   };
 
   return (
@@ -365,10 +387,6 @@ const AdvancedContactForm = () => {
         <div className="lg:col-span-3">
           <form onSubmit={handleSubmit} className="bg-white p-8 md:p-10 rounded-3xl shadow-xl border border-slate-100 relative overflow-hidden">
             <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#001F54] via-blue-500 to-teal-400"></div>
-            <input type="hidden" name="_subject" value="PAX WEB: Yeni Danışmanlık Talebi!" />
-            <input type="hidden" name="_captcha" value="false" />
-            <input type="hidden" name="_template" value="table" />
-
             <div className="space-y-6">
               <div className="grid md:grid-cols-2 gap-6">
                 <div><label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">{t.form.labels.name}</label><input required name="İsim_Firma" type="text" className="w-full p-3 rounded-xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-[#001F54] outline-none transition-all" placeholder={t.form.placeholders.name} /></div>
@@ -378,7 +396,10 @@ const AdvancedContactForm = () => {
               <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">{t.form.labels.sector}</label>
                 <select required name="Sektör" className="w-full p-3 rounded-xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-[#001F54] outline-none transition-all text-slate-600">
-                  <option value="">{t.form.placeholders.select}</option><option value="Klinik / Sağlık">Klinik / Sağlık / Diş</option><option value="Güzellik / Spa / Pilates">Güzellik / Spa / Pilates</option><option value="Finans / Danışmanlık">Finans / Danışmanlık</option><option value="Eğitim / Kurs">Eğitim / Kurs</option><option value="E-Ticaret">E-Ticaret</option><option value="Ajans / Yazılım">Ajans / Yazılım</option><option value="Turizm / Otel">Turizm / Otel</option><option value="Diğer">Diğer</option>
+                  <option value="">{t.form.placeholders.select}</option>
+                  {t.form.sectors.map((s) => (
+                    <option key={s.value} value={s.value}>{s.label}</option>
+                  ))}
                 </select>
               </div>
               <div>
@@ -451,8 +472,8 @@ const StatsSection = ({ t }) => (
   <div className="py-20 bg-slate-50 relative z-20">
     <div className="max-w-7xl mx-auto px-6">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-        <StatCard end={500} suffix="k+" label={t.stats.msgTitle} desc={t.stats.msgDesc} />
-        <StatCard end={99} suffix="%" label={t.stats.satisfactionTitle} desc={t.stats.satisfactionDesc} highlight />
+        <StatCard end={4} suffix="" label={t.stats.langTitle} desc={t.stats.langDesc} />
+        <StatCard end={48} suffix="h" label={t.stats.deployTitle} desc={t.stats.deployDesc} highlight />
         <StatCard end={24} suffix="/7" label={t.stats.supportTitle} desc={t.stats.supportDesc} />
         <StatCard end={10} suffix="+" label={t.stats.countryTitle} desc={t.stats.countryDesc} />
       </div>
@@ -488,22 +509,36 @@ const TechBanner = () => {
 
 // --- NASIL ÇALIŞIR ---
 const HowItWorks = () => {
-  const steps = [
-    { icon: <Search size={24} />, num: "01", title: "Analiz & Keşif", desc: "İşletmenizi, hedef kitlenizi ve otomasyon ihtiyaçlarınızı derinlemesine analiz ediyoruz.", color: "from-blue-500 to-blue-600" },
-    { icon: <Layers size={24} />, num: "02", title: "Mimari Tasarım", desc: "Ölçeklenebilir, güvenli ve size özel AI altyapısını tasarlıyoruz.", color: "from-violet-500 to-violet-600" },
-    { icon: <Code2 size={24} />, num: "03", title: "Geliştirme & Entegrasyon", desc: "WhatsApp, web ve sosyal medyaya AI ajanlarını kusursuz entegre ediyoruz.", color: "from-teal-500 to-teal-600" },
-    { icon: <Rocket size={24} />, num: "04", title: "Canlıya Geçiş & Destek", desc: "7/24 izleme ve teknik destek ile sisteminizi canlı tutuyoruz.", color: "from-orange-500 to-orange-600" },
+  const { t } = useLanguage();
+  const stepIcons = [
+    <Search size={24} />,
+    <Layers size={24} />,
+    <Code2 size={24} />,
+    <Rocket size={24} />,
   ];
+  const stepColors = [
+    "from-blue-500 to-blue-600",
+    "from-violet-500 to-violet-600",
+    "from-teal-500 to-teal-600",
+    "from-orange-500 to-orange-600",
+  ];
+  const steps = t.howItWorks.steps.map((step, i) => ({
+    ...step,
+    icon: stepIcons[i],
+    color: stepColors[i],
+    num: String(i + 1).padStart(2, '0'),
+  }));
+
   return (
     <section className="py-28 bg-white relative overflow-hidden">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(37,99,235,0.05)_0%,_transparent_60%)]" />
       <div className="max-w-7xl mx-auto px-6 relative z-10">
         <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-20">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-50 border border-blue-100 text-blue-600 text-xs font-bold uppercase tracking-widest mb-6">
-            <Workflow size={12} /> Süreç
+            <Workflow size={12} /> {t.howItWorks.badge}
           </div>
-          <h2 className="text-4xl font-bold text-[#0f172a] font-serif mb-4">Nasıl Çalışıyoruz?</h2>
-          <p className="text-slate-500 max-w-xl mx-auto">Fikrinizden üretime kadar her adımda yanınızdayız.</p>
+          <h2 className="text-4xl font-bold text-[#0f172a] font-serif mb-4">{t.howItWorks.title}</h2>
+          <p className="text-slate-500 max-w-xl mx-auto">{t.howItWorks.subtitle}</p>
         </motion.div>
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           {steps.map((step, i) => (
@@ -531,39 +566,46 @@ const HowItWorks = () => {
 // --- MÜŞTERİ YORUMLARI ---
 const Testimonials = () => {
   const { t } = useLanguage();
-  const reviewsData = [
-    { img: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=200&h=200" },
-    { img: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=200&h=200" },
-    { img: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=200&h=200" },
-    { img: "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&q=80&w=200&h=200" },
-    { img: "https://images.unsplash.com/photo-1551836022-d5d88e9218df?auto=format&fit=crop&q=80&w=200&h=200" }
+  const sectorIcons = [
+    <Activity size={18} />,
+    <Zap size={18} />,
+    <Globe size={18} />,
+    <Server size={18} />,
+    <Sparkles size={18} />,
   ];
 
-  const reviews = t.testimonials.reviews.map((review, i) => ({
-    ...review,
-    img: reviewsData[i % reviewsData.length].img
-  }));
-
   return (
-    <section className="py-24 bg-white border-t border-slate-100 overflow-hidden relative">
+    <section className="py-24 bg-slate-50 border-t border-slate-100 overflow-hidden relative">
       <div className="max-w-7xl mx-auto px-6 mb-12 text-center">
-        <h2 className="text-3xl font-bold text-[#0f172a] font-serif mb-4">{t.testimonials.title}</h2>
-        <p className="text-slate-500">{t.testimonials.subtitle}</p>
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-50 border border-blue-100 text-blue-600 text-xs font-bold uppercase tracking-widest mb-6">
+          <Star size={12} className="fill-blue-400" /> {t.testimonials.title}
+        </div>
+        <h2 className="text-3xl font-bold text-[#0f172a] font-serif mb-3">{t.testimonials.title}</h2>
+        <p className="text-slate-500 text-sm">{t.testimonials.subtitle}</p>
       </div>
       <div className="relative w-full flex overflow-hidden">
-        <div className="absolute top-0 left-0 w-24 h-full bg-gradient-to-r from-white to-transparent z-10"></div>
-        <div className="absolute top-0 right-0 w-24 h-full bg-gradient-to-l from-white to-transparent z-10"></div>
-        <motion.div className="flex gap-6 px-4" animate={{ x: ["0%", "-50%"] }} transition={{ repeat: Infinity, ease: "linear", duration: 50 }} style={{ width: "max-content" }}>
-          {[...reviews, ...reviews].map((review, i) => (
-            <div key={i} className="w-[350px] bg-slate-50 p-6 rounded-xl border border-slate-100 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
-              <div>
-                <div className="flex items-center gap-3 mb-4">
-                  <img src={review.img} alt={review.title} className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm"/>
-                  <div><div className="h-3 w-24 bg-slate-300 rounded blur-[2px] mb-1 opacity-60 select-none">Gizli İsim</div><div className="text-[10px] font-bold text-[#001F54] uppercase tracking-wider">{review.title}</div></div>
+        <div className="absolute top-0 left-0 w-24 h-full bg-gradient-to-r from-slate-50 to-transparent z-10 pointer-events-none"></div>
+        <div className="absolute top-0 right-0 w-24 h-full bg-gradient-to-l from-slate-50 to-transparent z-10 pointer-events-none"></div>
+        <motion.div
+          className="flex gap-5 px-4"
+          animate={{ x: ["0%", "-50%"] }}
+          transition={{ repeat: Infinity, ease: "linear", duration: 55 }}
+          style={{ width: "max-content" }}
+        >
+          {[...t.testimonials.reviews, ...t.testimonials.reviews].map((review, i) => (
+            <div key={i} className="w-[360px] bg-white p-7 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+              <p className="text-slate-600 text-sm leading-relaxed mb-6">"{review.text}"</p>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 bg-blue-50 rounded-xl flex items-center justify-center text-[#001F54] shrink-0">
+                    {sectorIcons[i % sectorIcons.length]}
+                  </div>
+                  <span className="text-xs font-bold text-[#001F54] uppercase tracking-wide">{review.title}</span>
                 </div>
-                <p className="text-slate-600 text-sm italic leading-relaxed">"{review.text}"</p>
+                <span className="text-[10px] bg-green-50 text-green-600 border border-green-100 px-2.5 py-1 rounded-full font-bold shrink-0">
+                  {t.testimonials.verified}
+                </span>
               </div>
-              <div className="flex gap-1 mt-4 text-orange-400 text-xs">★★★★★</div>
             </div>
           ))}
         </motion.div>
@@ -574,12 +616,21 @@ const Testimonials = () => {
 
 // --- ANA SAYFA ---
 const HomePage = () => {
-  const { t } = useLanguage();
-  
+  const { t, language } = useLanguage();
+
   const solutionsData = [
     { id: "saas", icon: <Code2 className="text-[#3b82f6]" size={36} />, bg: "bg-blue-50" },
     { id: "ai", icon: <BrainCircuit className="text-teal-500" size={36} />, bg: "bg-teal-50" },
     { id: "consulting", icon: <LineChart className="text-indigo-500" size={36} />, bg: "bg-indigo-50" }
+  ];
+
+  const whyIcons = [
+    { icon: <Shield size={22} />, color: "text-blue-600 bg-blue-50" },
+    { icon: <Gauge size={22} />, color: "text-green-600 bg-green-50" },
+    { icon: <GitBranch size={22} />, color: "text-violet-600 bg-violet-50" },
+    { icon: <Globe size={22} />, color: "text-teal-600 bg-teal-50" },
+    { icon: <Cpu size={22} />, color: "text-orange-600 bg-orange-50" },
+    { icon: <Zap size={22} />, color: "text-yellow-600 bg-yellow-50" },
   ];
 
   const solutions = t.solutions.items.map((item, i) => ({
@@ -589,6 +640,7 @@ const HomePage = () => {
 
   return (
     <>
+      <SEO title={t.seo.home.title} description={t.seo.home.desc} path="/" lang={language} />
       {/* ─── HERO ─── */}
       <section className="relative pt-40 pb-16 lg:pt-44 lg:pb-28 overflow-hidden bg-[#f8fafc]">
         {/* Grid pattern */}
@@ -677,43 +729,49 @@ const HomePage = () => {
 
                 {/* Code body */}
                 <div className="p-6 font-code text-[13px] space-y-1.5 leading-relaxed">
-                  <div><span className="text-slate-500">// PAX AI Engine v3.1 — production</span></div>
+                  <div><span className="text-slate-500">// PAX automation service — production</span></div>
                   <div className="mt-2">
                     <span className="text-purple-400">import</span>
-                    <span className="text-white"> {"{ PaxAgent }"} </span>
+                    <span className="text-white"> OpenAI </span>
                     <span className="text-purple-400">from</span>
-                    <span className="text-green-400"> '@paxgroup/core'</span>
+                    <span className="text-green-400"> 'openai'</span>
                   </div>
                   <div>
                     <span className="text-purple-400">import</span>
-                    <span className="text-white"> {"{ WhatsApp, WebChat }"} </span>
+                    <span className="text-white"> express </span>
                     <span className="text-purple-400">from</span>
-                    <span className="text-green-400"> '@paxgroup/channels'</span>
+                    <span className="text-green-400"> 'express'</span>
+                  </div>
+                  <div>
+                    <span className="text-purple-400">import</span>
+                    <span className="text-white"> mongoose </span>
+                    <span className="text-purple-400">from</span>
+                    <span className="text-green-400"> 'mongoose'</span>
                   </div>
                   <div className="mt-3">
                     <span className="text-blue-400">const</span>
-                    <span className="text-yellow-300"> agent </span>
+                    <span className="text-yellow-300"> openai </span>
                     <span className="text-white">= </span>
                     <span className="text-blue-400">new </span>
-                    <span className="text-teal-400">PaxAgent</span>
-                    <span className="text-white">{"({"}</span>
+                    <span className="text-teal-400">OpenAI</span>
+                    <span className="text-white">{"({ model: "}</span>
+                    <span className="text-green-400">'gpt-4o'</span>
+                    <span className="text-white">{" })"}</span>
                   </div>
-                  <div className="pl-4"><span className="text-orange-300">model</span><span className="text-white">: </span><span className="text-green-400">'gpt-4o'</span><span className="text-white">,</span></div>
-                  <div className="pl-4"><span className="text-orange-300">channels</span><span className="text-white">: [WhatsApp, WebChat],</span></div>
-                  <div className="pl-4"><span className="text-orange-300">languages</span><span className="text-white">: [</span><span className="text-green-400">'tr'</span><span className="text-white">, </span><span className="text-green-400">'en'</span><span className="text-white">, </span><span className="text-green-400">'ru'</span><span className="text-white">, </span><span className="text-green-400">'me'</span><span className="text-white">],</span></div>
-                  <div className="pl-4"><span className="text-orange-300">mode</span><span className="text-white">: </span><span className="text-green-400">'autonomous'</span></div>
-                  <div><span className="text-white">{"});"}</span></div>
                   <div className="mt-2">
+                    <span className="text-blue-400">const</span>
+                    <span className="text-yellow-300"> reply </span>
+                    <span className="text-white">= </span>
                     <span className="text-blue-400">await </span>
-                    <span className="text-yellow-300">agent</span>
-                    <span className="text-white">.</span>
-                    <span className="text-teal-400">deploy</span>
-                    <span className="text-white">()</span>
+                    <span className="text-yellow-300">openai</span>
+                    <span className="text-white">.chat.completions.</span>
+                    <span className="text-teal-400">create</span>
+                    <span className="text-white">{"({ ... })"}</span>
                   </div>
                   <div className="mt-3 space-y-1">
-                    <div className="flex items-center gap-2"><span className="text-green-400">✓</span><span className="text-green-400 text-xs">Agent deployed successfully</span></div>
-                    <div className="flex items-center gap-2"><span className="text-green-400">✓</span><span className="text-slate-300 text-xs">Listening on 4 channels</span></div>
-                    <div className="flex items-center gap-2"><span className="text-green-400">✓</span><span className="text-slate-300 text-xs">Handling 1,247 active conversations</span></div>
+                    <div className="flex items-center gap-2"><span className="text-green-400">✓</span><span className="text-green-400 text-xs">Connected to OpenAI GPT-4o</span></div>
+                    <div className="flex items-center gap-2"><span className="text-green-400">✓</span><span className="text-slate-300 text-xs">MongoDB Atlas connected</span></div>
+                    <div className="flex items-center gap-2"><span className="text-green-400">✓</span><span className="text-slate-300 text-xs">Webhook triggers active</span></div>
                     <div className="flex items-center gap-2 mt-1">
                       <span className="text-blue-400">›</span>
                       <span className="text-white animate-cursor">_</span>
@@ -846,18 +904,14 @@ const HomePage = () => {
         <div className="absolute inset-0 bg-[linear-gradient(rgba(148,163,184,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(148,163,184,0.06)_1px,transparent_1px)] bg-[size:40px_40px]" />
         <div className="max-w-7xl mx-auto px-6 relative z-10">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-[#0f172a] font-serif mb-4">Neden PAX GROUP?</h2>
-            <p className="text-slate-500 max-w-xl mx-auto">Balkanlar'ın en yenilikçi AI mühendisliği firması olarak fark yaratıyoruz.</p>
+            <h2 className="text-4xl font-bold text-[#0f172a] font-serif mb-4">{t.whyPax.title}</h2>
+            <p className="text-slate-500 max-w-xl mx-auto">{t.whyPax.subtitle}</p>
           </motion.div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[
-              { icon: <Shield size={22} />, title: "Enterprise Güvenlik", desc: "SOC2, GDPR ve KVKK uyumlu altyapı. Verileriniz her zaman korumalı.", color: "text-blue-600 bg-blue-50" },
-              { icon: <Gauge size={22} />, title: "Yüksek Performans", desc: "42ms ortalama yanıt süresi ile rakipsiz hız. 99.99% uptime garantisi.", color: "text-green-600 bg-green-50" },
-              { icon: <GitBranch size={22} />, title: "Sürekli Güncelleme", desc: "AI modellerimiz her gün optimize ediliyor. Siz uyurken biz çalışıyoruz.", color: "text-violet-600 bg-violet-50" },
-              { icon: <Globe size={22} />, title: "Çok Dilli AI", desc: "TR, EN, RU, ME ve 20+ dilde doğal dil işleme kabiliyeti.", color: "text-teal-600 bg-teal-50" },
-              { icon: <Cpu size={22} />, title: "Özel Model Fine-tuning", desc: "Sektörünüze özgü GPT fine-tuning ile rakipsiz doğruluk oranları.", color: "text-orange-600 bg-orange-50" },
-              { icon: <Zap size={22} />, title: "Hızlı Entegrasyon", desc: "WhatsApp, Instagram, Web, Telegram — 48 saat içinde canlıya alın.", color: "text-yellow-600 bg-yellow-50" },
-            ].map((item, i) => (
+            {t.whyPax.items.map((item, i) => ({
+              ...item,
+              ...whyIcons[i]
+            })).map((item, i) => (
               <motion.div key={i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }}
                 className="bg-white rounded-2xl p-6 border border-slate-100 hover:shadow-lg transition-all duration-300 flex gap-4 group hover:-translate-y-1">
                 <div className={`w-11 h-11 rounded-xl ${item.color} flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform`}>{item.icon}</div>
@@ -906,6 +960,7 @@ const Layout = ({ children }) => {
 
 function App() {
   return (
+    <HelmetProvider>
     <LanguageProvider>
       <Router>
         <div className="antialiased selection:bg-blue-100 selection:text-[#001F54]">
@@ -913,6 +968,7 @@ function App() {
           
           {/* Layout bileşeni Rotaları sarmalar ve Navbar kontrolünü yapar */}
           <Layout>
+            <Suspense fallback={<PageLoader />}>
             <Routes>
               {/* --- GENEL SAYFALAR --- */}
               <Route path="/" element={<HomePage />} />
@@ -926,7 +982,7 @@ function App() {
               <Route path="/fiyatlar" element={<PricingPage />} />
               <Route path="/cozumler" element={<SolutionsPage />} />
               <Route path="/hikayemiz" element={<StoryPage />} />
-              
+
               <Route path="/giris-yap" element={<Login />} />
               <Route path="/kayit-ol" element={<Register />} />
 
@@ -938,11 +994,13 @@ function App() {
               </Route>
 
             </Routes>
+            </Suspense>
           </Layout>
 
         </div>
       </Router>
     </LanguageProvider>
+    </HelmetProvider>
   );
 }
 

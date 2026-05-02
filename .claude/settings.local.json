@@ -1,0 +1,35 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs wc:*)",
+      "Bash(grep -E \"\\\\.jsx$|\\\\.js$\")",
+      "Bash(npm run:*)",
+      "Bash(npx vite:*)",
+      "Bash(node_modules/.bin/vite build:*)",
+      "Bash(npm install:*)",
+      "Bash(node:*)",
+      "Bash(python3 -c ':*)",
+      "Bash(npm audit:*)",
+      "Bash(cd /c/users/mertt/pax-site/backend echo \"=== HARDCODEd SECRET KONTROLÜ ===\" grep -n \"gizlisifre123\" server.js authMiddleware.js middleware/authMiddleware.js)",
+      "Bash(atlas --version)",
+      "Bash(curl -s https://api.github.com/repos/React116/pax-site)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('PRIVATE' if d.get\\('private'\\) else 'PUBLIC'\\)\")",
+      "Bash(pip install:*)",
+      "Bash(pip3 install:*)",
+      "Bash(export PATH=\"$PATH:/c/users/mertt/AppData/Roaming/Python/Python314/Scripts\")",
+      "Bash(git-filter-repo --version)",
+      "Bash(python3 -m git_filter_repo --version)",
+      "Bash(python3 -c \"import git_filter_repo; print\\('Modül mevcut, versiyon:', git_filter_repo.__version__\\)\")",
+      "Bash(where python:*)",
+      "Bash(where python3:*)",
+      "Bash(where py:*)",
+      "Bash(git stash:*)",
+      "Bash(python:*)",
+      "Bash(cd /c/users/mertt/pax-site git log --all -p)",
+      "Bash(git push:*)",
+      "Bash(npx eslint:*)",
+      "Bash(grep -v \"^$\")",
+      "Bash(npm list:*)"
+    ]
+  }
+}

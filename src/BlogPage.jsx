@@ -2,8 +2,11 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Calendar, Clock, ArrowRight, Tag, User } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import SEO from './components/SEO';
+import { useLanguage } from './LanguageContext';
 
 const BlogPage = () => {
+  const { t, language } = useLanguage();
   const posts = [
     {
       id: 1,
@@ -70,7 +73,7 @@ const BlogPage = () => {
 
   return (
     <div className="pt-32 pb-20 bg-slate-50 min-h-screen">
-      
+      <SEO title={t.seo.blog.title} description={t.seo.blog.desc} path="/blog" lang={language} />
       {/* HEADER SECTION */}
       <div className="max-w-7xl mx-auto px-6 mb-16 text-center">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="inline-block px-4 py-1.5 rounded-full border border-blue-200 bg-white text-blue-600 text-xs font-bold tracking-widest uppercase mb-6 shadow-sm">

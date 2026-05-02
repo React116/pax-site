@@ -1,14 +1,18 @@
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Globe, Zap, Shield, Users, Target, Star } from 'lucide-react';
+import SEO from './components/SEO';
+import { useLanguage } from './LanguageContext';
 
 const StoryPage = () => {
+  const { t, language } = useLanguage();
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans selection:bg-blue-100">
+      <SEO title={t.seo.story.title} description={t.seo.story.desc} path="/hikayemiz" lang={language} />
       
       {/* HERO HEADER */}
       <div className="relative bg-[#001F54] py-32 overflow-hidden">

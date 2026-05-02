@@ -3,10 +3,13 @@ import { useNavigate, Link } from 'react-router-dom';
 import { ArrowRight, User, Mail, Lock, Building } from 'lucide-react';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
+import SEO from './components/SEO';
+import { useLanguage } from './LanguageContext';
 
 const Register = () => {
+  const { t, language } = useLanguage();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false); // Yükleniyor durumu eklendi
+  const [loading, setLoading] = useState(false);
   
   const [formData, setFormData] = useState({
     name: '',
@@ -65,6 +68,7 @@ const Register = () => {
 
   return (
     <div className="min-h-screen pt-32 pb-20 bg-slate-50 flex items-center justify-center px-6">
+      <SEO title={t.seo.register.title} description={t.seo.register.desc} path="/kayit-ol" lang={language} />
       <div className="bg-white p-10 rounded-3xl shadow-xl border border-slate-100 w-full max-w-lg">
         <div className="text-center mb-8">
             <h2 className="text-3xl font-serif font-bold text-[#001F54]">Kayıt Ol</h2>
