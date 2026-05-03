@@ -12,9 +12,10 @@ const authRoutes     = require('./routes/authRoutes');
 const leadRoutes     = require('./routes/leadRoutes');
 const calendarRoutes = require('./routes/calendarRoutes');
 const businessRoutes = require('./routes/businessRoutes');
-const serviceRoutes     = require('./routes/serviceRoutes');
-const staffRoutes       = require('./routes/staffRoutes');
-const appointmentRoutes = require('./routes/appointmentRoutes');
+const serviceRoutes      = require('./routes/serviceRoutes');
+const staffRoutes        = require('./routes/staffRoutes');
+const appointmentRoutes  = require('./routes/appointmentRoutes');
+const conversationRoutes = require('./routes/conversationRoutes');
 
 // Veritabanı bağlantısı
 connectDB();
@@ -55,6 +56,7 @@ app.use('/api/business-profile', businessRoutes);
 app.use('/api/services',         serviceRoutes);
 app.use('/api/staff',            staffRoutes);
 app.use('/api/appointments',     appointmentRoutes);
+app.use('/api/conversations',    conversationRoutes);
 
 // --- HATA YÖNETİMİ ---
 app.use(notFound);

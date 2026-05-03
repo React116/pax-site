@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Settings, Calendar, BarChart3, LogOut, Bot, Menu, X, Users, PackageOpen, UserSquare2, CalendarCheck } from 'lucide-react';
+import { LayoutDashboard, Settings, Calendar, BarChart3, LogOut, Bot, Menu, X, Users, PackageOpen, UserSquare2, CalendarCheck, MessageSquare } from 'lucide-react';
 
 const menuItems = [
-  { path: '/panel',                icon: <LayoutDashboard size={20} />, label: 'Genel Bakış',        exact: true },
+  { path: '/panel',                icon: <LayoutDashboard size={20} />, label: 'Genel Bakış',          exact: true },
   { path: '/panel/settings',       icon: <Settings size={20} />,        label: 'İşletme Ayarları' },
   { path: '/panel/services',       icon: <PackageOpen size={20} />,     label: 'Hizmetler' },
   { path: '/panel/staff',          icon: <UserSquare2 size={20} />,     label: 'Personel & Eğitmenler' },
   { path: '/panel/appointments',   icon: <CalendarCheck size={20} />,   label: 'Randevular' },
+  { path: '/panel/conversations',  icon: <MessageSquare size={20} />,   label: 'Konuşmalar' },
   { path: '/panel/calendar',       icon: <Calendar size={20} />,        label: 'Takvim & Ajanda' },
   { path: '/panel/leads',          icon: <Users size={20} />,           label: 'Leads & Talepler' },
   { path: '/panel/stats',          icon: <BarChart3 size={20} />,       label: 'İstatistikler' },

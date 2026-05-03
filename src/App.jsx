@@ -35,7 +35,8 @@ import CalendarPage      from './pages/CalendarPage';
 import LeadsPage         from './pages/LeadsPage';
 import ServicesPage      from './pages/ServicesPage';
 import StaffPage         from './pages/StaffPage';
-import AppointmentsPage  from './pages/AppointmentsPage';
+import AppointmentsPage   from './pages/AppointmentsPage';
+import ConversationsPage  from './pages/ConversationsPage';
 import DashboardLayout   from './layouts/DashboardLayout';
 import DashboardOverview from './pages/DashboardOverview';
 import ProtectedRoute    from './ProtectedRoute';
@@ -1089,7 +1090,8 @@ function App() {
                 <Route path="settings"  element={<BusinessSettings />} />
                 <Route path="services"      element={<ServicesPage />} />
                 <Route path="staff"         element={<StaffPage />} />
-                <Route path="appointments"  element={<AppointmentsPage />} />
+                <Route path="appointments"   element={<AppointmentsPage />} />
+                <Route path="conversations" element={<ConversationsPage />} />
                 <Route path="calendar"      element={<CalendarPage />} />
                 <Route path="leads"     element={<LeadsPage />} />
               </Route>
