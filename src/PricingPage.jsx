@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Check, X, ArrowLeft, Zap, Star, Briefcase } from 'lucide-react';
+import { motion } from 'framer-motion';
 import SEO from './components/SEO';
 import { useLanguage } from './LanguageContext';
+import { fadeUp, stagger, staggerFast, sectionTitle, scaleFade, viewport } from './utils/animations';
 
 const ScrollToTop = () => { useEffect(() => { window.scrollTo(0, 0); }, []); return null; };
 
@@ -90,19 +92,30 @@ const PricingPage = () => {
       {/* HEADER */}
       <div className="bg-[#001F54] py-20 pb-32 relative overflow-hidden">
         <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:20px_20px]" />
-        <div className="max-w-7xl mx-auto px-6 relative z-10 text-center">
-          <Link to="/" className="inline-flex items-center gap-2 text-blue-200 hover:text-white mb-8 transition-colors text-sm font-semibold">
-            <ArrowLeft size={16} /> Ana Sayfaya Dön
-          </Link>
-          <h1 className="text-4xl md:text-5xl font-bold text-white font-serif mb-6">
+        {/* Subtle glow orbs */}
+        <div className="absolute top-0 left-1/4 w-72 h-72 bg-blue-400/10 rounded-full blur-[80px] pointer-events-none" />
+        <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-cyan-400/10 rounded-full blur-[80px] pointer-events-none" />
+
+        <motion.div
+          initial="hidden" animate="visible"
+          variants={stagger}
+          className="max-w-7xl mx-auto px-6 relative z-10 text-center"
+        >
+          <motion.div variants={fadeUp}>
+            <Link to="/" className="inline-flex items-center gap-2 text-blue-200 hover:text-white mb-8 transition-colors text-sm font-semibold">
+              <ArrowLeft size={16} /> Ana Sayfaya Dön
+            </Link>
+          </motion.div>
+
+          <motion.h1 variants={fadeUp} className="text-4xl md:text-5xl font-bold text-white font-serif mb-6">
             Basit, Şeffaf Fiyatlandırma
-          </h1>
-          <p className="text-xl text-blue-100 max-w-2xl mx-auto font-light mb-10">
+          </motion.h1>
+          <motion.p variants={fadeUp} className="text-xl text-blue-100 max-w-2xl mx-auto font-light mb-10">
             İşletmenizin büyüklüğüne ve ihtiyaçlarına en uygun planı seçin. Gizli ücret yok, taahhüt yok.
-          </p>
+          </motion.p>
 
           {/* BILLING TOGGLE */}
-          <div className="inline-flex items-center gap-4 bg-white/10 rounded-full px-2 py-2 backdrop-blur-sm">
+          <motion.div variants={fadeUp} className="inline-flex items-center gap-4 bg-white/10 rounded-full px-2 py-2 backdrop-blur-sm">
             <button
               onClick={() => setAnnual(false)}
               className={`px-5 py-2 rounded-full text-sm font-semibold transition-all ${!annual ? 'bg-white text-[#001F54] shadow' : 'text-white'}`}
@@ -118,20 +131,38 @@ const PricingPage = () => {
                 %20 indirim
               </span>
             </button>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </div>
 
       {/* PRICING CARDS */}
       <div className="max-w-7xl mx-auto px-6 -mt-20 relative z-20">
-        <div className="grid lg:grid-cols-3 gap-8">
+        <motion.div
+          className="grid lg:grid-cols-3 gap-8 items-start"
+          initial="hidden" animate="visible"
+          variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.12, delayChildren: 0.2 } } }}
+        >
           {PLANS.map((plan) => (
-            <div
+            <motion.div
               key={plan.key}
-              className={`rounded-2xl shadow-xl p-8 relative overflow-hidden transition-transform duration-300 hover:-translate-y-1
-                ${plan.featured ? 'border-2 border-blue-500 scale-105 z-10 shadow-2xl bg-white' : plan.dark ? 'bg-slate-900 border border-slate-800 text-white' : 'bg-white border border-slate-100'}`}
+              variants={{
+                hidden:   { opacity: 0, y: 32 },
+                visible:  { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] } },
+              }}
+              whileHover={{
+                y: plan.featured ? -6 : -4,
+                transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] },
+              }}
+              className={`rounded-2xl shadow-xl p-8 relative overflow-hidden
+                ${plan.featured
+                  ? 'border-2 border-blue-500 scale-105 z-10 shadow-2xl bg-white'
+                  : plan.dark
+                    ? 'bg-slate-900 border border-slate-800 text-white'
+                    : 'bg-white border border-slate-100'
+                }`}
             >
-              <div className={`h-2 w-full absolute top-0 left-0 ${plan.accentColor}`} />
+              {/* Top accent bar */}
+              <div className={`h-1.5 w-full absolute top-0 left-0 ${plan.accentColor}`} />
 
               {plan.featured && (
                 <div className="absolute top-0 right-0 bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-bl-lg uppercase tracking-wide">
@@ -144,10 +175,17 @@ const PricingPage = () => {
               </h3>
               <p className={`text-sm mb-6 ${plan.dark ? 'text-slate-400' : 'text-slate-500'}`}>{plan.desc}</p>
 
+              {/* Price */}
               <div className="flex items-baseline mb-2">
-                <span className={`${plan.featured ? 'text-5xl' : 'text-4xl'} font-bold ${plan.dark ? 'text-white' : 'text-[#001F54]'}`}>
+                <motion.span
+                  key={`${plan.key}-${annual}`}
+                  initial={{ opacity: 0, y: -8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, ease: 'easeOut' }}
+                  className={`${plan.featured ? 'text-5xl' : 'text-4xl'} font-bold ${plan.dark ? 'text-white' : 'text-[#001F54]'}`}
+                >
                   ${fmt(price(plan.monthly))}
-                </span>
+                </motion.span>
                 <span className={`ml-2 ${plan.dark ? 'text-slate-400' : 'text-slate-500'}`}>{period}</span>
               </div>
 
@@ -158,9 +196,14 @@ const PricingPage = () => {
               )}
               {!annual && <div className="mb-6" />}
 
-              <button className={`w-full py-3 rounded-lg font-bold transition-all mb-8 ${plan.btnClass}`}>
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                transition={{ duration: 0.2 }}
+                className={`w-full py-3 rounded-xl font-bold transition-all mb-8 ${plan.btnClass}`}
+              >
                 {plan.btnLabel}
-              </button>
+              </motion.button>
 
               <ul className={`space-y-4 text-sm ${plan.dark ? 'text-slate-300' : 'text-slate-600'}`}>
                 {plan.features.map((f, i) => (
@@ -170,16 +213,26 @@ const PricingPage = () => {
                   </li>
                 ))}
               </ul>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </div>
 
       {/* COMPARISON TABLE */}
-      <div className="max-w-6xl mx-auto px-6 py-24">
+      <motion.div
+        initial="hidden" whileInView="visible"
+        variants={sectionTitle} viewport={viewport}
+        className="max-w-6xl mx-auto px-6 py-24"
+      >
         <h2 className="text-3xl font-bold text-center text-[#0f172a] font-serif mb-12">Detaylı Karşılaştırma</h2>
 
-        <div className="overflow-x-auto border border-slate-200 rounded-2xl shadow-sm bg-white">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={viewport}
+          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
+          className="overflow-x-auto border border-slate-200 rounded-2xl shadow-sm bg-white"
+        >
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200">
@@ -191,51 +244,51 @@ const PricingPage = () => {
             </thead>
             <tbody className="text-sm text-slate-600">
               <tr className="border-b border-slate-100"><td colSpan="4" className="bg-slate-50/50 p-3 px-6 font-bold text-xs text-slate-400 uppercase tracking-widest">Kanal & Kapasite</td></tr>
-              <tr className="hover:bg-slate-50">
+              <tr className="hover:bg-slate-50 transition-colors">
                 <td className="p-4 px-6 font-medium">AI Mesaj Limiti</td>
                 <td className="p-4 text-center">500 / Ay</td>
                 <td className="p-4 text-center font-bold text-blue-600 bg-blue-50/30">2.000 / Ay</td>
                 <td className="p-4 text-center font-bold text-purple-600">Sınırsız</td>
               </tr>
-              <tr className="hover:bg-slate-50">
+              <tr className="hover:bg-slate-50 transition-colors">
                 <td className="p-4 px-6 font-medium">Kanallar</td>
                 <td className="p-4 text-center">WhatsApp, Web</td>
                 <td className="p-4 text-center font-bold text-blue-600 bg-blue-50/30">WhatsApp, Web, Instagram</td>
                 <td className="p-4 text-center font-bold text-purple-600">Tümü + API</td>
               </tr>
-              <tr className="hover:bg-slate-50">
+              <tr className="hover:bg-slate-50 transition-colors">
                 <td className="p-4 px-6 font-medium">Asistan Sayısı</td>
                 <td className="p-4 text-center">1 Sektör</td>
                 <td className="p-4 text-center font-bold text-blue-600 bg-blue-50/30">3 Sektör</td>
                 <td className="p-4 text-center font-bold text-purple-600">Sınırsız</td>
               </tr>
               <tr className="border-b border-slate-100"><td colSpan="4" className="bg-slate-50/50 p-3 px-6 font-bold text-xs text-slate-400 uppercase tracking-widest">Yönetim</td></tr>
-              <tr className="hover:bg-slate-50">
+              <tr className="hover:bg-slate-50 transition-colors">
                 <td className="p-4 px-6 font-medium">Kullanıcı Erişimi</td>
                 <td className="p-4 text-center">1 (Admin)</td>
                 <td className="p-4 text-center font-bold text-blue-600 bg-blue-50/30">5 Personel</td>
                 <td className="p-4 text-center font-bold text-purple-600">Sınırsız</td>
               </tr>
-              <tr className="hover:bg-slate-50">
+              <tr className="hover:bg-slate-50 transition-colors">
                 <td className="p-4 px-6 font-medium">Randevu Modülü</td>
                 <td className="p-4 text-center"><Check size={18} className="mx-auto text-green-500" /></td>
                 <td className="p-4 text-center bg-blue-50/30"><Check size={18} className="mx-auto text-blue-500" /></td>
                 <td className="p-4 text-center"><Check size={18} className="mx-auto text-purple-500" /></td>
               </tr>
               <tr className="border-b border-slate-100"><td colSpan="4" className="bg-slate-50/50 p-3 px-6 font-bold text-xs text-slate-400 uppercase tracking-widest">Gelişmiş Özellikler</td></tr>
-              <tr className="hover:bg-slate-50">
+              <tr className="hover:bg-slate-50 transition-colors">
                 <td className="p-4 px-6 font-medium">API & Webhooks</td>
                 <td className="p-4 text-center"><X size={18} className="mx-auto text-slate-300" /></td>
                 <td className="p-4 text-center bg-blue-50/30"><X size={18} className="mx-auto text-slate-300" /></td>
                 <td className="p-4 text-center"><Check size={18} className="mx-auto text-purple-500" /></td>
               </tr>
-              <tr className="hover:bg-slate-50">
+              <tr className="hover:bg-slate-50 transition-colors">
                 <td className="p-4 px-6 font-medium">White-label (Kendi Markan)</td>
                 <td className="p-4 text-center"><X size={18} className="mx-auto text-slate-300" /></td>
                 <td className="p-4 text-center bg-blue-50/30"><X size={18} className="mx-auto text-slate-300" /></td>
                 <td className="p-4 text-center"><Check size={18} className="mx-auto text-purple-500" /></td>
               </tr>
-              <tr className="hover:bg-slate-50">
+              <tr className="hover:bg-slate-50 transition-colors">
                 <td className="p-4 px-6 font-medium">Destek Seviyesi</td>
                 <td className="p-4 text-center">E-posta</td>
                 <td className="p-4 text-center font-bold text-blue-600 bg-blue-50/30">WhatsApp & Canlı</td>
@@ -243,8 +296,8 @@ const PricingPage = () => {
               </tr>
             </tbody>
           </table>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </div>
   );
 };

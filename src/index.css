@@ -124,6 +124,16 @@ h1, h2, h3, h4, h5, h6 {
     animation: none !important;
     transition: none !important;
   }
+
+  /* Framer Motion: reduced-motion sinyalini JS tarafı yakalar.
+     Yine de CSS transition'ları sıfırla. */
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 /* Tech card gradient border */

@@ -2,7 +2,12 @@ import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { HelmetProvider } from 'react-helmet-async';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
 import SEO from './components/SEO';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
+import {
+  fadeUp, stagger, staggerFast, slideRight, scaleFade,
+  hoverLift, hoverSubtle, floatY, floatYDelay, terminalHover,
+  sectionTitle, viewport, viewportLazy,
+} from './utils/animations';
 import {
   ArrowRight, Menu, X, Code2, BrainCircuit, LineChart,
   MapPin, Phone, Mail, CheckCircle2, MessageSquare,
@@ -38,6 +43,7 @@ import StaffPage         from './pages/StaffPage';
 import AppointmentsPage   from './pages/AppointmentsPage';
 import ConversationsPage  from './pages/ConversationsPage';
 import AISettingsPage     from './pages/AISettingsPage';
+import IntegrationsPanel  from './pages/IntegrationsPanel';
 import DashboardLayout   from './layouts/DashboardLayout';
 import DashboardOverview from './pages/DashboardOverview';
 import ProtectedRoute    from './ProtectedRoute';
@@ -65,15 +71,9 @@ const ScrollToTop = () => {
   return null;
 };
 
-// --- ANİMASYON AYARLARI ---
-const fadeInUp = {
-  hidden: { opacity: 0, y: 40 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } }
-};
-const staggerContainer = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.2 } }
-};
+// --- ANİMASYON AYARLARI (utils/animations.js'ten alınan; geri uyumluluk takma adları) ---
+const fadeInUp        = fadeUp;
+const staggerContainer = stagger;
 
 // --- COUNTER HOOK ---
 const useCountUp = (end, duration = 1800) => {
@@ -568,17 +568,27 @@ const HowItWorks = () => {
     <section className="py-28 bg-white relative overflow-hidden">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(37,99,235,0.05)_0%,_transparent_60%)]" />
       <div className="max-w-7xl mx-auto px-6 relative z-10">
-        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-20">
+        <motion.div
+          initial="hidden" whileInView="visible"
+          variants={sectionTitle} viewport={viewport}
+          className="text-center mb-20"
+        >
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-50 border border-blue-100 text-blue-600 text-xs font-bold uppercase tracking-widest mb-6">
             <Workflow size={12} /> {t.howItWorks.badge}
           </div>
           <h2 className="text-4xl font-bold text-[#0f172a] font-serif mb-4">{t.howItWorks.title}</h2>
           <p className="text-slate-500 max-w-xl mx-auto">{t.howItWorks.subtitle}</p>
         </motion.div>
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <motion.div
+          className="grid md:grid-cols-2 lg:grid-cols-4 gap-6"
+          initial="hidden" whileInView="visible"
+          variants={staggerFast} viewport={viewport}
+        >
           {steps.map((step, i) => (
-            <motion.div key={i} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.15 }}
-              className="tech-card relative rounded-2xl p-7 border border-slate-100 hover:shadow-xl transition-all duration-300 group">
+            <motion.div key={i}
+              variants={fadeUp}
+              whileHover={{ y: -6, transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] } }}
+              className="tech-card relative rounded-2xl p-7 border border-slate-100 hover:shadow-xl transition-shadow duration-300 group cursor-default">
               <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${step.color} flex items-center justify-center text-white mb-5 group-hover:scale-110 transition-transform shadow-lg`}>
                 {step.icon}
               </div>
@@ -593,7 +603,7 @@ const HowItWorks = () => {
               )}
             </motion.div>
           ))}
-        </div>
+        </motion.div>
       </div>
     </section>
   );
@@ -785,16 +795,22 @@ const HomePage = () => {
 
             {/* ─── SAĞ: DARK CODE TERMİNAL ─── */}
             <motion.div
-              initial={{ opacity: 0, x: 50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 1, delay: 0.3 }}
+              initial="hidden"
+              animate="visible"
+              whileHover="hover"
+              variants={slideRight}
               className="relative hidden lg:block"
             >
               {/* Glow halo */}
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[105%] h-[105%] bg-gradient-to-br from-blue-500/10 via-violet-500/10 to-teal-500/10 blur-3xl rounded-full -z-10" />
 
               {/* Terminal window */}
-              <div className="relative bg-[#0d1117] rounded-2xl border border-slate-700/80 shadow-[0_40px_80px_-20px_rgba(0,0,0,0.5)] overflow-hidden">
+              <motion.div
+                variants={terminalHover}
+                initial="rest" whileHover="hover"
+                className="relative bg-[#0d1117] rounded-2xl border border-slate-700/80 shadow-[0_40px_80px_-20px_rgba(0,0,0,0.5)] overflow-hidden"
+                style={{ transformPerspective: 1200 }}
+              >
                 {/* Title bar */}
                 <div className="flex items-center gap-2 px-5 py-3 bg-[#161b22] border-b border-slate-700/80">
                   <div className="flex gap-1.5">
@@ -869,24 +885,31 @@ const HomePage = () => {
                   <span className="text-slate-500">msgs/day <span className="text-blue-400">17,439</span></span>
                   <span className="text-slate-500">latency <span className="text-teal-400">42ms</span></span>
                 </div>
-              </div>
+              </motion.div>
 
-              {/* Floating cards */}
-              <div className="absolute -top-5 -right-10 bg-white rounded-2xl shadow-2xl border border-slate-100 px-4 py-3 flex items-center gap-3 animate-float">
+              {/* Floating card — üst sağ */}
+              <motion.div
+                {...floatY}
+                className="absolute -top-5 -right-10 bg-white rounded-2xl shadow-2xl border border-slate-100 px-4 py-3 flex items-center gap-3"
+              >
                 <div className="w-9 h-9 bg-green-100 rounded-xl flex items-center justify-center"><TrendingUp size={18} className="text-green-600" /></div>
                 <div>
                   <div className="text-[10px] text-slate-400 font-bold uppercase">Revenue Growth</div>
                   <div className="text-base font-bold text-slate-800">+127%</div>
                 </div>
-              </div>
+              </motion.div>
 
-              <div className="absolute -bottom-5 -left-8 bg-[#001F54] text-white rounded-2xl shadow-xl px-4 py-3 flex items-center gap-3 animate-float-delay">
+              {/* Floating card — alt sol */}
+              <motion.div
+                {...floatYDelay}
+                className="absolute -bottom-5 -left-8 bg-[#001F54] text-white rounded-2xl shadow-xl px-4 py-3 flex items-center gap-3"
+              >
                 <div className="w-9 h-9 bg-white/10 rounded-xl flex items-center justify-center"><Bot size={18} className="text-blue-200" /></div>
                 <div>
                   <div className="text-[10px] text-blue-200 font-bold uppercase">AI Agents</div>
                   <div className="text-xs font-bold flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-green-400 inline-block" /> Online</div>
                 </div>
-              </div>
+              </motion.div>
             </motion.div>
 
           </div>
@@ -903,7 +926,11 @@ const HomePage = () => {
       <section id="solutions" className="py-32 bg-white relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_rgba(37,99,235,0.04)_0%,_transparent_60%)]" />
         <div className="max-w-7xl mx-auto px-6 relative z-10">
-          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-20">
+          <motion.div
+            initial="hidden" whileInView="visible"
+            variants={sectionTitle} viewport={viewport}
+            className="text-center mb-20"
+          >
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-50 border border-blue-100 text-blue-600 text-xs font-bold uppercase tracking-widest mb-6">
               <Sparkles size={12} /> {t.solutions.title}
             </div>
@@ -912,8 +939,12 @@ const HomePage = () => {
           </motion.div>
           <div className="grid md:grid-cols-3 gap-8">
             {solutions.map((item, idx) => (
-              <motion.div key={idx} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: idx * 0.15 }}
-                className="tech-card relative rounded-2xl p-8 border-2 border-slate-100 hover:border-blue-200 hover:shadow-[0_20px_60px_rgba(37,99,235,0.12)] transition-all duration-300 flex flex-col h-full bg-white group overflow-hidden">
+              <motion.div
+                key={idx}
+                initial="hidden" whileInView="visible" viewport={viewport}
+                variants={{ hidden: { opacity: 0, y: 28 }, visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: idx * 0.1 } } }}
+                whileHover={{ y: -8, transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] } }}
+                className="tech-card relative rounded-2xl p-8 border-2 border-slate-100 hover:border-blue-200 hover:shadow-[0_20px_60px_rgba(37,99,235,0.12)] transition-colors duration-300 flex flex-col h-full bg-white group overflow-hidden cursor-default">
                 {/* Top accent */}
                 <div className={`absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r ${idx === 0 ? 'from-blue-500 to-blue-600' : idx === 1 ? 'from-cyan-500 to-teal-500' : 'from-violet-500 to-violet-600'} scale-x-0 group-hover:scale-x-100 transition-transform origin-left`} />
                 <div className={`w-14 h-14 ${item.bg} rounded-2xl flex items-center justify-center mb-6 shadow-sm group-hover:scale-110 transition-transform`}>{item.icon}</div>
@@ -945,7 +976,10 @@ const HomePage = () => {
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-20"></div>
         <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-white to-transparent opacity-5"></div>
         <div className="relative z-10 max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-16 items-center">
-          <div>
+          <motion.div
+            initial="hidden" whileInView="visible"
+            variants={slideLeft} viewport={viewport}
+          >
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-900/50 border border-blue-700 text-blue-300 text-xs font-bold uppercase mb-6">
               <Star size={12} className="fill-blue-300" /> {t.vision.badge}
             </div>
@@ -960,11 +994,18 @@ const HomePage = () => {
                 {t.vision.btnStory} <ArrowRight size={18} />
               </Link>
             </div>
-          </div>
+          </motion.div>
           {/* SAĞ TARAF: SOYUT GÖRSEL */}
-          <div className="relative">
+          <motion.div
+            initial="hidden" whileInView="visible"
+            variants={slideRight} viewport={viewport}
+            className="relative"
+          >
             <div className="absolute -inset-4 bg-gradient-to-r from-blue-600 to-teal-600 rounded-full blur-2xl opacity-20 animate-pulse"></div>
-            <div className="relative bg-[#112240] p-8 rounded-3xl border border-slate-700 shadow-2xl">
+            <motion.div
+              whileHover={{ scale: 1.02, transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] } }}
+              className="relative bg-[#112240] p-8 rounded-3xl border border-slate-700 shadow-2xl cursor-default"
+            >
                <div className="flex items-center justify-between mb-8 border-b border-slate-700 pb-4">
                  <div className="text-white font-bold">PAX VISION</div>
                  <div className="flex gap-1"><div className="w-3 h-3 rounded-full bg-red-500"></div><div className="w-3 h-3 rounded-full bg-yellow-500"></div><div className="w-3 h-3 rounded-full bg-green-500"></div></div>
@@ -978,8 +1019,8 @@ const HomePage = () => {
                    <div className="h-full bg-gradient-to-r from-blue-400 to-teal-400 w-[100%] animate-[width_2s_ease-in-out]"></div>
                  </div>
                </div>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         </div>
       </div>
 
@@ -987,17 +1028,27 @@ const HomePage = () => {
       <section className="py-24 bg-slate-50 relative overflow-hidden">
         <div className="absolute inset-0 bg-[linear-gradient(rgba(148,163,184,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(148,163,184,0.06)_1px,transparent_1px)] bg-[size:40px_40px]" />
         <div className="max-w-7xl mx-auto px-6 relative z-10">
-          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
+          <motion.div
+            initial="hidden" whileInView="visible"
+            variants={sectionTitle} viewport={viewport}
+            className="text-center mb-16"
+          >
             <h2 className="text-4xl font-bold text-[#0f172a] font-serif mb-4">{t.whyPax.title}</h2>
             <p className="text-slate-500 max-w-xl mx-auto">{t.whyPax.subtitle}</p>
           </motion.div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <motion.div
+            className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
+            initial="hidden" whileInView="visible"
+            variants={staggerFast} viewport={viewport}
+          >
             {t.whyPax.items.map((item, i) => ({
               ...item,
               ...whyIcons[i]
             })).map((item, i) => (
-              <motion.div key={i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }}
-                className="bg-white rounded-2xl p-7 border-2 border-slate-100 hover:border-blue-200 hover:shadow-xl transition-all duration-300 flex gap-4 group hover:-translate-y-2">
+              <motion.div key={i}
+                variants={fadeUp}
+                whileHover={{ y: -5, transition: { duration: 0.28, ease: [0.22, 1, 0.36, 1] } }}
+                className="bg-white rounded-2xl p-7 border-2 border-slate-100 hover:border-blue-200 hover:shadow-xl transition-colors duration-300 flex gap-4 group cursor-default">
                 <div className={`w-12 h-12 rounded-xl ${item.color} flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform`}>{item.icon}</div>
                 <div>
                   <h4 className="font-bold text-[#0f172a] mb-2 text-base">{item.title}</h4>
@@ -1005,7 +1056,7 @@ const HomePage = () => {
                 </div>
               </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </section>
 
@@ -1092,8 +1143,9 @@ function App() {
                 <Route path="services"      element={<ServicesPage />} />
                 <Route path="staff"         element={<StaffPage />} />
                 <Route path="appointments"   element={<AppointmentsPage />} />
-                <Route path="conversations" element={<ConversationsPage />} />
-                <Route path="ai-settings"  element={<AISettingsPage />} />
+                <Route path="conversations"  element={<ConversationsPage />} />
+                <Route path="ai-settings"   element={<AISettingsPage />} />
+                <Route path="integrations"  element={<IntegrationsPanel />} />
                 <Route path="calendar"      element={<CalendarPage />} />
                 <Route path="leads"     element={<LeadsPage />} />
               </Route>
