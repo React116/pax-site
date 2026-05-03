@@ -372,8 +372,15 @@ const AdvancedContactForm = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
-      if (response.ok) { setFormStatus('success'); e.target.reset(); }
-      else { setFormStatus('error'); }
+      if (response.ok) {
+        setFormStatus('success');
+        e.target.reset();
+        // GA4 conversion event
+        window.gtag?.('event', 'generate_lead', {
+          event_category: 'engagement',
+          event_label: payload.sector || 'unknown',
+        });
+      } else { setFormStatus('error'); }
     } catch {
       setFormStatus('error');
     }
@@ -707,7 +714,13 @@ const HomePage = () => {
                 <Link to="/cozumler" className="bg-[#001F54] text-white px-8 py-4 rounded-full font-bold text-sm hover:bg-[#0f172a] hover:scale-[1.02] transition-all shadow-xl shadow-blue-900/20 flex items-center justify-center gap-2 group">
                   {t.hero.btnDiscover} <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                 </Link>
-                <button onClick={() => document.getElementById('contact').scrollIntoView({ behavior: 'smooth' })} className="px-8 py-4 rounded-full font-bold text-sm text-[#001F54] bg-transparent border-2 border-[#001F54] hover:bg-[#001F54] hover:text-white transition-all flex items-center justify-center gap-2">
+                <button
+                  onClick={() => {
+                    document.getElementById('contact').scrollIntoView({ behavior: 'smooth' });
+                    window.gtag?.('event', 'cta_click', { event_category: 'hero', event_label: 'demo_cta' });
+                  }}
+                  className="px-8 py-4 rounded-full font-bold text-sm text-[#001F54] bg-transparent border-2 border-[#001F54] hover:bg-[#001F54] hover:text-white transition-all flex items-center justify-center gap-2"
+                >
                   <MessageSquare size={16} /> {t.hero.btnContact}
                 </button>
               </motion.div>

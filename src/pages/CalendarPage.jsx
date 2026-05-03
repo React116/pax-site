@@ -50,7 +50,9 @@ const CalendarPage = () => {
   });
 
   const [filterType, setFilterType] = useState('all');
-  
+  const [formError, setFormError] = useState('');
+  const [deleteTarget, setDeleteTarget] = useState(null); // id to confirm delete
+
   const BASE_URL = import.meta.env.VITE_API_URL || "https://pax-backend-9m4q.onrender.com/api";
   const token = localStorage.getItem('token');
 
@@ -127,7 +129,11 @@ const CalendarPage = () => {
   // --- 4. KAYDETME ---
   const handleSave = async (e) => {
     e.preventDefault();
-    if (!formData.title || !formData.start || !formData.end) return alert("Zorunlu alanları doldurun.");
+    if (!formData.title || !formData.start || !formData.end) {
+      setFormError('Müşteri adı, başlangıç ve bitiş alanları zorunludur.');
+      return;
+    }
+    setFormError('');
 
     const method = isEditMode ? 'PUT' : 'POST';
     const url = isEditMode ? `${BASE_URL}/calendar/${formData.id}` : `${BASE_URL}/calendar`;
@@ -143,26 +149,33 @@ const CalendarPage = () => {
         await fetchData();
         setShowModal(false);
         resetForm();
-      } else { alert("İşlem başarısız."); }
-    } catch (err) { console.error(err); }
+      } else {
+        setFormError('İşlem başarısız. Lütfen tekrar deneyin.');
+      }
+    } catch { setFormError('Bağlantı hatası.'); }
   };
 
   // --- 5. SİLME ---
-  const handleDelete = async (id) => {
-    if (!window.confirm("Silmek istediğinize emin misiniz?")) return;
+  const handleDelete = (id) => setDeleteTarget(id);
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
     try {
-        await fetch(`${BASE_URL}/calendar/${id}`, {
-            method: 'DELETE',
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        setEvents(prev => prev.filter(e => e.id !== id));
-        setSelectedEvent(null);
-    } catch (err) { console.error(err); }
+      await fetch(`${BASE_URL}/calendar/${deleteTarget}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setEvents(prev => prev.filter(e => e.id !== deleteTarget));
+      setSelectedEvent(null);
+    } catch { /* silent */ } finally {
+      setDeleteTarget(null);
+    }
   };
 
   const resetForm = () => {
     setFormData({ id: null, title: '', start: '', end: '', type: 'private', instructor: '', room: 'Ana Salon', desc: '', status: 'confirmed' });
     setIsEditMode(false);
+    setFormError('');
   };
 
   const openNewModal = () => {
@@ -388,6 +401,25 @@ const CalendarPage = () => {
         </div>
       )}
 
+      {/* --- MODAL: SİLME ONAY --- */}
+      {deleteTarget && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <motion.div initial={{scale:0.9,opacity:0}} animate={{scale:1,opacity:1}} className="bg-white rounded-3xl shadow-2xl p-6 max-w-sm w-full border border-slate-200 text-center">
+            <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4 text-red-500">
+              <Trash2 size={28} />
+            </div>
+            <h3 className="text-xl font-bold text-[#0f172a] mb-2">Randevuyu İptal Et</h3>
+            <p className="text-sm text-slate-500 mb-6">Bu randevu kalıcı olarak silinecek. Emin misiniz?</p>
+            <div className="grid grid-cols-2 gap-3">
+              <button onClick={() => setDeleteTarget(null)} className="py-3 rounded-xl border border-slate-200 font-bold text-slate-600 hover:bg-slate-50">Vazgeç</button>
+              <button onClick={confirmDelete} className="py-3 rounded-xl bg-red-500 text-white font-bold hover:bg-red-600 flex items-center justify-center gap-2">
+                <Trash2 size={16}/> Sil
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
       {/* --- MODAL: YENİ/DÜZENLE --- */}
       {showModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
@@ -434,6 +466,12 @@ const CalendarPage = () => {
                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-1 block">Notlar</label>
                     <textarea placeholder="Sağlık durumu, özel istekler..." value={formData.desc} onChange={e => setFormData({...formData, desc: e.target.value})} className="w-full border p-3 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 text-sm h-20 resize-none"></textarea>
                  </div>
+
+                 {formError && (
+                   <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-3 rounded-xl">
+                     <AlertTriangle size={15} className="shrink-0" /> {formError}
+                   </div>
+                 )}
 
                  <div className="pt-2">
                     <button type="submit" className="w-full bg-[#001F54] text-white py-3.5 rounded-xl font-bold hover:bg-[#0f172a] shadow-lg transition-all">
