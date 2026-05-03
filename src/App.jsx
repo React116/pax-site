@@ -24,6 +24,7 @@ const StoryPage       = lazy(() => import('./HikayeSayfasi'));
 const CaseStudiesPage = lazy(() => import('./CaseStudiesPage'));
 const BlogPage        = lazy(() => import('./BlogPage'));
 const FaqPage         = lazy(() => import('./FaqPage'));
+const IntegrationsPage = lazy(() => import('./IntegrationsPage'));
 
 // --- PANEL VE AUTH (EAGER — küçük, kritik yol) ---
 import Register        from './Register';
@@ -311,6 +312,7 @@ const Footer = () => {
               <li><Link to="/basari-hikayeleri" className="hover:text-blue-400 transition-colors">{t.nav.successStories}</Link></li>
               <li><Link to="/blog" className="hover:text-blue-400 transition-colors">{t.nav.blog}</Link></li>
               <li><Link to="/sss" className="hover:text-blue-400 transition-colors">SSS</Link></li>
+              <li><Link to="/entegrasyonlar" className="hover:text-blue-400 transition-colors">Entegrasyonlar</Link></li>
               <li><Link to="/gizlilik-politikasi" className="hover:text-blue-400 transition-colors">{t.footer.legal}</Link></li>
               <li><Link to="/kullanim-kosullari" className="hover:text-blue-400 transition-colors">{t.footer.terms}</Link></li>
               <li><Link to="/cerez-politikasi" className="hover:text-blue-400 transition-colors">{t.footer.cookies}</Link></li>
@@ -1048,6 +1050,7 @@ function App() {
               <Route path="/cozumler" element={<SolutionsPage />} />
               <Route path="/hikayemiz" element={<StoryPage />} />
               <Route path="/sss" element={<FaqPage />} />
+              <Route path="/entegrasyonlar" element={<IntegrationsPage />} />
 
               <Route path="/giris-yap" element={<Login />} />
               <Route path="/kayit-ol" element={<Register />} />

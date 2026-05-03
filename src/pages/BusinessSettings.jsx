@@ -278,7 +278,7 @@ if (saved?.businessType) setSelectedType(saved.businessType);
             campaigns: finalCampaigns
         }));
       }
-    } catch (err) { console.error(err); }
+    } catch { /* silent */ }
   };
 
   const handleChange = (e) => {
@@ -327,10 +327,9 @@ if (saved?.businessType) setSelectedType(saved.businessType);
             const errData = await res.json();
             throw new Error(errData.message || "Kaydetme hatası");
         }
-    } catch (e) { 
-        console.error(e);
-        setMessage({ type: 'error', text: '❌ Kaydedilemedi: ' + e.message }); 
-    } 
+    } catch (e) {
+        setMessage({ type: 'error', text: '❌ Kaydedilemedi: ' + e.message });
+    }
     finally { setLoading(false); setTimeout(() => setMessage(null), 3000); }
   };
 if (typeLocked) return;
