@@ -1,27 +1,95 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Check, X, ArrowLeft, Zap, Star, Briefcase } from 'lucide-react';
 import SEO from './components/SEO';
 import { useLanguage } from './LanguageContext';
 
-const ScrollToTop = () => {
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
-  return null;
-};
+const ScrollToTop = () => { useEffect(() => { window.scrollTo(0, 0); }, []); return null; };
+
+/* Annual price = monthly * 12 * 0.8 (20% discount) */
+const PLANS = [
+  {
+    key: 'basic',
+    name: 'BASIC',
+    icon: (active) => <Zap className={active ? 'text-green-500 fill-green-500' : 'text-green-500'} size={20} />,
+    accentColor: 'bg-green-500',
+    monthly: 99,
+    featured: false,
+    dark: false,
+    btnClass: 'border-2 border-[#001F54] text-[#001F54] hover:bg-[#001F54] hover:text-white',
+    btnLabel: 'Hemen Başla',
+    desc: 'Yeni başlayan işletmeler ve bireysel profesyoneller için.',
+    features: [
+      'WhatsApp ve Web Chatbot',
+      'Otomatik randevu & takip',
+      'Tek sektör asistanı',
+      '500 AI mesaj limiti / ay',
+      'Tek kullanıcı (Admin)',
+      'E-posta destek',
+    ],
+    checkColor: 'text-green-500',
+  },
+  {
+    key: 'pro',
+    name: 'PRO',
+    icon: (active) => <Star className={active ? 'text-blue-500 fill-blue-500' : 'text-blue-500'} size={20} />,
+    accentColor: 'bg-blue-500',
+    monthly: 199,
+    featured: true,
+    dark: false,
+    btnClass: 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-blue-500/30',
+    btnLabel: 'Pro Planı Seç',
+    desc: 'Büyüyen işletmeler için tam kapsamlı çözüm.',
+    features: [
+      "Basic'teki tüm özellikler",
+      'Instagram DM Entegrasyonu',
+      '3 Farklı Sektör Asistanı',
+      '2000 AI mesaj limiti / ay',
+      '5 Personel Erişimi',
+      'Öncelikli Canlı Destek',
+    ],
+    checkColor: 'text-blue-500',
+  },
+  {
+    key: 'enterprise',
+    name: 'ENTERPRISE',
+    icon: () => <Briefcase className="text-purple-400" size={20} />,
+    accentColor: 'bg-purple-500',
+    monthly: 4999,
+    featured: false,
+    dark: true,
+    btnClass: 'bg-purple-600 text-white hover:bg-purple-700',
+    btnLabel: 'Bize Ulaşın',
+    desc: 'Zincir işletmeler ve ajanslar için sınırsız güç.',
+    features: [
+      "Pro'daki tüm özellikler",
+      'WhatsApp Business API & Green Tick',
+      'Sınırsız Sektör & Mesaj',
+      'Özel API (ERP, CRM, n8n)',
+      'White-label (Markanızla Sunum)',
+      '7/24 SLA Destek & Eğitim',
+    ],
+    checkColor: 'text-purple-400',
+  },
+];
+
+const fmt = (n) => n.toLocaleString('en-US');
 
 const PricingPage = () => {
   const { t, language } = useLanguage();
+  const [annual, setAnnual] = useState(false);
+
+  const price = (monthly) => annual ? Math.round(monthly * 12 * 0.8) : monthly;
+  const period = annual ? '/yıl' : '/ay';
+
   return (
     <div className="min-h-screen bg-slate-50 font-sans selection:bg-blue-100">
       <SEO title={t.seo.pricing.title} description={t.seo.pricing.desc} path="/fiyatlar" lang={language} />
       <ScrollToTop />
-      
+
       {/* HEADER */}
-      
       <div className="bg-[#001F54] py-20 pb-32 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:20px_20px]"></div>
+        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:20px_20px]" />
         <div className="max-w-7xl mx-auto px-6 relative z-10 text-center">
           <Link to="/" className="inline-flex items-center gap-2 text-blue-200 hover:text-white mb-8 transition-colors text-sm font-semibold">
             <ArrowLeft size={16} /> Ana Sayfaya Dön
@@ -29,115 +97,99 @@ const PricingPage = () => {
           <h1 className="text-4xl md:text-5xl font-bold text-white font-serif mb-6">
             Basit, Şeffaf Fiyatlandırma
           </h1>
-          <p className="text-xl text-blue-100 max-w-2xl mx-auto font-light">
+          <p className="text-xl text-blue-100 max-w-2xl mx-auto font-light mb-10">
             İşletmenizin büyüklüğüne ve ihtiyaçlarına en uygun planı seçin. Gizli ücret yok, taahhüt yok.
           </p>
+
+          {/* BILLING TOGGLE */}
+          <div className="inline-flex items-center gap-4 bg-white/10 rounded-full px-2 py-2 backdrop-blur-sm">
+            <button
+              onClick={() => setAnnual(false)}
+              className={`px-5 py-2 rounded-full text-sm font-semibold transition-all ${!annual ? 'bg-white text-[#001F54] shadow' : 'text-white'}`}
+            >
+              Aylık
+            </button>
+            <button
+              onClick={() => setAnnual(true)}
+              className={`px-5 py-2 rounded-full text-sm font-semibold transition-all flex items-center gap-2 ${annual ? 'bg-white text-[#001F54] shadow' : 'text-white'}`}
+            >
+              Yıllık
+              <span className="bg-green-400 text-[#001F54] text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide">
+                %20 indirim
+              </span>
+            </button>
+          </div>
         </div>
       </div>
 
       {/* PRICING CARDS */}
       <div className="max-w-7xl mx-auto px-6 -mt-20 relative z-20">
         <div className="grid lg:grid-cols-3 gap-8">
-          
-          {/* PLAN 1: BASIC */}
-          <div className="bg-white rounded-2xl shadow-xl border border-slate-100 p-8 hover:-translate-y-1 transition-transform duration-300 relative overflow-hidden group">
-            <div className="h-2 w-full bg-green-500 absolute top-0 left-0"></div>
-            <h3 className="text-2xl font-bold text-slate-800 mb-2 flex items-center gap-2">
-              <Zap className="text-green-500 fill-green-500" size={20} /> BASIC
-            </h3>
-            <p className="text-slate-500 text-sm mb-6">Yeni başlayan işletmeler ve bireysel profesyoneller için.</p>
-            <div className="flex items-baseline mb-8">
-              <span className="text-4xl font-bold text-[#001F54]">$99</span>
-              <span className="text-slate-500 ml-2">/ay</span>
+          {PLANS.map((plan) => (
+            <div
+              key={plan.key}
+              className={`rounded-2xl shadow-xl p-8 relative overflow-hidden transition-transform duration-300 hover:-translate-y-1
+                ${plan.featured ? 'border-2 border-blue-500 scale-105 z-10 shadow-2xl bg-white' : plan.dark ? 'bg-slate-900 border border-slate-800 text-white' : 'bg-white border border-slate-100'}`}
+            >
+              <div className={`h-2 w-full absolute top-0 left-0 ${plan.accentColor}`} />
+
+              {plan.featured && (
+                <div className="absolute top-0 right-0 bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-bl-lg uppercase tracking-wide">
+                  En Çok Tercih Edilen
+                </div>
+              )}
+
+              <h3 className={`text-2xl font-bold mb-2 flex items-center gap-2 ${plan.dark ? 'text-purple-400' : 'text-slate-800'}`}>
+                {plan.icon(true)} {plan.name}
+              </h3>
+              <p className={`text-sm mb-6 ${plan.dark ? 'text-slate-400' : 'text-slate-500'}`}>{plan.desc}</p>
+
+              <div className="flex items-baseline mb-2">
+                <span className={`${plan.featured ? 'text-5xl' : 'text-4xl'} font-bold ${plan.dark ? 'text-white' : 'text-[#001F54]'}`}>
+                  ${fmt(price(plan.monthly))}
+                </span>
+                <span className={`ml-2 ${plan.dark ? 'text-slate-400' : 'text-slate-500'}`}>{period}</span>
+              </div>
+
+              {annual && (
+                <p className="text-xs text-green-500 font-semibold mb-6">
+                  Aylık ${fmt(Math.round(price(plan.monthly) / 12))} — ${fmt(plan.monthly * 12 - price(plan.monthly))} tasarruf
+                </p>
+              )}
+              {!annual && <div className="mb-6" />}
+
+              <button className={`w-full py-3 rounded-lg font-bold transition-all mb-8 ${plan.btnClass}`}>
+                {plan.btnLabel}
+              </button>
+
+              <ul className={`space-y-4 text-sm ${plan.dark ? 'text-slate-300' : 'text-slate-600'}`}>
+                {plan.features.map((f, i) => (
+                  <li key={i} className="flex gap-3">
+                    <Check size={18} className={`${plan.checkColor} shrink-0`} />
+                    {i === 0 ? <strong>{f}</strong> : f}
+                  </li>
+                ))}
+              </ul>
             </div>
-            
-            <button className="w-full py-3 rounded-lg border-2 border-[#001F54] text-[#001F54] font-bold hover:bg-[#001F54] hover:text-white transition-all mb-8">
-              Hemen Başla
-            </button>
-
-            <ul className="space-y-4 text-sm text-slate-600">
-              <li className="flex gap-3"><Check size={18} className="text-green-500 shrink-0" /> WhatsApp ve Web Chatbot</li>
-              <li className="flex gap-3"><Check size={18} className="text-green-500 shrink-0" /> Otomatik randevu & takip</li>
-              <li className="flex gap-3"><Check size={18} className="text-green-500 shrink-0" /> Tek sektör asistanı</li>
-              <li className="flex gap-3"><Check size={18} className="text-green-500 shrink-0" /> 500 AI mesaj limiti / ay</li>
-              <li className="flex gap-3"><Check size={18} className="text-green-500 shrink-0" /> Tek kullanıcı (Admin)</li>
-              <li className="flex gap-3"><Check size={18} className="text-green-500 shrink-0" /> E-posta destek</li>
-            </ul>
-          </div>
-
-          {/* PLAN 2: PRO (POPULAR) */}
-          <div className="bg-white rounded-2xl shadow-2xl border-2 border-blue-500 p-8 transform scale-105 z-10 relative">
-            <div className="absolute top-0 right-0 bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-bl-lg uppercase tracking-wide">
-              En Çok Tercih Edilen
-            </div>
-            <h3 className="text-2xl font-bold text-slate-800 mb-2 flex items-center gap-2">
-              <Star className="text-blue-500 fill-blue-500" size={20} /> PRO
-            </h3>
-            <p className="text-slate-500 text-sm mb-6">Büyüyen işletmeler için tam kapsamlı çözüm.</p>
-            <div className="flex items-baseline mb-8">
-              <span className="text-5xl font-bold text-[#001F54]">$199</span>
-              <span className="text-slate-500 ml-2">/ay</span>
-            </div>
-            
-            <button className="w-full py-4 rounded-lg bg-blue-600 text-white font-bold hover:bg-blue-700 shadow-lg hover:shadow-blue-500/30 transition-all mb-8">
-              Pro Planı Seç
-            </button>
-
-            <ul className="space-y-4 text-sm text-slate-600 font-medium">
-              <li className="flex gap-3"><Check size={18} className="text-blue-500 shrink-0" /> <strong>Basic'teki tüm özellikler</strong></li>
-              <li className="flex gap-3"><Check size={18} className="text-blue-500 shrink-0" /> Instagram DM Entegrasyonu</li>
-              <li className="flex gap-3"><Check size={18} className="text-blue-500 shrink-0" /> 3 Farklı Sektör Asistanı</li>
-              <li className="flex gap-3"><Check size={18} className="text-blue-500 shrink-0" /> 2000 AI mesaj limiti / ay</li>
-              <li className="flex gap-3"><Check size={18} className="text-blue-500 shrink-0" /> 5 Personel Erişimi</li>
-              <li className="flex gap-3"><Check size={18} className="text-blue-500 shrink-0" /> Öncelikli Canlı Destek</li>
-            </ul>
-          </div>
-
-          {/* PLAN 3: ENTERPRISE (GÜNCELLENDİ) */}
-          <div className="bg-slate-900 rounded-2xl shadow-xl border border-slate-800 p-8 hover:-translate-y-1 transition-transform duration-300 relative text-white">
-            <div className="h-2 w-full bg-purple-500 absolute top-0 left-0"></div>
-            <h3 className="text-2xl font-bold mb-2 flex items-center gap-2 text-purple-400">
-              <Briefcase className="text-purple-500" size={20} /> ENTERPRISE
-            </h3>
-            <p className="text-slate-400 text-sm mb-6">Zincir işletmeler ve ajanslar için sınırsız güç.</p>
-            <div className="flex items-baseline mb-8">
-              <span className="text-4xl font-bold text-white">$4,999</span>
-              <span className="text-slate-400 ml-2">/ay</span>
-            </div>
-            
-            <button className="w-full py-3 rounded-lg bg-purple-600 text-white font-bold hover:bg-purple-700 transition-all mb-8">
-              Bize Ulaşın
-            </button>
-
-            <ul className="space-y-4 text-sm text-slate-300">
-              <li className="flex gap-3"><Check size={18} className="text-purple-400 shrink-0" /> <strong>Pro'daki tüm özellikler</strong></li>
-              <li className="flex gap-3"><Check size={18} className="text-purple-400 shrink-0" /> WhatsApp Business API & Green Tick</li>
-              <li className="flex gap-3"><Check size={18} className="text-purple-400 shrink-0" /> Sınırsız Sektör & Mesaj</li>
-              <li className="flex gap-3"><Check size={18} className="text-purple-400 shrink-0" /> Özel API (ERP, CRM, n8n)</li>
-              <li className="flex gap-3"><Check size={18} className="text-purple-400 shrink-0" /> White-label (Markanızla Sunum)</li>
-              <li className="flex gap-3"><Check size={18} className="text-purple-400 shrink-0" /> 7/24 SLA Destek & Eğitim</li>
-            </ul>
-          </div>
-
+          ))}
         </div>
       </div>
 
       {/* COMPARISON TABLE */}
       <div className="max-w-6xl mx-auto px-6 py-24">
         <h2 className="text-3xl font-bold text-center text-[#0f172a] font-serif mb-12">Detaylı Karşılaştırma</h2>
-        
+
         <div className="overflow-x-auto border border-slate-200 rounded-2xl shadow-sm bg-white">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200">
                 <th className="p-6 text-sm font-bold text-slate-500 uppercase tracking-wider w-1/4">Özellikler</th>
-                <th className="p-6 text-center text-[#001F54] font-bold w-1/4">BASIC ($99)</th>
-                <th className="p-6 text-center text-blue-600 font-bold w-1/4 bg-blue-50/50">PRO ($199)</th>
-                <th className="p-6 text-center text-purple-600 font-bold w-1/4">ENTERPRISE ($4,999)</th>
+                <th className="p-6 text-center text-[#001F54] font-bold w-1/4">BASIC</th>
+                <th className="p-6 text-center text-blue-600 font-bold w-1/4 bg-blue-50/50">PRO</th>
+                <th className="p-6 text-center text-purple-600 font-bold w-1/4">ENTERPRISE</th>
               </tr>
             </thead>
             <tbody className="text-sm text-slate-600">
-              {/* Kanal & Mesaj */}
               <tr className="border-b border-slate-100"><td colSpan="4" className="bg-slate-50/50 p-3 px-6 font-bold text-xs text-slate-400 uppercase tracking-widest">Kanal & Kapasite</td></tr>
               <tr className="hover:bg-slate-50">
                 <td className="p-4 px-6 font-medium">AI Mesaj Limiti</td>
@@ -157,8 +209,6 @@ const PricingPage = () => {
                 <td className="p-4 text-center font-bold text-blue-600 bg-blue-50/30">3 Sektör</td>
                 <td className="p-4 text-center font-bold text-purple-600">Sınırsız</td>
               </tr>
-
-              {/* Erişim & Yönetim */}
               <tr className="border-b border-slate-100"><td colSpan="4" className="bg-slate-50/50 p-3 px-6 font-bold text-xs text-slate-400 uppercase tracking-widest">Yönetim</td></tr>
               <tr className="hover:bg-slate-50">
                 <td className="p-4 px-6 font-medium">Kullanıcı Erişimi</td>
@@ -172,8 +222,6 @@ const PricingPage = () => {
                 <td className="p-4 text-center bg-blue-50/30"><Check size={18} className="mx-auto text-blue-500" /></td>
                 <td className="p-4 text-center"><Check size={18} className="mx-auto text-purple-500" /></td>
               </tr>
-
-              {/* Gelişmiş */}
               <tr className="border-b border-slate-100"><td colSpan="4" className="bg-slate-50/50 p-3 px-6 font-bold text-xs text-slate-400 uppercase tracking-widest">Gelişmiş Özellikler</td></tr>
               <tr className="hover:bg-slate-50">
                 <td className="p-4 px-6 font-medium">API & Webhooks</td>
@@ -197,7 +245,6 @@ const PricingPage = () => {
           </table>
         </div>
       </div>
-
     </div>
   );
 };
