@@ -37,6 +37,7 @@ import ServicesPage      from './pages/ServicesPage';
 import StaffPage         from './pages/StaffPage';
 import AppointmentsPage   from './pages/AppointmentsPage';
 import ConversationsPage  from './pages/ConversationsPage';
+import AISettingsPage     from './pages/AISettingsPage';
 import DashboardLayout   from './layouts/DashboardLayout';
 import DashboardOverview from './pages/DashboardOverview';
 import ProtectedRoute    from './ProtectedRoute';
@@ -1092,6 +1093,7 @@ function App() {
                 <Route path="staff"         element={<StaffPage />} />
                 <Route path="appointments"   element={<AppointmentsPage />} />
                 <Route path="conversations" element={<ConversationsPage />} />
+                <Route path="ai-settings"  element={<AISettingsPage />} />
                 <Route path="calendar"      element={<CalendarPage />} />
                 <Route path="leads"     element={<LeadsPage />} />
               </Route>
