@@ -1,90 +1,109 @@
 /**
- * PAX — Reusable Framer Motion variants
- * Tüm animasyonlar premium, kontrollü ve 60fps hedeflidir.
- * transform + opacity tabanlı — layout shift yok.
+ * PAX — Premium Framer Motion variants
+ * Dramatik, fark edilir, "million dollar" hissiyat.
+ * transform + opacity + scale tabanlı — 60fps, layout shift yok.
  */
 
-// ── Temel fade-up ─────────────────────────────────────────────────────────────
+const ease = [0.22, 1, 0.36, 1];   // Premium cubic-bezier (Apple/Linear tarzı)
+const easeIn = [0.4, 0, 1, 1];
+
+// ── Hero başlık — en dramatik giriş ──────────────────────────────────────────
+export const heroTitle = {
+  hidden:  { opacity: 0, y: 90, scale: 0.85 },
+  visible: { opacity: 1, y: 0,  scale: 1,
+    transition: { duration: 1.1, ease } },
+};
+
+// ── Genel fade-up — gözle görülür hareket ────────────────────────────────────
 export const fadeUp = {
-  hidden:  { opacity: 0, y: 24 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] } },
+  hidden:  { opacity: 0, y: 60, scale: 0.94 },
+  visible: { opacity: 1, y: 0,  scale: 1,
+    transition: { duration: 0.85, ease } },
 };
 
-// ── Stagger container ─────────────────────────────────────────────────────────
-export const stagger = {
-  hidden:  { opacity: 0 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.1, delayChildren: 0.05 } },
-};
-
-// ── Hızlı stagger (kartlar için) ──────────────────────────────────────────────
-export const staggerFast = {
-  hidden:  { opacity: 0 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.07, delayChildren: 0.05 } },
-};
-
-// ── Yatay giriş (soldan / sağdan) ─────────────────────────────────────────────
+// ── Yatay giriş — sol / sağ ──────────────────────────────────────────────────
 export const slideLeft = {
-  hidden:  { opacity: 0, x: -32 },
-  visible: { opacity: 1, x: 0, transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] } },
+  hidden:  { opacity: 0, x: -80, scale: 0.94 },
+  visible: { opacity: 1, x: 0,   scale: 1,
+    transition: { duration: 0.9, ease } },
 };
 
 export const slideRight = {
-  hidden:  { opacity: 0, x: 32 },
-  visible: { opacity: 1, x: 0, transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] } },
+  hidden:  { opacity: 0, x: 80, scale: 0.94 },
+  visible: { opacity: 1, x: 0,  scale: 1,
+    transition: { duration: 0.9, ease } },
 };
 
-// ── Scale-fade (kartlar, modallar) ────────────────────────────────────────────
+// ── Scale-pop — kart girişleri ────────────────────────────────────────────────
 export const scaleFade = {
-  hidden:  { opacity: 0, scale: 0.95 },
-  visible: { opacity: 1, scale: 1, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } },
+  hidden:  { opacity: 0, scale: 0.80, y: 30 },
+  visible: { opacity: 1, scale: 1,    y: 0,
+    transition: { duration: 0.7, ease } },
 };
 
-// ── Hover lift (kart hover efekti) ────────────────────────────────────────────
+// ── Stagger container — varsayılan ───────────────────────────────────────────
+export const stagger = {
+  hidden:  { opacity: 0 },
+  visible: { opacity: 1,
+    transition: { staggerChildren: 0.18, delayChildren: 0.1 } },
+};
+
+// ── Stagger — hero (daha hızlı) ───────────────────────────────────────────────
+export const staggerHero = {
+  hidden:  { opacity: 0 },
+  visible: { opacity: 1,
+    transition: { staggerChildren: 0.15, delayChildren: 0.05 } },
+};
+
+// ── Stagger — kartlar ─────────────────────────────────────────────────────────
+export const staggerFast = {
+  hidden:  { opacity: 0 },
+  visible: { opacity: 1,
+    transition: { staggerChildren: 0.1, delayChildren: 0.05 } },
+};
+
+// ── Hover — büyük kart ────────────────────────────────────────────────────────
 export const hoverLift = {
-  rest:  { y: 0,  scale: 1,    transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] } },
-  hover: { y: -6, scale: 1.01, transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] } },
+  rest:  { y: 0,   scale: 1,    transition: { duration: 0.3, ease } },
+  hover: { y: -10, scale: 1.02, transition: { duration: 0.3, ease } },
 };
 
-// ── Subtle hover (küçük kartlar) ──────────────────────────────────────────────
-export const hoverSubtle = {
-  rest:  { y: 0,  transition: { duration: 0.25, ease: 'easeOut' } },
-  hover: { y: -3, transition: { duration: 0.25, ease: 'easeOut' } },
+// ── Section başlığı ───────────────────────────────────────────────────────────
+export const sectionTitle = {
+  hidden:  { opacity: 0, y: 40, scale: 0.93 },
+  visible: { opacity: 1, y: 0,  scale: 1,
+    transition: { duration: 0.75, ease } },
 };
 
-// ── Viewport defaults (scroll reveal için) ────────────────────────────────────
-export const viewport = {
-  once:   true,
-  amount: 0.15,   // ekranın %15'i görününce tetikle — çok erken değil, çok geç değil
-};
+// ── Viewport: her zaman tetikle ───────────────────────────────────────────────
+export const viewport = { once: true, amount: 0 };
 
-export const viewportLazy = {
-  once:   true,
-  amount: 0.1,
-};
-
-// ── Floating card animasyonu (Framer ile — CSS yerine) ────────────────────────
+// ── Floating cards — Framer ile sürekli hareket ───────────────────────────────
 export const floatY = {
   animate: {
-    y: [0, -10, 0],
-    transition: { duration: 3.2, ease: 'easeInOut', repeat: Infinity },
+    y: [0, -14, 0],
+    transition: { duration: 3.4, ease: 'easeInOut', repeat: Infinity },
   },
 };
 
 export const floatYDelay = {
   animate: {
-    y: [0, -10, 0],
-    transition: { duration: 3.8, ease: 'easeInOut', repeat: Infinity, delay: 1 },
+    y: [0, -14, 0],
+    transition: { duration: 4.0, ease: 'easeInOut', repeat: Infinity, delay: 1.2 },
   },
 };
 
-// ── Terminal kutu hover ────────────────────────────────────────────────────────
+// ── Terminal hover — perspektif ────────────────────────────────────────────────
 export const terminalHover = {
-  rest:  { scale: 1,    rotateY: 0,   transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } },
-  hover: { scale: 1.02, rotateY: 1.5, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } },
+  rest:  { scale: 1,    rotateY: 0,   transition: { duration: 0.5, ease } },
+  hover: { scale: 1.03, rotateY: 2,   transition: { duration: 0.5, ease } },
 };
 
-// ── Section başlığı ───────────────────────────────────────────────────────────
-export const sectionTitle = {
-  hidden:  { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] } },
-};
+// ── Background orb — sürekli pulse ────────────────────────────────────────────
+export const orbPulse = (delay = 0) => ({
+  animate: {
+    scale: [1, 1.25, 1],
+    opacity: [0.15, 0.35, 0.15],
+    transition: { duration: 6, ease: 'easeInOut', repeat: Infinity, delay },
+  },
+});

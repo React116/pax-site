@@ -153,6 +153,64 @@ h1, h2, h3, h4, h5, h6 {
   -webkit-mask-composite: xor;
   mask-composite: exclude;
   opacity: 0;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.4s ease;
 }
 .tech-card:hover::before { opacity: 1; }
+
+/* ─── PREMIUM GLOW BUTTON ─── */
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 20px rgba(37,99,235,0.4), 0 0 40px rgba(37,99,235,0.15); }
+  50%       { box-shadow: 0 0 35px rgba(37,99,235,0.7), 0 0 70px rgba(37,99,235,0.3); }
+}
+.btn-glow { animation: glow-pulse 2.5s ease-in-out infinite; }
+
+/* ─── AURORA BACKGROUND ─── */
+@keyframes aurora-shift {
+  0%   { transform: translate(0%, 0%)   rotate(0deg)   scale(1); }
+  33%  { transform: translate(3%, -4%)  rotate(120deg) scale(1.15); }
+  66%  { transform: translate(-3%, 3%)  rotate(240deg) scale(0.95); }
+  100% { transform: translate(0%, 0%)   rotate(360deg) scale(1); }
+}
+.aurora-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  animation: aurora-shift 14s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* ─── SHIMMER BADGE ─── */
+@keyframes shimmer-slide {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200%  center; }
+}
+.badge-shimmer {
+  background: linear-gradient(90deg,
+    rgba(255,255,255,0) 0%,
+    rgba(255,255,255,0.6) 50%,
+    rgba(255,255,255,0) 100%);
+  background-size: 200% 100%;
+  animation: shimmer-slide 3s linear infinite;
+}
+
+/* ─── CARD GLOW HOVER ─── */
+.card-glow {
+  transition: box-shadow 0.35s ease, transform 0.35s cubic-bezier(0.22,1,0.36,1);
+}
+.card-glow:hover {
+  box-shadow: 0 20px 60px rgba(37,99,235,0.18), 0 4px 16px rgba(37,99,235,0.1);
+  transform: translateY(-8px);
+}
+
+/* ─── BEAM LINE ─── */
+@keyframes beam-sweep {
+  0%   { opacity: 0; transform: scaleX(0) translateX(-100%); }
+  30%  { opacity: 1; }
+  70%  { opacity: 1; }
+  100% { opacity: 0; transform: scaleX(1) translateX(0%); }
+}
+.beam-line {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #3b82f6, transparent);
+  animation: beam-sweep 3s ease-in-out infinite;
+}

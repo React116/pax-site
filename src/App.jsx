@@ -4,9 +4,10 @@ import { BrowserRouter as Router, Routes, Route, Link, useLocation, Navigate } f
 import SEO from './components/SEO';
 import { motion } from 'framer-motion';
 import {
-  fadeUp, stagger, staggerFast, slideLeft, slideRight,
+  fadeUp, stagger, staggerHero, staggerFast,
+  slideLeft, slideRight, scaleFade, heroTitle,
   floatY, floatYDelay, terminalHover,
-  sectionTitle, viewport,
+  sectionTitle, viewport, orbPulse,
 } from './utils/animations';
 import {
   ArrowRight, Menu, X, Code2, BrainCircuit, LineChart,
@@ -71,9 +72,9 @@ const ScrollToTop = () => {
   return null;
 };
 
-// --- ANİMASYON AYARLARI (utils/animations.js'ten alınan; geri uyumluluk takma adları) ---
-const fadeInUp        = fadeUp;
-const staggerContainer = stagger;
+// --- ANİMASYON TAKMA ADLARI ---
+const fadeInUp         = fadeUp;
+const staggerContainer = staggerHero;
 
 // --- COUNTER HOOK ---
 const useCountUp = (end, duration = 1800) => {
@@ -489,17 +490,25 @@ const AdvancedContactForm = () => {
   );
 };
 
-// --- İSTATİSTİKLER (AnimasyonLU) ---
-const StatCard = ({ end, suffix = '', label, desc, highlight }) => {
+// --- İSTATİSTİKLER ---
+const StatCard = ({ end, suffix = '', label, desc, highlight, index = 0 }) => {
   const { count, ref } = useCountUp(end);
   return (
-    <div ref={ref} className={`p-8 rounded-3xl text-center transition-all duration-300 hover:-translate-y-3 group ${highlight ? 'bg-gradient-to-br from-[#001F54] to-[#0f2b6b] shadow-2xl shadow-blue-900/40 border border-blue-400/20' : 'bg-white border-2 border-slate-100 shadow-sm hover:border-blue-200 hover:shadow-2xl'}`}>
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 50, scale: 0.85 }}
+      whileInView={{ opacity: 1, y: 0, scale: 1 }}
+      viewport={viewport}
+      transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: index * 0.1 }}
+      whileHover={{ y: -10, scale: 1.03, transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] } }}
+      className={`p-8 rounded-3xl text-center group ${highlight ? 'bg-gradient-to-br from-[#001F54] to-[#0f2b6b] shadow-2xl shadow-blue-900/40 border border-blue-400/20' : 'bg-white border-2 border-slate-100 shadow-sm hover:border-blue-200 hover:shadow-2xl'}`}
+    >
       <div className={`text-4xl md:text-5xl font-bold mb-2 font-serif group-hover:scale-110 transition-transform ${highlight ? 'text-white drop-shadow-lg' : 'text-[#001F54] group-hover:text-blue-600'}`}>
         {count}{suffix}
       </div>
       <div className={`text-xs font-bold uppercase tracking-widest mb-3 ${highlight ? 'text-blue-200' : 'text-slate-400'}`}>{label}</div>
       <p className={`text-xs leading-relaxed px-2 ${highlight ? 'text-blue-100' : 'text-slate-500'}`}>{desc}</p>
-    </div>
+    </motion.div>
   );
 };
 
@@ -507,10 +516,10 @@ const StatsSection = ({ t }) => (
   <div className="py-20 bg-slate-50 relative z-20">
     <div className="max-w-7xl mx-auto px-6">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-        <StatCard end={4} suffix="" label={t.stats.langTitle} desc={t.stats.langDesc} />
-        <StatCard end={48} suffix="h" label={t.stats.deployTitle} desc={t.stats.deployDesc} highlight />
-        <StatCard end={24} suffix="/7" label={t.stats.supportTitle} desc={t.stats.supportDesc} />
-        <StatCard end={10} suffix="+" label={t.stats.countryTitle} desc={t.stats.countryDesc} />
+        <StatCard end={4} suffix="" label={t.stats.langTitle} desc={t.stats.langDesc} index={0} />
+        <StatCard end={48} suffix="h" label={t.stats.deployTitle} desc={t.stats.deployDesc} highlight index={1} />
+        <StatCard end={24} suffix="/7" label={t.stats.supportTitle} desc={t.stats.supportDesc} index={2} />
+        <StatCard end={10} suffix="+" label={t.stats.countryTitle} desc={t.stats.countryDesc} index={3} />
       </div>
     </div>
   </div>
@@ -586,9 +595,9 @@ const HowItWorks = () => {
         >
           {steps.map((step, i) => (
             <motion.div key={i}
-              variants={fadeUp}
-              whileHover={{ y: -6, transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] } }}
-              className="tech-card relative rounded-2xl p-7 border border-slate-100 hover:shadow-xl transition-shadow duration-300 group cursor-default">
+              variants={scaleFade}
+              whileHover={{ y: -10, scale: 1.03, transition: { duration: 0.32, ease: [0.22, 1, 0.36, 1] } }}
+              className="tech-card relative rounded-2xl p-7 border border-slate-100 hover:border-blue-200 hover:shadow-[0_16px_48px_rgba(37,99,235,0.15)] transition-colors duration-300 group cursor-default">
               <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${step.color} flex items-center justify-center text-white mb-5 group-hover:scale-110 transition-transform shadow-lg`}>
                 {step.icon}
               </div>
@@ -622,13 +631,17 @@ const Testimonials = () => {
 
   return (
     <section className="py-24 bg-slate-50 border-t border-slate-100 overflow-hidden relative">
-      <div className="max-w-7xl mx-auto px-6 mb-12 text-center">
+      <motion.div
+        initial="hidden" whileInView="visible"
+        variants={sectionTitle} viewport={viewport}
+        className="max-w-7xl mx-auto px-6 mb-12 text-center"
+      >
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-50 border border-blue-100 text-blue-600 text-xs font-bold uppercase tracking-widest mb-6">
           <Star size={12} className="fill-blue-400" /> {t.testimonials.title}
         </div>
         <h2 className="text-3xl font-bold text-[#0f172a] font-serif mb-3">{t.testimonials.title}</h2>
         <p className="text-slate-500 text-sm">{t.testimonials.subtitle}</p>
-      </div>
+      </motion.div>
       <div className="relative w-full flex overflow-hidden">
         <div className="absolute top-0 left-0 w-24 h-full bg-gradient-to-r from-slate-50 to-transparent z-10 pointer-events-none"></div>
         <div className="absolute top-0 right-0 w-24 h-full bg-gradient-to-l from-slate-50 to-transparent z-10 pointer-events-none"></div>
@@ -695,17 +708,21 @@ const HomePage = () => {
       <section className="relative pt-40 pb-16 lg:pt-44 lg:pb-28 overflow-hidden bg-[#f8fafc]">
         {/* Grid pattern */}
         <div className="absolute inset-0 bg-[linear-gradient(rgba(148,163,184,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(148,163,184,0.08)_1px,transparent_1px)] bg-[size:40px_40px]" />
-        {/* Gradient orbs */}
-        <div className="absolute top-20 left-[10%] w-96 h-96 bg-blue-300/20 rounded-full blur-[100px] animate-blob pointer-events-none" />
-        <div className="absolute bottom-10 right-[5%] w-80 h-80 bg-violet-300/20 rounded-full blur-[80px] animate-blob-slow pointer-events-none" />
-        <div className="absolute top-40 right-[30%] w-64 h-64 bg-teal-300/15 rounded-full blur-[80px] animate-blob-slow pointer-events-none" />
+        {/* Animated orbs — Framer Motion */}
+        <motion.div {...orbPulse(0)}
+          className="absolute top-20 left-[10%] w-[480px] h-[480px] bg-blue-400/25 rounded-full blur-[120px] pointer-events-none" />
+        <motion.div {...orbPulse(2)}
+          className="absolute bottom-10 right-[5%] w-[380px] h-[380px] bg-violet-400/20 rounded-full blur-[100px] pointer-events-none" />
+        <motion.div {...orbPulse(4)}
+          className="absolute top-40 right-[30%] w-[300px] h-[300px] bg-cyan-400/15 rounded-full blur-[90px] pointer-events-none" />
 
         <div className="max-w-7xl mx-auto px-4 md:px-6 relative z-10">
           <div className="grid lg:grid-cols-2 gap-16 lg:gap-20 items-center">
 
             <motion.div initial="hidden" animate="visible" variants={staggerContainer}>
               {/* Badge */}
-              <motion.div variants={fadeInUp} className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-blue-100 shadow-sm mb-8">
+              <motion.div variants={scaleFade} className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-blue-100 shadow-lg mb-8 overflow-hidden relative">
+                <span className="badge-shimmer absolute inset-0 z-10 pointer-events-none" />
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
@@ -714,7 +731,7 @@ const HomePage = () => {
               </motion.div>
 
               {/* Title */}
-              <motion.h1 variants={fadeInUp} className="text-5xl lg:text-[5.5rem] font-bold text-[#0f172a] leading-[1.05] mb-6 font-serif tracking-tight">
+              <motion.h1 variants={heroTitle} className="text-5xl lg:text-[5.5rem] font-bold text-[#0f172a] leading-[1.05] mb-6 font-serif tracking-tight">
                 {t.hero.titleStart} <br />
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#2563EB] via-blue-500 to-cyan-500 animate-gradient-x">{t.hero.titleHighlight}</span>
                 <span className="text-cyan-500">.</span>
@@ -740,7 +757,7 @@ const HomePage = () => {
               </motion.div>
 
               <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-4">
-                <Link to="/cozumler" className="bg-[#001F54] text-white px-8 py-4 rounded-full font-bold text-sm hover:bg-[#0f172a] hover:scale-[1.02] transition-all shadow-xl shadow-blue-900/20 flex items-center justify-center gap-2 group">
+                <Link to="/cozumler" className="btn-glow bg-[#001F54] text-white px-8 py-4 rounded-full font-bold text-sm hover:bg-[#0f172a] hover:scale-[1.04] transition-all flex items-center justify-center gap-2 group">
                   {t.hero.btnDiscover} <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                 </Link>
                 <button
@@ -941,10 +958,12 @@ const HomePage = () => {
             {solutions.map((item, idx) => (
               <motion.div
                 key={idx}
-                initial="hidden" whileInView="visible" viewport={viewport}
-                variants={{ hidden: { opacity: 0, y: 28 }, visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: idx * 0.1 } } }}
-                whileHover={{ y: -8, transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] } }}
-                className="tech-card relative rounded-2xl p-8 border-2 border-slate-100 hover:border-blue-200 hover:shadow-[0_20px_60px_rgba(37,99,235,0.12)] transition-colors duration-300 flex flex-col h-full bg-white group overflow-hidden cursor-default">
+                initial={{ opacity: 0, y: 60, scale: 0.88 }}
+                whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                viewport={viewport}
+                transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: idx * 0.12 }}
+                whileHover={{ y: -12, scale: 1.02, transition: { duration: 0.35, ease: [0.22, 1, 0.36, 1] } }}
+                className="tech-card relative rounded-2xl p-8 border-2 border-slate-100 hover:border-blue-300 hover:shadow-[0_24px_64px_rgba(37,99,235,0.18)] transition-colors duration-300 flex flex-col h-full bg-white group overflow-hidden cursor-default">
                 {/* Top accent */}
                 <div className={`absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r ${idx === 0 ? 'from-blue-500 to-blue-600' : idx === 1 ? 'from-cyan-500 to-teal-500' : 'from-violet-500 to-violet-600'} scale-x-0 group-hover:scale-x-100 transition-transform origin-left`} />
                 <div className={`w-14 h-14 ${item.bg} rounded-2xl flex items-center justify-center mb-6 shadow-sm group-hover:scale-110 transition-transform`}>{item.icon}</div>
@@ -1046,9 +1065,9 @@ const HomePage = () => {
               ...whyIcons[i]
             })).map((item, i) => (
               <motion.div key={i}
-                variants={fadeUp}
-                whileHover={{ y: -5, transition: { duration: 0.28, ease: [0.22, 1, 0.36, 1] } }}
-                className="bg-white rounded-2xl p-7 border-2 border-slate-100 hover:border-blue-200 hover:shadow-xl transition-colors duration-300 flex gap-4 group cursor-default">
+                variants={scaleFade}
+                whileHover={{ y: -8, scale: 1.02, transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] } }}
+                className="bg-white rounded-2xl p-7 border-2 border-slate-100 hover:border-blue-300 hover:shadow-[0_16px_48px_rgba(37,99,235,0.15)] transition-colors duration-300 flex gap-4 group cursor-default">
                 <div className={`w-12 h-12 rounded-xl ${item.color} flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform`}>{item.icon}</div>
                 <div>
                   <h4 className="font-bold text-[#0f172a] mb-2 text-base">{item.title}</h4>
