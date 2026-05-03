@@ -5,7 +5,6 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const helmet = require('helmet');
 const compression = require('compression');
-const xss = require('xss-clean');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const rateLimit = require('express-rate-limit');
@@ -18,7 +17,6 @@ const app = express();
 // --- GÜVENLİK & PERFORMANS ---
 app.use(helmet());
 app.use(compression());
-app.use(xss());
 
 // --- CORS ---
 const ALLOWED_ORIGINS = [
