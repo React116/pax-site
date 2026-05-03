@@ -21,8 +21,20 @@ app.use(compression());
 app.use(xss());
 
 // --- CORS ---
+const ALLOWED_ORIGINS = [
+    'https://www.paxgroupglobal.com',
+    'https://paxgroupglobal.com',
+    'http://localhost:5173',
+    'http://localhost:4173',
+];
+if (process.env.FRONTEND_URL) ALLOWED_ORIGINS.push(process.env.FRONTEND_URL);
+
 app.use(cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    origin: (origin, callback) => {
+        // Postman / curl gibi origin'siz isteklere izin ver
+        if (!origin || ALLOWED_ORIGINS.includes(origin)) return callback(null, true);
+        callback(new Error('CORS: izin verilmeyen kaynak — ' + origin));
+    },
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
