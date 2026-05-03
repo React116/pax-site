@@ -27,15 +27,18 @@ const FaqPage         = lazy(() => import('./FaqPage'));
 const IntegrationsPage = lazy(() => import('./IntegrationsPage'));
 
 // --- PANEL VE AUTH (EAGER — küçük, kritik yol) ---
-import Register        from './Register';
-import Login           from './Login';
-import NotFoundPage    from './NotFoundPage';
-import BusinessSettings from './pages/BusinessSettings';
-import CalendarPage    from './pages/CalendarPage';
-import LeadsPage       from './pages/LeadsPage';
-import DashboardLayout  from './layouts/DashboardLayout';
+import Register          from './Register';
+import Login             from './Login';
+import NotFoundPage      from './NotFoundPage';
+import BusinessSettings  from './pages/BusinessSettings';
+import CalendarPage      from './pages/CalendarPage';
+import LeadsPage         from './pages/LeadsPage';
+import ServicesPage      from './pages/ServicesPage';
+import StaffPage         from './pages/StaffPage';
+import AppointmentsPage  from './pages/AppointmentsPage';
+import DashboardLayout   from './layouts/DashboardLayout';
 import DashboardOverview from './pages/DashboardOverview';
-import ProtectedRoute  from './ProtectedRoute';
+import ProtectedRoute    from './ProtectedRoute';
 import { LanguageProvider, useLanguage } from './LanguageContext';
 
 const PageLoader = () => (
@@ -1082,10 +1085,13 @@ function App() {
 
               {/* --- PANEL ROTALARI (NESTED) --- */}
               <Route path="/panel" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
-                <Route index element={<DashboardOverview />} />
-                <Route path="settings" element={<BusinessSettings />} />
-                <Route path="calendar" element={<CalendarPage />} />
-                <Route path="leads"    element={<LeadsPage />} />
+                <Route index          element={<DashboardOverview />} />
+                <Route path="settings"  element={<BusinessSettings />} />
+                <Route path="services"      element={<ServicesPage />} />
+                <Route path="staff"         element={<StaffPage />} />
+                <Route path="appointments"  element={<AppointmentsPage />} />
+                <Route path="calendar"      element={<CalendarPage />} />
+                <Route path="leads"     element={<LeadsPage />} />
               </Route>
 
               {/* --- 404 --- */}

@@ -1,16 +1,28 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 
-const ProtectedRoute = ({ children }) => {
-  // Hafızada kullanıcı adı var mı?
-  const isAuthenticated = localStorage.getItem("userName");
+// JWT payload'ını decode eder (imza doğrulaması olmadan — sadece expiry kontrolü için)
+const isTokenValid = (token) => {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    // exp: saniye cinsinden Unix timestamp
+    return payload.exp * 1000 > Date.now();
+  } catch {
+    return false;
+  }
+};
 
-  if (!isAuthenticated) {
-    // Yoksa Giriş sayfasına postala
+const ProtectedRoute = ({ children }) => {
+  const token    = localStorage.getItem('token');
+  const userName = localStorage.getItem('userName');
+
+  if (!token || !userName || !isTokenValid(token)) {
+    // Geçersiz veya süresi dolmuş token — temizle
+    localStorage.removeItem('token');
+    localStorage.removeItem('userName');
     return <Navigate to="/giris-yap" replace />;
   }
 
-  // Varsa sayfayı göster
   return children;
 };
 

@@ -1,86 +1,53 @@
 const BusinessProfile = require('../models/BusinessProfile');
 
-// 1. Profil Getirme
+const isProd = process.env.NODE_ENV === 'production';
+
 const getProfile = async (req, res) => {
   try {
     const profile = await BusinessProfile.findOne({ userId: req.user.id });
-    if (!profile) {
-      return res.status(200).json({});
-    }
+    if (!profile) return res.status(200).json({});
     res.json(profile);
   } catch (err) {
-    console.error("Profil Getirme Hatası:", err.message);
-    res.status(500).json({ message: 'Server Hatası: Veri çekilemedi.' });
+    if (!isProd) console.error('Profil Getirme Hatası:', err.message);
+    res.status(500).json({ message: 'Veri çekilemedi.' });
   }
 };
 
-// 2. Profil Güncelleme (HATA ÇÖZÜMÜ BURADA)
 const updateProfile = async (req, res) => {
-  console.log("📡 GÜNCELLEME İSTEĞİ:", req.user.id);
-
   try {
     const updates = { ...req.body };
-    // Mevcut profili okuyup kritik alanları korumak için kullanacağız.
-const existingProfile = await BusinessProfile.findOne({ userId: req.user.id });
 
-// --- GÜVENLİK VE TEMİZLİK ---
-delete updates.userId;
-delete updates._id;
-delete updates.createdAt;
-delete updates.updatedAt;
-
-// --- İŞLETME TÜRÜ: TEK SEFERLİK SEÇİM ---
-// businessTypeLocked=true ise businessType değişikliğini reddeder/korur.
-// İlk seçimde (kilitli değilken) businessType gönderildiyse otomatik kilitler.
-if (existingProfile?.businessTypeLocked) {
-  // Kilitliyse her zaman DB'deki businessType'ı koru
-  updates.businessType = existingProfile.businessType;
-  updates.businessTypeLocked = true;
-} else {
-  // Kilitli değilse ve frontend businessType gönderiyorsa kilitle
-  if (typeof updates.businessType !== 'undefined') {
-    updates.businessTypeLocked = true;
-  }
-}
-
-
-    // --- GÜVENLİK VE TEMİZLİK ---
+    // Korunan alanları temizle
     delete updates.userId;
     delete updates._id;
     delete updates.createdAt;
     delete updates.updatedAt;
 
-    // --- KRİTİK DÜZELTME: CAMPAIGNS ---
-    // Eğer frontend'den campaigns geliyorsa ve dizi değilse, boş dizi yap.
-    // Bu, "Cast to embedded failed" hatasını önler.
-    if (updates.campaigns && !Array.isArray(updates.campaigns)) {
-        console.log("⚠️ Uyarı: Campaigns dizi değil, düzeltiliyor...");
-        updates.campaigns = [];
+    // İşletme türü kilidi
+    const existingProfile = await BusinessProfile.findOne({ userId: req.user.id });
+    if (existingProfile?.businessTypeLocked) {
+      updates.businessType = existingProfile.businessType;
+      updates.businessTypeLocked = true;
+    } else if (typeof updates.businessType !== 'undefined') {
+      updates.businessTypeLocked = true;
     }
 
-    // Veritabanı İşlemi
+    // campaigns dizi değilse temizle
+    if (updates.campaigns && !Array.isArray(updates.campaigns)) {
+      updates.campaigns = [];
+    }
+
     const profile = await BusinessProfile.findOneAndUpdate(
       { userId: req.user.id },
       { $set: updates },
       { new: true, upsert: true, runValidators: true }
     );
 
-    console.log("✅ Başarıyla Kaydedildi.");
     res.json(profile);
-
   } catch (err) {
-    console.error("❌ KAYIT HATASI DETAYI:", err);
-    
-    // BURASI DÜZELTİLDİ: Artık düz yazı (send) yerine JSON gönderiyoruz.
-    // Frontend artık "Unexpected token S" hatası vermeyecek, gerçek hatayı gösterecek.
-    res.status(500).json({ 
-        message: 'Kaydedilemedi: ' + (err.message || 'Bilinmeyen sunucu hatası'),
-        error: err.toString()
-    });
+    if (!isProd) console.error('Kayıt Hatası:', err.message);
+    res.status(500).json({ message: 'Kaydedilemedi.' });
   }
 };
 
-module.exports = {
-  getProfile,
-  updateProfile
-};
+module.exports = { getProfile, updateProfile };
