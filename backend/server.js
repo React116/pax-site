@@ -3,6 +3,9 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const helmet = require('helmet');
+const compression = require('compression');
+const xss = require('xss-clean');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const rateLimit = require('express-rate-limit');
@@ -11,6 +14,11 @@ const Lead = require('./models/Lead');
 const businessRoutes = require('./routes/businessRoutes');
 
 const app = express();
+
+// --- GÜVENLİK & PERFORMANS ---
+app.use(helmet());
+app.use(compression());
+app.use(xss());
 
 // --- CORS ---
 app.use(cors({
@@ -87,6 +95,14 @@ const validateAuthInput = (email, password) => {
     return null;
 };
 
+// --- LOGLAMA (production'da console'u kapat) ---
+const log = process.env.NODE_ENV === 'production'
+    ? () => {}
+    : console.log;
+const logError = (msg, err) => {
+    if (process.env.NODE_ENV !== 'production') console.error(msg, err?.message || err);
+};
+
 // --- ANA ROTA ---
 app.get('/', (req, res) => res.json({ status: 'ok', message: 'PAX Backend v4' }));
 
@@ -116,7 +132,7 @@ app.post('/api/auth/register', authLimiter, async (req, res) => {
 
         res.status(201).json({ message: 'Kayıt başarılı.' });
     } catch (e) {
-        console.error('Register hatası:', e.message);
+        logError('Register hatası:', e);
         res.status(500).json({ message: 'Sunucu hatası.' });
     }
 });
@@ -141,7 +157,7 @@ app.post('/api/auth/login', authLimiter, async (req, res) => {
             user: { name: user.name, company: user.company }
         });
     } catch (e) {
-        console.error('Login hatası:', e.message);
+        logError('Login hatası:', e);
         res.status(500).json({ message: 'Sunucu hatası.' });
     }
 });
@@ -178,12 +194,44 @@ app.post('/api/leads', leadLimiter, async (req, res) => {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ leadId: lead._id, ...lead.toObject() }),
-            }).catch((err) => console.error('n8n webhook hatası:', err.message));
+            }).catch((err) => logError('n8n webhook hatası:', err));
         }
 
         res.status(201).json({ message: 'Talebiniz alındı. En kısa sürede dönüş yapacağız.' });
     } catch (err) {
-        console.error('Lead kayıt hatası:', err.message);
+        logError('Lead kayıt hatası:', err);
+        res.status(500).json({ message: 'Sunucu hatası.' });
+    }
+});
+
+// --- LEAD YÖNETİMİ (auth gerekli) ---
+app.get('/api/leads', authenticateToken, async (req, res) => {
+    try {
+        const page  = Math.max(1, parseInt(req.query.page)  || 1);
+        const limit = Math.min(50, parseInt(req.query.limit) || 20);
+        const skip  = (page - 1) * limit;
+        const filter = req.query.status ? { status: req.query.status } : {};
+
+        const [leads, total] = await Promise.all([
+            Lead.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
+            Lead.countDocuments(filter),
+        ]);
+        res.json({ leads, total, page, pages: Math.ceil(total / limit) });
+    } catch (err) {
+        logError('Lead listesi hatası:', err);
+        res.status(500).json({ message: 'Sunucu hatası.' });
+    }
+});
+
+app.get('/api/leads/stats', authenticateToken, async (req, res) => {
+    try {
+        const [total, byStatus] = await Promise.all([
+            Lead.countDocuments(),
+            Lead.aggregate([{ $group: { _id: '$status', count: { $sum: 1 } } }]),
+        ]);
+        res.json({ total, byStatus });
+    } catch (err) {
+        logError('Lead stats hatası:', err);
         res.status(500).json({ message: 'Sunucu hatası.' });
     }
 });
@@ -206,7 +254,7 @@ app.post('/api/calendar', authenticateToken, calendarLimiter, async (req, res) =
         });
         res.status(201).json(newEvent);
     } catch (error) {
-        console.error('Ekleme Hatası:', error.message);
+        logError('Ekleme Hatası:', error);
         res.status(500).json({ error: 'Eklenemedi.' });
     }
 });
@@ -220,7 +268,7 @@ app.put('/api/calendar/:id', authenticateToken, calendarLimiter, async (req, res
         );
         res.json(updatedEvent);
     } catch (error) {
-        console.error('Güncelleme Hatası:', error.message);
+        logError('Güncelleme Hatası:', error);
         res.status(500).json({ error: 'Güncellenemedi.' });
     }
 });

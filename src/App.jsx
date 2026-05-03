@@ -23,10 +23,12 @@ const SolutionsPage   = lazy(() => import('./SolutionsPage'));
 const StoryPage       = lazy(() => import('./HikayeSayfasi'));
 const CaseStudiesPage = lazy(() => import('./CaseStudiesPage'));
 const BlogPage        = lazy(() => import('./BlogPage'));
+const FaqPage         = lazy(() => import('./FaqPage'));
 
 // --- PANEL VE AUTH (EAGER — küçük, kritik yol) ---
 import Register        from './Register';
 import Login           from './Login';
+import NotFoundPage    from './NotFoundPage';
 import BusinessSettings from './pages/BusinessSettings';
 import CalendarPage    from './pages/CalendarPage';
 import DashboardLayout  from './layouts/DashboardLayout';
@@ -294,7 +296,7 @@ const Navbar = () => {
 const Footer = () => {
   const { t } = useLanguage();
   return (
-    <footer className="bg-[#0f172a] text-slate-400 pt-16 pb-8 border-t border-slate-800 font-sans text-sm">
+    <footer className="bg-[#0f172a] text-slate-300 pt-16 pb-8 border-t border-slate-800 font-sans text-sm">
       <div className="max-w-7xl mx-auto px-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
           <div className="space-y-6">
@@ -308,6 +310,7 @@ const Footer = () => {
             <ul className="space-y-4">
               <li><Link to="/basari-hikayeleri" className="hover:text-blue-400 transition-colors">{t.nav.successStories}</Link></li>
               <li><Link to="/blog" className="hover:text-blue-400 transition-colors">{t.nav.blog}</Link></li>
+              <li><Link to="/sss" className="hover:text-blue-400 transition-colors">SSS</Link></li>
               <li><Link to="/gizlilik-politikasi" className="hover:text-blue-400 transition-colors">{t.footer.legal}</Link></li>
               <li><Link to="/kullanim-kosullari" className="hover:text-blue-400 transition-colors">{t.footer.terms}</Link></li>
               <li><Link to="/cerez-politikasi" className="hover:text-blue-400 transition-colors">{t.footer.cookies}</Link></li>
@@ -725,6 +728,29 @@ const HomePage = () => {
               </motion.div>
             </motion.div>
 
+            {/* ─── MOBİL: MİNİ STATS KARTI ─── */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.4 }}
+              className="lg:hidden grid grid-cols-2 gap-3 mt-2"
+            >
+              {[
+                { icon: <Zap size={18} className="text-cyan-500" />, val: "48h", label: "Canlıya Geçiş" },
+                { icon: <Globe size={18} className="text-blue-500" />, val: "10+", label: "Ülke" },
+                { icon: <ShieldCheck size={18} className="text-green-500" />, val: "24/7", label: "Destek" },
+                { icon: <BrainCircuit size={18} className="text-violet-500" />, val: "AI", label: "Yerel Altyapı" },
+              ].map((s, i) => (
+                <div key={i} className="bg-white border border-slate-100 rounded-2xl p-4 flex items-center gap-3 shadow-sm">
+                  <div className="w-9 h-9 bg-slate-50 rounded-xl flex items-center justify-center shrink-0">{s.icon}</div>
+                  <div>
+                    <div className="font-bold text-[#001F54] text-sm">{s.val}</div>
+                    <div className="text-[11px] text-slate-400">{s.label}</div>
+                  </div>
+                </div>
+              ))}
+            </motion.div>
+
             {/* ─── SAĞ: DARK CODE TERMİNAL ─── */}
             <motion.div
               initial={{ opacity: 0, x: 50 }}
@@ -1008,6 +1034,7 @@ function App() {
               <Route path="/fiyatlar" element={<PricingPage />} />
               <Route path="/cozumler" element={<SolutionsPage />} />
               <Route path="/hikayemiz" element={<StoryPage />} />
+              <Route path="/sss" element={<FaqPage />} />
 
               <Route path="/giris-yap" element={<Login />} />
               <Route path="/kayit-ol" element={<Register />} />
@@ -1018,6 +1045,9 @@ function App() {
                 <Route path="settings" element={<BusinessSettings />} />
                 <Route path="calendar" element={<CalendarPage />} />
               </Route>
+
+              {/* --- 404 --- */}
+              <Route path="*" element={<NotFoundPage />} />
 
             </Routes>
             </Suspense>

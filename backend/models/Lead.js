@@ -10,6 +10,14 @@ const LeadSchema = new mongoose.Schema({
   intent:        { type: String, default: '' },
   wantsWhatsApp: { type: Boolean, default: false },
   source:        { type: String, default: 'website' },
+  // CRM alanları
+  status:        { type: String, enum: ['new', 'contacted', 'converted', 'lost'], default: 'new' },
+  score:         { type: Number, default: 0 },
+  assignedTo:    { type: String, default: '' },
+  notes:         { type: String, default: '' },
 }, { timestamps: true });
+
+LeadSchema.index({ email: 1 });
+LeadSchema.index({ status: 1, createdAt: -1 });
 
 module.exports = mongoose.model('Lead', LeadSchema);

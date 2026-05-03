@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:wght@600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
+/* Google Fonts loaded via <link> in index.html for better performance */
 
 @tailwind base;
 @tailwind components;
@@ -107,6 +107,24 @@ h1, h2, h3, h4, h5, h6 {
 .glow-blue  { box-shadow: 0 0 30px rgba(37, 99, 235, 0.35); }
 .glow-teal  { box-shadow: 0 0 30px rgba(20, 184, 166, 0.35); }
 .glow-purple { box-shadow: 0 0 30px rgba(139, 92, 246, 0.35); }
+
+/* ─── REDUCED MOTION (a11y) ─── */
+@media (prefers-reduced-motion: reduce) {
+  .animate-blob,
+  .animate-blob-slow,
+  .animate-float,
+  .animate-float-delay,
+  .animate-gradient-x,
+  .animate-spin-slow,
+  .animate-shimmer,
+  .animate-scan,
+  .animate-cursor,
+  .animate-fade-in-up,
+  .animate-count {
+    animation: none !important;
+    transition: none !important;
+  }
+}
 
 /* Tech card gradient border */
 .tech-card {

@@ -37,11 +37,11 @@ const translations = {
     },
     hero: {
       badge: "ZEKA MÜHENDİSLİĞİ",
-      titleStart: "Ticaretin",
-      titleHighlight: "Sinir Ağı",
-      desc: "PAX GROUP, modern işletmeler için AI-yerel altyapılar inşa ediyor. Otonom ajanlardan özel SaaS mimarilerine kadar, dijital geleceği bugünden kuruyoruz.",
+      titleStart: "Operasyonlarınızı",
+      titleHighlight: "Otomatikleştirin",
+      desc: "PAX GROUP, işletmelerin tekrar eden süreçlerini AI ile otomatikleştirir. Müşteri iletişiminden randevu yönetimine, satış takibinden raporlamaya — 48 saatte canlıya geçin.",
       btnDiscover: "Çözümleri Keşfedin",
-      btnContact: "İletişim"
+      btnContact: "Ücretsiz Demo Al"
     },
     stats: {
       langTitle: "Dil Desteği",
@@ -211,12 +211,12 @@ const translations = {
       goPanel: "Go to Panel"
     },
     hero: {
-      badge: "INTELLIGENCE ENGINEERING",
-      titleStart: "Neural Network",
-      titleHighlight: "of Commerce",
-      desc: "PAX GROUP builds AI-native infrastructures for modern businesses. From autonomous agents to custom SaaS architectures, we are engineering the digital future today.",
-      btnDiscover: "Discover Solutions",
-      btnContact: "Contact Us"
+      badge: "AI-DRIVEN AUTOMATION",
+      titleStart: "Automate Your",
+      titleHighlight: "Operations",
+      desc: "PAX GROUP helps businesses eliminate repetitive work with AI. From customer communication to appointment management — go live in 48 hours.",
+      btnDiscover: "Explore Solutions",
+      btnContact: "Get a Free Demo"
     },
     stats: {
       langTitle: "Languages",
@@ -386,12 +386,12 @@ const translations = {
       goPanel: "Перейти в кабинет"
     },
     hero: {
-      badge: "ИНЖЕНЕРИЯ ИНТЕЛЛЕКТА",
-      titleStart: "Нейронная сеть",
-      titleHighlight: "бизнеса",
-      desc: "PAX GROUP строит AI-нативные инфраструктуры для современного бизнеса. От автономных агентов до SaaS-архитектур — мы создаём цифровое будущее уже сегодня.",
-      btnDiscover: "Открыть решения",
-      btnContact: "Связаться"
+      badge: "AI-АВТОМАТИЗАЦИЯ",
+      titleStart: "Автоматизируйте",
+      titleHighlight: "Операции",
+      desc: "PAX GROUP помогает бизнесу устранить рутинные процессы с помощью ИИ. От общения с клиентами до записи на приём — запуск за 48 часов.",
+      btnDiscover: "Изучить решения",
+      btnContact: "Получить демо"
     },
     stats: {
       langTitle: "Языков поддержки",
@@ -561,12 +561,12 @@ const translations = {
       goPanel: "Idi na panel"
     },
     hero: {
-      badge: "INŽENJERING INTELIGENCIJE",
-      titleStart: "Neuronska mreža",
-      titleHighlight: "biznisa",
-      desc: "PAX GROUP gradi AI-nativne infrastrukture za moderna preduzeća. Od autonomnih agenata do SaaS arhitektura, gradimo digitalnu budućnost već danas.",
+      badge: "AI AUTOMATIZACIJA",
+      titleStart: "Automatizujte",
+      titleHighlight: "Operacije",
+      desc: "PAX GROUP pomaže preduzećima da eliminišu ponavljajuće procese uz pomoć AI. Od komunikacije s klijentima do zakazivanja — pokretanje za 48 sati.",
       btnDiscover: "Istražite rješenja",
-      btnContact: "Kontaktirajte nas"
+      btnContact: "Besplatna demo"
     },
     stats: {
       langTitle: "Jezičke podrške",
