@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Settings, Calendar, BarChart3, LogOut, Bot, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Settings, Calendar, BarChart3, LogOut, Bot, Menu, X, Users } from 'lucide-react';
 
 const menuItems = [
   { path: '/panel',           icon: <LayoutDashboard size={20} />, label: 'Genel Bakış',     exact: true },
   { path: '/panel/settings',  icon: <Settings size={20} />,        label: 'İşletme Ayarları' },
   { path: '/panel/calendar',  icon: <Calendar size={20} />,        label: 'Takvim & Ajanda' },
+  { path: '/panel/leads',     icon: <Users size={20} />,           label: 'Leads & Talepler' },
   { path: '/panel/stats',     icon: <BarChart3 size={20} />,       label: 'İstatistikler'   },
 ];
 

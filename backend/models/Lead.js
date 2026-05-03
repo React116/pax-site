@@ -10,6 +10,9 @@ const LeadSchema = new mongoose.Schema({
   intent:        { type: String, default: '' },
   wantsWhatsApp: { type: Boolean, default: false },
   source:        { type: String, default: 'website' },
+  utmSource:     { type: String, default: '' },
+  utmMedium:     { type: String, default: '' },
+  utmCampaign:   { type: String, default: '' },
   // CRM alanları
   status:        { type: String, enum: ['new', 'contacted', 'converted', 'lost'], default: 'new' },
   score:         { type: Number, default: 0 },

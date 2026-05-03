@@ -57,9 +57,20 @@ const CalendarPage = () => {
   const token = localStorage.getItem('token');
 
   // --- 1. VERİLERİ ÇEK ---
+  useEffect(() => { fetchData(); }, []);
+
+  // --- ESCAPE TUŞU ---
   useEffect(() => {
-    fetchData();
-  }, []);
+    const onKey = (e) => {
+      if (e.key !== 'Escape') return;
+      if (deleteTarget) { setDeleteTarget(null); return; }
+      if (showModal)    { setShowModal(false); resetForm(); return; }
+      if (dragConfirm)  { setDragConfirm(null); return; }
+      if (selectedEvent){ setSelectedEvent(null); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [deleteTarget, showModal, dragConfirm, selectedEvent]);
 
   const fetchData = async () => {
     if (!token) return;

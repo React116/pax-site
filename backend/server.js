@@ -165,7 +165,7 @@ app.post('/api/auth/login', authLimiter, async (req, res) => {
 // --- LEAD FORMU ---
 app.post('/api/leads', leadLimiter, async (req, res) => {
     try {
-        const { name, phone, email, sector, platforms, customerCount, intent, wantsWhatsApp } = req.body;
+        const { name, phone, email, sector, platforms, customerCount, intent, wantsWhatsApp, utmSource, utmMedium, utmCampaign } = req.body;
 
         if (!name || typeof name !== 'string' || name.trim().length < 2) {
             return res.status(400).json({ message: 'İsim alanı gereklidir.' });
@@ -186,6 +186,9 @@ app.post('/api/leads', leadLimiter, async (req, res) => {
             customerCount: customerCount?.trim() || '',
             intent: intent?.trim() || '',
             wantsWhatsApp: wantsWhatsApp === true || wantsWhatsApp === 'true',
+            utmSource:     utmSource?.trim()   || '',
+            utmMedium:     utmMedium?.trim()   || '',
+            utmCampaign:   utmCampaign?.trim() || '',
         });
 
         // n8n webhook (opsiyonel — env var tanımlıysa ilet)

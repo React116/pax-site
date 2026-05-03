@@ -32,6 +32,7 @@ import Login           from './Login';
 import NotFoundPage    from './NotFoundPage';
 import BusinessSettings from './pages/BusinessSettings';
 import CalendarPage    from './pages/CalendarPage';
+import LeadsPage       from './pages/LeadsPage';
 import DashboardLayout  from './layouts/DashboardLayout';
 import DashboardOverview from './pages/DashboardOverview';
 import ProtectedRoute  from './ProtectedRoute';
@@ -342,6 +343,16 @@ const Footer = () => {
   );
 };
 
+// --- UTM YARDIMCISI ---
+const getUtmParams = () => {
+  // Önce sessionStorage'a bak (sayfa geçişlerinde kaybolmasın)
+  try {
+    const stored = sessionStorage.getItem('utm');
+    if (stored) return JSON.parse(stored);
+  } catch { /* ignore */ }
+  return { utmSource: '', utmMedium: '', utmCampaign: '' };
+};
+
 // --- İLETİŞİM FORMU ---
 const AdvancedContactForm = () => {
   const [formStatus, setFormStatus] = useState(null);
@@ -365,6 +376,7 @@ const AdvancedContactForm = () => {
       customerCount: raw.get('Müşteri_Sayısı') || '',
       intent:        raw.get('Niyet') || '',
       wantsWhatsApp: raw.get('WhatsApp_Dönüş_İstiyor') === 'EVET',
+      ...getUtmParams(),
     };
 
     try {
@@ -1026,6 +1038,19 @@ const Layout = ({ children }) => {
 };
 
 function App() {
+  // UTM parametrelerini URL'den yakala, sessionStorage'a kaydet
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const utm = {
+      utmSource:   params.get('utm_source')   || '',
+      utmMedium:   params.get('utm_medium')   || '',
+      utmCampaign: params.get('utm_campaign') || '',
+    };
+    if (utm.utmSource || utm.utmMedium || utm.utmCampaign) {
+      try { sessionStorage.setItem('utm', JSON.stringify(utm)); } catch { /* ignore */ }
+    }
+  }, []);
+
   return (
     <HelmetProvider>
     <LanguageProvider>
@@ -1060,6 +1085,7 @@ function App() {
                 <Route index element={<DashboardOverview />} />
                 <Route path="settings" element={<BusinessSettings />} />
                 <Route path="calendar" element={<CalendarPage />} />
+                <Route path="leads"    element={<LeadsPage />} />
               </Route>
 
               {/* --- 404 --- */}
