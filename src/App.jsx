@@ -2,11 +2,11 @@ import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { HelmetProvider } from 'react-helmet-async';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
 import SEO from './components/SEO';
-import { motion, useReducedMotion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
-  fadeUp, stagger, staggerFast, slideRight, scaleFade,
-  hoverLift, hoverSubtle, floatY, floatYDelay, terminalHover,
-  sectionTitle, viewport, viewportLazy,
+  fadeUp, stagger, staggerFast, slideLeft, slideRight,
+  floatY, floatYDelay, terminalHover,
+  sectionTitle, viewport,
 } from './utils/animations';
 import {
   ArrowRight, Menu, X, Code2, BrainCircuit, LineChart,
